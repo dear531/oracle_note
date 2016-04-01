@@ -1,3 +1,6 @@
+lsnrctl start --运行书库软件
+lsnrctl stop --停止数据库软件
+lsnrctl status --查看数据库功能
 $ sqlplus / as sysdba 以sys管理员身份链接oracle
 SQL> startup 启动数据库
 SQL> set echo on/off 开启和关闭脚本执行命令回显
@@ -25,7 +28,7 @@ hello
 在引用的脚本中再应用当前目录下的脚本，而能够不受调用路径影响，用两个@@：
 @@abc.sql
 
-导出执行日志：
+开启导出执行日志功能：(从此刻开始的命令以及提示都会被保存在日志文件中）
 spool filename(.sql)/filename.define_suffix
 
 关闭输出保存
