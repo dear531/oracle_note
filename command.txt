@@ -68,3 +68,6 @@ SQL> drop function wordcount;
 
 Function dropped.
 
+SHO(W) ERROR --显示错误
+SHO(W) ERROR category(种类。例如fuction) [schema.]object(例如函数名）
+example: show error fuction my_fuction_custom --查询一个自定义函数的相关错误
