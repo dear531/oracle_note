@@ -1,9 +1,7 @@
-test.o:%.o:%.c
-	gcc $< -o $@ -I $(ORACLE_HOME)/precomp/public -L $(ORACLE_HOME)/lib -l clntsh
+test:test.c
+	gcc $^ -o $@ -I $(ORACLE_HOME)/precomp/public -L $(ORACLE_HOME)/lib -l clntsh
 test.c:%.c:%.pc
 	proc iname=$< oname=$@
-test:%.o
-	gcc -o $@ $^ -I $(ORACLE_HOME)/precomp/public -L $(ORACLE_HOME)/lib -l clntsh
 clean:
 	-rm -rf *.c *.o *.cc *~ *.lis  test
 .PHONY:
