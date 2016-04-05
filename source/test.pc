@@ -1,0 +1,33 @@
+#include <stdio.h>   
+#include <stdlib.h>   
+#include <string.h>
+  
+//#include <process.h>    
+#include <errno.h>    
+  
+//EXEC SQL INCLUDE SQLCA;   
+#include <sqlca.h>   
+  
+int main(int argc, char* argv[])  
+{  
+    EXEC SQL BEGIN DECLARE SECTION;  
+    VARCHAR myusername[20], mypassword[20], myserver[20];  
+    EXEC SQL END DECLARE SECTION;  
+  
+    printf( "\n请输入用户名：" );  
+    gets( (char*)myusername.arr );  
+    myusername.len = (unsigned short) strlen( (char*)myusername.arr );  
+    printf( "\n请输入口令：" );  
+    gets( (char*)mypassword.arr );  
+    mypassword.len = (unsigned short) strlen( (char*)mypassword.arr );  
+    printf("\n请输入服务器名：");  
+    gets( (char*)myserver.arr );  
+    myserver.len = (unsigned short) strlen( (char*)myserver.arr );  
+    EXEC SQL CONNECT :myusername IDENTIFIED BY :mypassword USING :myserver;  
+      
+    if(sqlca.sqlcode < 0 )  
+        printf (" \n用户%s成功地连接到了服务器%s上！\n" , myusername.arr, myserver.arr);   
+    else  
+        printf("\n%ld,%s\n", sqlca.sqlcode,(char *)sqlca.sqlerrm.sqlerrmc);  
+    return 0;  
+}  
