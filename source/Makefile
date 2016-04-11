@@ -1,5 +1,8 @@
-test:test.c
+FLAGS   := -Wall -c
+test:test.o
 	gcc $^ -o $@ -I $(ORACLE_HOME)/precomp/public -L $(ORACLE_HOME)/lib -l clntsh
+test.o:%.o:%.c
+	gcc $(FLAGS) $< -o $@ -I $(ORACLE_HOME)/precomp/public
 test.c:%.c:%.pc
 	proc iname=$< oname=$@
 clean:
