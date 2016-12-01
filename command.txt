@@ -116,5 +116,61 @@ yf02
 yf03
 
 6 rows selected.
+==========================
+设置变量的值
+SQL> variable x varchar2(10);
+SQL> begin   
+  2     :x := 'hellox';
+  3  end;
+  4  /
 
+PL/SQL procedure successfully completed.
+
+SQL> print x;
+
+X
+--------------------------------
+hellox
+========================
+--spool logfilename[.lst]或 logfilename.costomsuffix
+设置输出日志
+SQL> spool report 
+SQL> set serveroutput on 
+SQL> set echo on;
+SQL> @set_variable.sql
+SQL> variable x varchar2(10);
+SQL> begin
+  2          :x := 'hello';
+  3  end;
+  4  /
+
+PL/SQL procedure successfully completed.
+
+SQL> print :x;
+
+X
+--------------------------------
+hello
+
+SQL> spool off;
+====================
+设置编辑器
+SQL> define _editor = /bin/vi
+SQL> edit
+Wrote file afiedt.buf
+Error detected while processing /home/oracle/.vimrc:
+line   56:
+E518: Unknown option: autochdir
+Press ENTER or type command to continue
+
+  1* select * from t2
+SQL>    
+=====================
+全局登录脚本设置文件名：
+$ORACLE_HOME/sqlplus/admin/glogin.sql
+====================
+脚本执行时错误则停止设置
+whenever sqlerror exit sql.sqlcode;
+或
+whenever sqlerror exit  sql.sqlcode rollback
 
