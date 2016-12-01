@@ -189,4 +189,44 @@ yf02
 yf03
 
 6 rows selected.
+=======================
+错误内容查看命令，配合wordcount.sql脚本将第四行注释掉
+内容详细讲解在sql程序设计第五版的第37页
+SQL> @wordcount.sql
+SQL> create or replace function wordcount(str in varchar2)
+  2          return pls_integer
+  3  as
+  4          /* words pls_integer := 0; */
+  5          len pls_integer := nvl(length(str), 0);
+  6          inside_a_word boolean;
+  7  begin
+  8          for i in 1..len + 1
+  9          loop
+ 10                  if ascii(substr(str, i, 1)) < 33 or i > len
+ 11                  then
+ 12                          if inside_a_word
+ 13                          then
+ 14                                  words := words + 1;
+ 15                                  inside_a_word := false;
+ 16                          end if;
+ 17                  else
+ 18                          inside_a_word := true;
+ 19                  end if;
+ 20          end loop;
+ 21          return words;
+ 22  end;
+ 23  /
+
+Warning: Function created with compilation errors.
+
+SQL> show errors function wordcount
+Errors for FUNCTION WORDCOUNT:
+
+LINE/COL ERROR
+-------- -----------------------------------------------------------------
+14/5     PL/SQL: Statement ignored
+14/5     PLS-00201: identifier 'WORDS' must be declared
+21/2     PL/SQL: Statement ignored
+21/9     PLS-00201: identifier 'WORDS' must be declared
+SQL> 
 
