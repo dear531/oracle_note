@@ -173,4 +173,20 @@ $ORACLE_HOME/sqlplus/admin/glogin.sql
 whenever sqlerror exit sql.sqlcode;
 或
 whenever sqlerror exit  sql.sqlcode rollback
+====================
+代参数调用脚本
+SQL> @agv.sql g1_name t1                        
+old   1: select &1 from &2
+new   1: select g1_name from t1
+
+G1_NAME
+---------------
+yf01
+yf01
+yf01
+yf02
+yf02
+yf03
+
+6 rows selected.
 
