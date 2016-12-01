@@ -229,4 +229,8 @@ LINE/COL ERROR
 21/2     PL/SQL: Statement ignored
 21/9     PLS-00201: identifier 'WORDS' must be declared
 SQL> 
+===================
+查看数据库中的函数的信息
+select count(*) from user_objects;
+describe wordcount;
 
