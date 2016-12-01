@@ -63,6 +63,7 @@ SQL> revoke execute on wordcount from scott;
 
 Revoke succeeded.
 
+-----------------------
 删除函数：
 SQL> drop function wordcount;
 
@@ -70,6 +71,7 @@ Function dropped.
 
 SHO(W) ERROR --显示错误
 SHO(W) ERROR category(种类。例如fuction) [schema.]object(例如函数名）
+-----------------------
 example: show error fuction my_fuction_custom --查询一个自定义函数的相关错误
 --#脚本执行
 相对路径：
@@ -81,3 +83,38 @@ example: show error fuction my_fuction_custom --查询一个自定义函数的�
 SQL> start abs[.sql]
 --#查看内置变量和配置的值
 SQL> show all;
+
+===================
+sqlplus内置变量设置
+SQL> define x="g1_name"
+SQL> select '&x' from t1;
+old   1: select '&x' from t1
+new   1: select 'g1_name' from t1
+
+'G1_NAM
+-------
+g1_name
+g1_name
+g1_name
+g1_name
+g1_name
+g1_name
+
+6 rows selected.
+
+SQL> select &x from t1;
+old   1: select &x from t1
+new   1: select g1_name from t1
+
+G1_NAME
+---------------
+yf01
+yf01
+yf01
+yf02
+yf02
+yf03
+
+6 rows selected.
+
+
