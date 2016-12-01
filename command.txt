@@ -71,3 +71,13 @@ Function dropped.
 SHO(W) ERROR --显示错误
 SHO(W) ERROR category(种类。例如fuction) [schema.]object(例如函数名）
 example: show error fuction my_fuction_custom --查询一个自定义函数的相关错误
+--#脚本执行
+相对路径：
+@abc.sql 或 @abc
+--此两个命令都是等价的，都会寻找当前路径下的abc.sql文件，如果不加扩展名，命令会自动添加扩展名
+绝对路径：
+--绝对路径则添加整个脚本所在的路径即可
+"@" 与 start 命令是等价的
+SQL> start abs[.sql]
+--#查看内置变量和配置的值
+SQL> show all;
