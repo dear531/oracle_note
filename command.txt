@@ -233,4 +233,39 @@ SQL>
 查看数据库中的函数的信息
 select count(*) from user_objects;
 describe wordcount;
+==================
+创建和删除别名，授权函数权限给其他用户
+第41页，oracle程序设计
+==================
+数据库连接及用户名解锁
+[oracle@ctos oracle]$ sqlplus /nolog
+
+SQL*Plus: Release 11.2.0.1.0 Production on Fri Dec 2 11:33:44 2016
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+SQL> connect sys/oracle as sysdba
+Connected.
+SQL> alter user scott account unlock;
+
+User altered.
+
+=========================
+在脚本中传入参数
+$ cat agv.sql 
+select &1 from &2;
+SQL> @agv.sql g1_name t1;
+old   1: select &1 from &2
+new   1: select g1_name from t1
+
+G1_NAME
+---------------
+yf01
+yf01
+yf01
+yf02
+yf02
+yf03
+
+6 rows selected.
+
 
