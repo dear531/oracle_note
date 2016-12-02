@@ -1,0 +1,44 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+EXEC SQL BEGIN DECLARE SECTION;
+	VARCHAR uid[20] = {0};
+	VARCHAR pwd[20] = {0};
+	VARCHAR isbn[15] = {0};
+	VARCHAR g1_name[20] = {0};
+EXEC SQL END DECLARE SECTION;
+
+EXEC SQL INCLUDE SQLCA.H;
+
+int sqlerror(void);
+
+int main(void)
+{
+	strcpy((char *)uid.arr, "scott");
+	uid.len = (short)strlen((char *)uid.arr);
+	strcpy((char *)pwd.arr, "tiger");
+	pwd.len = (short)strlen((char *)pwd.arr);
+
+	EXEC SQL CONNECT :uid IDENTIFIED BY :pwd;
+#if 0
+	EXEC SQL EXECUTE
+		BIGEN
+		END;
+	END-EXEC;
+#else
+#endif
+	EXEC SQL SELECT G1_NAME INTO :g1_name FROM T1 WHERE G2_NAME = 'qianduan';
+
+	printf("g1_name :%s\n", g1_name);
+	EXEC SQL COMMIT;
+	exit(0);
+	return 0;
+}
+sqlerror(void)
+{
+	EXEC SQL WHENEVER SQLERROR CONTINUE;
+	printf("\n % .70s \n", sqlca.sqlerrm.sqlerrmc);
+	EXEC SQL ROLLBACK WORK RELEASE;
+	exit(1);
+}
