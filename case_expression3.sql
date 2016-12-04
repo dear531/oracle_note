@@ -1,5 +1,5 @@
 declare
-	n number(2) := 5;
+	n number(4) := 1000;
 	function quzheng(n in number) return number is
 	begin
 		return case
