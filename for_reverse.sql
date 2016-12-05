@@ -1,5 +1,5 @@
 declare
-	i number;
+	--i number;
 begin
 	for i in reverse 1..10
 	loop
