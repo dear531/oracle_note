@@ -1,0 +1,228 @@
+=====================
+order by 后可以填表达或者别名为排序条件，排序条件可以为任意表达式，可以与查询投影一致，也可以不一致，相互独立
+SQL> select * from t2 where score > 60 and score < 80 order by score+10;
+
+G2_ID   G2_NAME         MEMBER       SCORE
+------- --------------- ------- ----------
+001002  lianji          010201          65
+001001  qianduan        010103          66
+002001  qudao           020103          69
+003001  shuju           030102          70
+001001  qianduan        010102          72
+003001  shuju           030101          75
+001003  rizhong         010302          78
+002001  qudao           020101          79
+
+8 rows selected.
+=====================
+order by 后接别名，只要别名命名与当前命名是一致的即可，无论别名命名是否合理
+SQL> select g2_id, score+20 as "score+5" from t2 order by "score+5";
+
+G2_ID      score+5
+------- ----------
+001003          64
+002002          74
+001003          75
+002001          76
+001002          76
+001002          76
+001002          85
+001001          86
+002001          89
+003001          90
+001001          92
+
+G2_ID      score+5
+------- ----------
+003001          95
+001003          98
+002001          99
+001001         106
+002001         108
+002002         109
+
+1
+00_11_
+
+20 rows selected.
+====================
+转义字符的定义与应用
+SQL> select *from t2 where g2_id like '00\_11\_' escape '\';
+
+G2_ID   G2_NAME         MEMBER       SCORE
+------- --------------- ------- ----------
+00_11_  escape
+
+SQL> select * from t2 where g2_id like '00~_11~_' escape '~';
+
+G2_ID   G2_NAME         MEMBER       SCORE
+------- --------------- ------- ----------
+00_11_  escape
+===================
+表达是及别名的运用
+SQL> select g2_id, (score + 50)/1.2 "fix" from t2;
+
+G2_ID          fix
+------- ----------
+
+001001  101.666667
+001001  96.6666667
+001002  95.8333333
+001001  113.333333
+001002  88.3333333
+001002  88.3333333
+001003  78.3333333
+001003  106.666667
+001003        87.5
+002001       107.5
+
+G2_ID          fix
+------- ----------
+002001  88.3333333
+002001  99.1666667
+002001         115
+002002  86.6666667
+002002  115.833333
+003001  104.166667
+003001         100
+1
+00_11_
+
+20 rows selected.
+=======================
+按列号排序
+SQL> select g2_id, score from t2 order by 2;
+
+G2_ID        SCORE
+------- ----------
+001003          44
+002002          54
+001003          55
+002001          56
+001002          56
+001002          56
+001002          65
+001001          66
+002001          69
+003001          70
+001001          72
+======================
+多列多样式（分别升序或降序）排序
+SQL> select score, g2_name from t2 order by g2_name, score desc;
+
+     SCORE G2_NAME
+---------- ---------------
+           escape
+        89 file
+        54 file
+        65 lianji
+        56 lianji
+        56 lianji
+        86 qianduan
+        72 qianduan
+        66 qianduan
+        88 qudao
+        79 qudao
+==========================
+设置显示宽度
+SQL> set linesize 80;
+或
+SQL> set line 80;
+==============================
+l（list）和行号 替换内容编辑历史命令
+/(run)命令继续执行
+SQL> select *  
+  2  from t2
+  3  where g1_id = '002001';
+where g1_id = '002001'
+      *
+ERROR at line 3:
+ORA-00904: "G1_ID": invalid identifier
+
+
+SQL> 3 where g2_id = '002001';
+SQL> l  
+  1  select *
+  2  from t2
+  3* where g2_id = '002001'
+SQL> /
+
+G2_ID   G2_NAME         MEMBER       SCORE
+------- --------------- ------- ----------
+002001  qudao           020101          79
+002001  qudao           020102          56
+002001  qudao           020103          69
+002001  qudao           020104          88
+===============
+a[ppend]追加命令
+SQL> select g2_id
+  2  from t2;
+
+G2_ID
+-------
+
+001001
+001001
+001002
+001001
+001002
+001002
+001003
+001003
+001003
+002001
+
+G2_ID
+-------
+002001
+002001
+002001
+002002
+002002
+003001
+003001
+1
+00_11_
+
+20 rows selected.
+
+SQL> l
+  1  select g2_id
+  2* from t2
+SQL> 1
+  1* select g2_id
+SQL> a , g2_name
+  1* select g2_id, g2_name
+SQL> /
+
+G2_ID   G2_NAME
+------- ---------------
+        ???
+001001  qianduan
+001001  qianduan
+001002  lianji
+001001  qianduan
+001002  lianji
+001002  lianji
+001003  rizhong
+001003  rizhong
+001003  rizhong
+002001  qudao
+
+G2_ID   G2_NAME
+------- ---------------
+002001  qudao
+002001  qudao
+002001  qudao
+002002  file
+002002  file
+003001  shuju
+003001  shuju
+1       ???
+00_11_  escape
+
+20 rows selected.
+
+===============
+运行命令 / 或 r[un]
+===============
