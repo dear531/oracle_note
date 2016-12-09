@@ -226,3 +226,14 @@ G2_ID   G2_NAME
 ===============
 运行命令 / 或 r[un]
 ===============
+在最前加一行及删除指定行
+SQL> 0 add
+SQL> l
+  1  add
+  2  select g2_id, g2_name
+  3* from t2
+SQL> del 1
+SQL> l
+  1  select g2_id, g2_name
+  2* from t2
+
