@@ -225,6 +225,23 @@ G2_ID   G2_NAME
 
 ===============
 运行命令 / 或 r[un]
+r回显执行命令的内容
+/不回显执行命令内容
+SQL> r   
+  1  select *
+  2* from t1
+
+     G1_ID G1_NAME
+---------- ----------
+         0 a
+         1 b
+
+SQL> /
+
+     G1_ID G1_NAME
+---------- ----------
+         0 a
+         1 b
 ===============
 在最前加一行及删除指定行
 SQL> 0 add
@@ -236,4 +253,131 @@ SQL> del 1
 SQL> l
   1  select g2_id, g2_name
   2* from t2
+==================
+删除一段内容
+SQL> l
+  1  select *
+  2  from t1
+  3  where g1_id = '0'
+  4* and g1_name = 'a'
+SQL> del 3 4
+SQL> l
+  1  select *
+  2* from t1
+SQL> 
+===================
+c[hange]命令，替换行当中的内容
+SQL> l  
+  1  select g1_id
+  2* from t1
+SQL> 1 
+  1* select g1_id
+SQL> c /g1_id/g1_name
+  1* select g1_name
+SQL> l  
+  1  select g1_name
+  2* from t1
+SQL> /  
+
+G1_NAME
+----------
+a
+b
+====================
+c命令删除一段内容方法
+SQL> l
+  1  select g1_id, g1_name
+  2* from t1
+SQL> /  
+
+     G1_ID G1_NAME
+---------- ----------
+         0 a
+         1 b
+
+SQL> 1
+  1* select g1_id, g1_name
+SQL> c /g1_id,/
+  1* select  g1_name
+SQL> /  
+
+G1_NAME
+----------
+a
+b
+
+SQL> l
+  1  select  g1_name
+  2* from t1
+======================
+将缓存区中的内容保存成脚本：
+SQL> l   
+  1  select g1_id
+  2* from t1
+SQL> save save  
+Created file save.sql
+查看脚本内容：
+$ cat save.sql 
+select g1_id
+from t1
+/
+====================
+将脚本文件读入缓存区
+SQL> get save.sql
+  1  select g1_id
+  2* from t1
+SQL> l  
+  1  select g1_id
+  2* from t1
+SQL> /
+
+     G1_ID
+----------
+         0
+         1
+====================
+直接运行脚本
+SQL> @ save.sql
+
+     G1_ID
+----------
+         0
+         1
+
+SQL> @save
+
+     G1_ID
+----------
+         0
+         1
+=========================
+将屏幕执行结果记录在文件中：
+SQL> spool output
+SQL> /  
+
+     G1_ID
+----------
+         0
+         1
+
+SQL> spool off /* 执行后关闭导出 */
+查看执行结果文件：
+$ cat output.lst 
+SQL> /
+
+     G1_ID                                                                      
+----------                                                                      
+         0                                                                      
+         1                                                                      
+
+SQL> spool off
+========================
+单行函数：
+转成小写lower
+SQL> r
+  1* select Lower('ThIs is lower') from dual
+
+LOWER('THISIS
+-------------
+this is lower
 
