@@ -380,4 +380,285 @@ SQL> r
 LOWER('THISIS
 -------------
 this is lower
+==========================
+转成大写：
+SQL> select upper('Sql Is Used Exclusively In Rdbmses')   
+  2  from dual;
 
+UPPER('SQLISUSEDEXCLUSIVELYINRDBMS
+----------------------------------
+SQL IS USED EXCLUSIVELY IN RDBMSES
+=====================
+将所有单词格式化成首字母大写，其他字母小写
+SQL> select initcap('SQL is an english like language')
+  2  from dual;
+
+INITCAP('SQLISANENGLISHLIKELANG
+-------------------------------
+Sql Is An English Like Language
+===============================
+连接字符串函数：
+下面是嵌套两个函数的效果
+SQL> r
+  1  select concat('Top', concat('Mid', 'Tail'))
+  2* from dual
+
+CONCAT('TO
+----------
+TopMidTail
+==================================
+substr(str, m[,n])
+返回一个字符串的子串
+本函数为变参函数，最后一个参数填入，则返回填入的长度，如果不填入，则返回从n开始所有str所有的剩余部分
+SQL> r     
+  1  select substr('12345 67890', 2)
+  2* from dual
+
+SUBSTR('12
+----------
+2345 67890
+
+SQL> 1  
+  1* select substr('12345 67890', 2)
+SQL> c /, 2)/, 2, 3)
+  1* select substr('12345 67890', 2, 3)
+SQL> r
+  1  select substr('12345 67890', 2, 3)
+  2* from dual
+
+SUB
+---
+234
+==============================
+返回字符串的长度
+SQL> select length('123456')
+  2  from dual;
+
+LENGTH('123456')
+----------------
+               6
+=============================
+返回字串的位置：
+instr(列名|表达式, str, [m], [n])
+instr（'源字符串' , '目标字符串' ,'开始位置','第几次出现'）
+区分大小写
+其中sourceString代表源字符串；
+destString代表要从源字符串中查找的子串；
+start代表查找的开始位置，这个参数可选的，默认为1；
+appearPosition代表想从源字符中查找出第几次出现的destString，这个参数也是可选的，
+默认为1
+如果start的值为负数，则代表从右往左进行查找，但是位置数据仍然从左向右计算。
+返回值为：查找到的字符串的位置。
+-------------------------------------------------------------
+
+对于instr函数，我们经常这样使用：从一个字符串中查找指定子串的位置。例如：
+
+SQL> select instr('abcdefgh','de') position from dual;
+
+
+POSITION
+----------
+   4
+从1开始算 d排第四所以返回4
+
+SQL>select instr('abcdefghbc','bc',3) position from dual;
+
+POSITION
+----------
+  9
+从第3个字符开始算起 第3个字符是c，所以从3开始以后的字符串找查找bc,返回9
+
+---------------------------
+从第1个字符开始，查找第2次出现子串的位置
+SQL> select instr('qinyinglianqin','qin', 1, 2) position from dual;
+POSITION
+----------
+  12 
+===================
+从字符串两端去掉一个指定字符
+SQL> r  
+  1  select trim ('h' from  'headh') "Trim"
+  2* from dual
+
+Tri
+---
+ead
+
+SQL> select trim(leading 'h' from 'headh') "Trim"
+  2  from dual;
+
+Trim
+----
+eadh
+
+SQL> select trim(trailing 'h' from 'headh') "Trim"
+  2  from dual;
+
+Trim
+----
+head
+两端多个连续的字符，都递归的去掉
+SQL> select trim('h' from 'hheadhh')   
+  2  from dual;
+
+TRI
+---
+ead
+===========================
+替换函数
+SQL> r
+  1  select replace('123456','34', 'ab')
+  2* from dual
+
+REPLAC
+------
+12ab56
+========================================
+round四舍五入函数
+trunc截断函数
+SQL> r
+  1  select round(168.888, 1), trunc(168.888, 1), round(168.999, 1)
+  2* from dual
+
+ROUND(168.888,1) TRUNC(168.888,1) ROUND(168.999,1)
+---------------- ---------------- ----------------
+           168.9            168.8              169
+第三列当百分位向十分位进位之后，0.9变成了1.0，直接只显示整数，小数点后因为是零直接不显示了
+
+精确到个位的处理如以下两种方式表达：
+SQL> r
+  1  select round(168.888, 0),trunc(168.888, 0)
+  2* from dual
+
+ROUND(168.888,0) TRUNC(168.888,0)
+---------------- ----------------
+             169              168
+
+SQL> select round(168.888), trunc(168.888, 0)
+  2  from dual;
+
+ROUND(168.888) TRUNC(168.888,0)
+-------------- ----------------
+           169              168
+可以写0位，或是直接忽略不写
+
+四舍五入到10位：
+SQL> select round(168.888, -1), trunc(168.888, -1)
+  2  from dual;
+
+ROUND(168.888,-1) TRUNC(168.888,-1)
+----------------- -----------------
+              170               160
+=============================
+求余：mod
+SQL> select mod(1900, 400)   
+  2  from dual;
+
+MOD(1900,400)
+-------------
+          300
+=================================
+显示系统时间：
+SQL> select sysdate from dual;
+
+SYSDATE
+---------
+12-DEC-16
+日期数据计算：
+将当前系统日期减掉一天
+SQL> select sysdate - 1    
+  2  from dual;
+
+SYSDATE-1
+---------
+11-DEC-16
+日期字符串和日期进行计算：
+SQL> select to_date('15-jul-12') - sysdate
+  2  from dual;
+
+TO_DATE('15-JUL-12')-SYSDATE
+----------------------------
+                  -1611.6491
+系统日期与小时进行计算：
+SQL> select sysdate - 22/24
+  2  from dual;
+
+SYSDATE-2
+---------
+11-DEC-16
+SQL> r
+  1  select sysdate+ 22/24
+  2* from dual
+
+SYSDATE+2
+---------
+13-DEC-16
+==========================
+返回两个日期之间的月份：
+SQL> select months_between('01-jul-99', '01-jul-98')
+  2  from dual;
+
+MONTHS_BETWEEN('01-JUL-99','01-JUL-98')
+---------------------------------------
+                                     12
+=============================
+将一个日期加上或减去某一个整月：
+SQL> select add_months('01-jul-99', 1)
+  2  from dual;
+
+ADD_MONTH
+---------
+01-AUG-99
+
+SQL> 1  
+  1* select add_months('01-jul-99', 1)
+SQL> c /, 1/, -1 
+  1* select add_months('01-jul-99', -1)
+SQL> r
+  1  select add_months('01-jul-99', -1)
+  2* from dual
+
+ADD_MONTH
+---------
+01-JUN-99
+========================
+返回一个日期之后的第一个星期几的日期：
+SQL> select next_day('10-may-02', 'monday')
+  2  from dual;
+
+NEXT_DAY(
+---------
+13-MAY-02
+===========================
+返回当前日期所在月份的最后一天：
+SQL> r
+  1  select last_day('08-feb-02')
+  2* from dual
+
+LAST_DAY(
+---------
+28-FEB-02
+按月份四舍五入之后该日期为以下日期：
+SQL> select round(to_date('28-oct-01'), 'month')
+  2  from dual;
+
+ROUND(TO_
+---------
+01-NOV-01
+
+==============================
+日期按月份截断：
+SQL> select trunc(to_date('28-oct-01'), 'month')
+  2  from dual;
+
+TRUNC(TO_
+---------
+01-OCT-01
+=============================
+日期按年截断：
+SQL> select trunc(to_date('28-oct-01'), 'year')
+  2  from dual;
+
+TRUNC(TO_
+---------
+01-JAN-01
