@@ -662,3 +662,127 @@ SQL> select trunc(to_date('28-oct-01'), 'year')
 TRUNC(TO_
 ---------
 01-JAN-01
+================================
+建立月份值：
+SQL> r  
+  1  insert into e1
+  2  (id, name, date1)
+  3* values (1, 'b', '01-jul-01')
+
+1 row created.
+==================================
+将月份转成固定格式字符串：
+SQL> r
+  1  select to_char(date1, 'DD/MM/YY'),to_char(date1, 'DAY/month/year')
+  2* from e1
+
+TO_CHAR( TO_CHAR(DATE1,'DAY/MONTH/YEAR')
+--------
+--------------------------------------------------------------------------------------------------
+01/07/01 SUNDAY   /july     /two thousand one
+=================================
+SQL> r
+  1  select to_char(date1, 'dd/mm/yy'), to_char(date1, 'day month year')
+  2* from e1
+
+TO_CHAR( TO_CHAR(DATE1,'DAYMONTHYEAR')
+--------
+--------------------------------------------------------------------------------------------------
+01/07/01 sunday    july      two thousand one
+
+
+===============================
+SQL> r
+  1  select to_char(date1, 'fmddspth "of" month year fmHH:MI:ss am')
+  2* from e1
+
+TO_CHAR(DATE1,'FMDDSPTH"OF"MONTHYEARFMHH:MI:SSAM')
+----------------------------------------------------------------------------------------------------
+first of july two thousand one 12:00:00 am
+
+===================================
+以金额的固定格式显示数字
+SQL> select to_char(score*12,  '$99,999.00') money   
+  2  from t2;
+
+MONEY
+-----------
+
+    $864.00
+    $792.00
+    $780.00
+  $1,032.00
+    $672.00
+==================================
+分支判断执行函数：
+以下语句表示，当member为020102，020103和020104时，分别decode函数的返回值分别是
+将score乘以2，3，4，当member不是上述三个值时，则直接返回score
+SQL> select member, decode(member, '020102', score*2
+  2  ,'020103', score*3
+  3  ,'020104', score*4
+  4  , score)   
+  5  "new_score"
+  6  from t2;
+
+MEMBER   new_score
+------- ----------
+
+010102          72
+010103          66
+010201          65
+010101          86
+010202          56
+010202          56
+010301          44
+010302          78
+010303          55
+020101          79
+
+MEMBER   new_score
+------- ----------
+020102         112
+020103         207
+020104         352
+020201          54
+020202          89
+030101          75
+030102          70
+
+
+40101
+
+21 rows selected.
+=============================
+函数嵌套并使用别名排序：
+SQL> r
+  1  select member, nvl(to_char(score), '0') "new_score"
+  2  from t2
+  3  where member is not null
+  4* order by "new_score"
+
+MEMBER  new_score
+------- ----------------------------------------
+40101   0
+010301  44
+020201  54
+010303  55
+020102  56
+010202  56
+010202  56
+010201  65
+010103  66
+020103  69
+030102  70
+
+MEMBER  new_score
+------- ----------------------------------------
+010102  72
+030101  75
+010302  78
+020101  79
+010101  86
+020104  88
+020202  89
+
+18 rows selected.
+
