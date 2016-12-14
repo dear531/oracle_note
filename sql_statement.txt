@@ -786,3 +786,296 @@ MEMBER  new_score
 
 18 rows selected.
 
+===========================
+NVL2用法：
+SQL> r   
+  1  select nvl2(member, to_char(score + 100), '00') "score_new"
+  2* from t2
+表达式1不为空，则返回表达式2，否则返回表达式3，函数的返回值是表达2的类型
+score_new
+----------------------------------------
+00
+172
+166
+165
+186
+156
+156
+144
+178
+155
+179
+
+score_new
+----------------------------------------
+156
+169
+188
+154
+189
+175
+170
+00
+00
+
+
+21 rows selected.
+============================
+检查两个值是否相等：不相等返回表达式1的值，相等则返回null
+SQL> select * from t2;
+
+G2_ID   G2_NAME         MEMBER       SCORE     SCORE2
+------- --------------- ------- ---------- ----------
+        ???                                        56
+001001  qianduan        010102          72         56
+001001  qianduan        010103          66         56
+001002  lianji          010201          65         56
+001001  qianduan        010101          86         56
+001002  lianji          010202          56         56
+001002  lianji          010202          56         56
+001003  rizhong         010301          44         56
+001003  rizhong         010302          78         56
+001003  rizhong         010303          55         56
+002001  qudao           020101          79         56
+
+G2_ID   G2_NAME         MEMBER       SCORE     SCORE2
+------- --------------- ------- ---------- ----------
+002001  qudao           020102          56         56
+002001  qudao           020103          69         56
+002001  qudao           020104          88         56
+002002  file            020201          54         56
+002002  file            020202          89         56
+003001  shuju           030101          75         56
+003001  shuju           030102          70         56
+1       ???                                        56
+00_11_  escape                                     56
+004001  Linshi          40101                      56
+
+21 rows selected.
+
+SQL> select nullif(score, score2)
+  2  from t2;
+
+NULLIF(SCORE,SCORE2)
+--------------------
+
+                  72
+                  66
+                  65
+                  86
+
+
+                  44
+                  78
+                  55
+                  79
+
+NULLIF(SCORE,SCORE2)
+--------------------
+
+                  69
+                  88
+                  54
+                  89
+                  75
+                  70
+
+
+
+
+21 rows selected.
+============================
+利用nvl2函数和nullif函数判断两列是否相等的结果：
+SQL> r       
+  1  select nvl2(nullif(score, score2), 'is not null', 'is null')
+  2* from t2
+
+NVL2(NULLIF
+-----------
+is null
+is not null
+is not null
+is not null
+is not null
+is null
+is null
+is not null
+is not null
+is not null
+is not null
+
+NVL2(NULLIF
+-----------
+is null
+is not null
+is not null
+is not null
+is not null
+is not null
+is not null
+is null
+is null
+is null
+
+21 rows selected.
+========================
+返回直到不为空表达式函数：
+SQL> select * from e3;
+
+STR1  STR2  STR3  STR4
+----- ----- ----- -----
+11
+21    22
+31    32    33
+41    42    43    44
+
+SQL> select coalesce(str4, str3, str2, str1) 
+  2  from e3;
+
+COALE
+-----
+11
+22
+33
+44
+=================================
+综合数据和分组函数：
+SQL> select * from e3;
+
+STR1  STR2  STR3  STR4
+----- ----- ----- -----
+11
+21    22
+31    32    33
+41    42    43    44
+
+SQL> select count(str1), count(str2), count(str3), count(str4)
+  2  from e3;
+
+COUNT(STR1) COUNT(STR2) COUNT(STR3) COUNT(STR4)
+----------- ----------- ----------- -----------
+          4           3           2           1
+===================================
+求和函数和求平均值函数：
+SQL> select * from t2;
+
+G2_ID   G2_NAME         MEMBER       SCORE     SCORE2
+------- --------------- ------- ---------- ----------
+        ???                                        56
+001001  qianduan        010102          72         56
+001001  qianduan        010103          66         56
+001002  lianji          010201          65         56
+001001  qianduan        010101          86         56
+001002  lianji          010202          56         56
+001002  lianji          010202          56         56
+001003  rizhong         010301          44         56
+001003  rizhong         010302          78         56
+001003  rizhong         010303          55         56
+002001  qudao           020101          79         56
+
+G2_ID   G2_NAME         MEMBER       SCORE     SCORE2
+------- --------------- ------- ---------- ----------
+002001  qudao           020102          56         56
+002001  qudao           020103          69         56
+002001  qudao           020104          88         56
+002002  file            020201          54         56
+002002  file            020202          89         56
+003001  shuju           030101          75         56
+003001  shuju           030102          70         56
+1       ???                                        56
+00_11_  escape                                     56
+004001  Linshi          40101                      56
+
+SQL> r  
+  1  select avg(score) avg, sum(score) sum, count(score) count,
+  2  avg(score2) avg2, sum(score2) sum2, count(score2) count2
+  3* from t2
+
+       AVG        SUM      COUNT       AVG2       SUM2     COUNT2
+---------- ---------- ---------- ---------- ---------- ----------
+68.1176471       1158         17         56       1176         21
+=========================
+最大和最小值得函数：
+SQL> r  
+  1  select min(score) min_score,
+  2  min(score2) min_score2,
+  3  max(score) max_score, max(score2) max_score2
+  4* from t2
+
+ MIN_SCORE MIN_SCORE2  MAX_SCORE MAX_SCORE2
+---------- ---------- ---------- ----------
+        44         56         89         56
+=========================
+求字符串的最大最小值：
+SQL> select max(g2_name) max, 
+  2  min(g2_name) min
+  3  from t2;
+
+MAX             MIN
+--------------- ---------------
+???             Linshi
+============================
+按g2_id分组计算成员数量：
+SQL> select g2_id, count(member) from t2 group by g2_id;
+
+G2_ID   COUNT(MEMBER)
+------- -------------
+                    0
+002002              2
+1                   0
+004001              1
+001001              3
+001003              3
+002001              4
+003001              2
+001002              3
+00_11_              0
+
+10 rows selected.
+==========================
+分组统计数量之后再排序：
+SQL> r
+  1  select g2_id,
+  2  count(member) "count_member"
+  3  from t2
+  4  group by g2_id
+  5* order by "count_member"
+
+G2_ID   count_member
+------- ------------
+1                  0
+00_11_             0
+                   0
+004001             1
+003001             2
+002002             2
+001003             3
+001001             3
+001002             3
+002001             4
+
+10 rows selected.
+===================
+使用函数组名进行group by排序：
+SQL> r
+  1  select g2_id,
+  2  count(member) "count_member"
+  3  from t2
+  4  group by g2_id
+  5* order by count(member)
+
+G2_ID   count_member
+------- ------------
+1                  0
+00_11_             0
+                   0
+004001             1
+003001             2
+002002             2
+001003             3
+001001             3
+001002             3
+002001             4
+
+10 rows selected.
+
