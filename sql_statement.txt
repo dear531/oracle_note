@@ -1078,4 +1078,131 @@ G2_ID   count_member
 002001             4
 
 10 rows selected.
+======================
+group by + having用法：
+SQL> r
+  1  select g2_id, avg(score) avg_score
+  2  from t2
+  3  group by g2_id
+  4* having avg(score) > 60
+
+G2_ID    AVG_SCORE
+------- ----------
+002002        71.5
+001001  74.6666667
+002001          73
+003001        72.5
+=====================
+正常不加having的结果，60以下和空均显示出来了
+SQL> r
+  1  select g2_id, avg(score) avg_score
+  2  from t2
+  3* group by g2_id
+
+G2_ID    AVG_SCORE
+------- ----------
+
+002002        71.5
+1
+004001
+001001  74.6666667
+001003          59
+002001          73
+003001        72.5
+001002          59
+00_11_
+
+10 rows selected.
+===================
+通过分组函数计算平均值，筛选需要的分组函数结果，再排序：
+SQL> r
+  1  select g2_id, avg(score) avg_score
+  2  from t2
+  3  group by g2_id
+  4  having avg(score) > 60
+  5* order by avg(score)
+
+G2_ID    AVG_SCORE
+------- ----------
+002002        71.5
+003001        72.5
+002001          73
+001001  74.6666667
+=========================
+对数据去掉不想要的原始筛选(where)，再根据分组求均值(agv函数＋group by)，再去掉分组均值中不想要的(having)
+SQL> r
+  1  select g2_id, avg(score) avg_score
+  2  from t2
+  3  where g2_id not like '003%'
+  4  group by g2_id
+  5  having avg(score) > 60
+  6* order by avg(score)
+
+G2_ID    AVG_SCORE
+------- ----------
+002002        71.5
+002001          73
+001001  74.6666667
+===============================
+分组函数最多只能嵌套两层，并且不能显示其他映射字段，因为有可能根据排序得到的最小值不唯一：
+SQL> r
+  1  select min(avg(score)),
+  2  max(avg(score))
+  3  from t2
+  4* group by g2_id
+
+MIN(AVG(SCORE)) MAX(AVG(SCORE))
+--------------- ---------------
+             59      74.6666667
+===============================
+count函数统计的结果不包括空值：
+SQL> r
+  1  select avg(score), avg(score2),
+  2  sum(score), count(score), sum(score)/count(score), count(score2),
+count(nvl(score, 0)),sum(score)/count(nvl(score, 0)), sum(nvl(score,
+0))/count(nvl(score, 0))
+  3* from t2
+
+AVG(SCORE) AVG(SCORE2) SUM(SCORE) COUNT(SCORE) SUM(SCORE)/COUNT(SCORE)
+COUNT(SCORE2) COUNT(NVL(SCORE,0))
+---------- ----------- ---------- ------------ -----------------------
+------------- -------------------
+SUM(SCORE)/COUNT(NVL(SCORE,0)) SUM(NVL(SCORE,0))/COUNT(NVL(SCORE,0))
+------------------------------ -------------------------------------
+68.1176471          56       1158           17              68.1176471 21                  21
+                    55.1428571                            55.1428571
+
+
+============================================
+联合查询，有重名字段必须显示用指定表明对象的方法表示要显示的列名：
+SQL> r 
+  1  select g1_id, g1_name, t1.g2_id, t1.g2_name, member, score, score2
+  2  from t1, t2
+  3  where t1.g2_id = t2.g2_id
+  4* order by t1.g2_id
+
+G1_ID   G1_NAME         G2_ID   G2_NAME         MEMBER       SCORE     SCORE2
+------- --------------- ------- --------------- ------- ---------- ----------
+001     yf01            001001  qianduan        010103          66         56
+001     yf01            001001  qianduan        010102          72         56
+001     yf01            001001  qianduan        010101          86         56
+001     yf01            001002  lianji          010201          65         56
+001     yf01            001002  lianji          010202          56         56
+001     yf01            001002  lianji          010202          56         56
+001     yf01            001003  rizhong         010302          78         56
+001     yf01            001003  rizhong         010301          44         56
+001     yf01            001003  rizhong         010303          55         56
+002     yf02            002001  qudao           020101          79         56
+002     yf02            002001  qudao           020102          56         56
+
+G1_ID   G1_NAME         G2_ID   G2_NAME         MEMBER       SCORE     SCORE2
+------- --------------- ------- --------------- ------- ---------- ----------
+002     yf02            002001  qudao           020103          69         56
+002     yf02            002001  qudao           020104          88         56
+002     yf02            002002  file            020201          54         56
+002     yf02            002002  file            020202          89         56
+003     yf03            003001  shuju           030101          75         56
+003     yf03            003001  shuju           030102          70         56
+
+17 rows selected.
 
