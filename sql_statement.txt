@@ -1205,4 +1205,100 @@ G1_ID   G1_NAME         G2_ID   G2_NAME         MEMBER       SCORE     SCORE2
 003     yf03            003001  shuju           030102          70         56
 
 17 rows selected.
+===============================
+带条件的连接
+SQL> r
+  1  select g1_id, g1_name, t1.g2_id, t1.g2_name, member, score, score2
+  2  from t1, t2
+  3  where t1.g2_id = t2.g2_id
+  4* and t2.score >= 60
+
+G1_ID   G1_NAME         G2_ID   G2_NAME         MEMBER       SCORE     SCORE2
+------- --------------- ------- --------------- ------- ---------- ----------
+001     yf01            001001  qianduan        010102          72         56
+001     yf01            001001  qianduan        010103          66         56
+001     yf01            001002  lianji          010201          65         56
+001     yf01            001001  qianduan        010101          86         56
+001     yf01            001003  rizhong         010302          78         56
+002     yf02            002001  qudao           020101          79         56
+002     yf02            002001  qudao           020103          69         56
+002     yf02            002001  qudao           020104          88         56
+002     yf02            002002  file            020202          89         56
+003     yf03            003001  shuju           030101          75         56
+003     yf03            003001  shuju           030102          70         56
+
+11 rows selected.
+===========================
+代别名的联合连接查询：
+SQL> select a.g1_id, a.g1_name, a.g2_id, a.g2_name, b.member, b.score,
+b.score2
+  2  from t1 a, t2 b
+  3  where a.g2_id = b.g2_id
+  4  and b.score >= 60;
+
+G1_ID   G1_NAME         G2_ID   G2_NAME         MEMBER       SCORE     SCORE2
+------- --------------- ------- --------------- ------- ---------- ----------
+001     yf01            001001  qianduan        010102          72         56
+001     yf01            001001  qianduan        010103          66         56
+001     yf01            001002  lianji          010201          65         56
+001     yf01            001001  qianduan        010101          86         56
+001     yf01            001003  rizhong         010302          78         56
+002     yf02            002001  qudao           020101          79         56
+002     yf02            002001  qudao           020103          69         56
+002     yf02            002001  qudao           020104          88         56
+002     yf02            002002  file            020202          89         56
+003     yf03            003001  shuju           030101          75         56
+003     yf03            003001  shuju           030102          70         56
+
+11 rows selected.
+=====================================
+自连接：
+SQL> desc work;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ ID                                                 VARCHAR2(10)
+ NAME                                               VARCHAR2(10)
+ JOB                                                VARCHAR2(10)
+ MONEY                                              NUMBER(10)
+ MANAGE                                             VARCHAR2(10)
+
+SQL> select * from work;
+
+ID         NAME       JOB             MONEY MANAGE
+---------- ---------- ---------- ---------- ----------
+01         boss       boss            10000 boss
+02         manage01   manage           5000 boss
+03         normal01   normal           2000 manage
+04         normal02   normal           1900 manage
+
+SQL> r 
+  1  select a.id, a.name, a.job, a.money, a.manage
+  2  from work a, work b
+  3  where a.job=b.manage
+  4* and b.manage='manage'
+
+ID         NAME       JOB             MONEY MANAGE
+---------- ---------- ---------- ---------- ----------
+02         manage01   manage           5000 boss
+02         manage01   manage           5000 boss
+
+==========================
+用between为条件的不等连接:
+SQL> select * from money_t;
+
+        ID        LOW      HIGHT
+---------- ---------- ----------
+         0       1000       2000
+
+SQL> r
+  1  select w.id, w.name, w.money, w.job
+  2  from work w, money_t m
+  3* where w.money between m.low and m.hight
+
+ID         NAME            MONEY JOB
+---------- ---------- ---------- ----------
+03         normal01         2000 normal
+04         normal02         1900 normal
+
 
