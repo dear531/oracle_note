@@ -1633,4 +1633,41 @@ G1_ID G1_NAME    G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
 3     d          03         D
 
 9 rows selected.
+=================================
+子句查询：
+
+SQL> select * from t2;
+
+G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+---------- ---------- ---------- ---------- ----------
+00         A          0001               60
+00         A          0002               59
+00         A          0003               61
+01         B          0101               80
+01         B          0102               90
+02         C          0201              100
+
+6 rows selected.
+上述表查询成员0002同组名而且成绩大于成员0001的记录
+SQL> r
+  1  select * from t2
+  2  where g2_id = (
+  3  select g2_id from t2 where member = '0002')
+  4  and score > (
+  5* select score from t2 where member = '0001')
+
+G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+---------- ---------- ---------- ---------- ----------
+00         A          0003               61
+
+显示成绩在平均成绩以下的记录：
+SQL> select * from t2
+  2  where score < ( 
+  3  select avg(score) from t2);
+
+G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+---------- ---------- ---------- ---------- ----------
+00         A          0001               60
+00         A          0002               59
+00         A          0003               61
 
