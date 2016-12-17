@@ -1301,4 +1301,336 @@ ID         NAME            MONEY JOB
 03         normal01         2000 normal
 04         normal02         1900 normal
 
+=======================
+外连接：
+联合两张表当中相等的部分之外
+a.name(+)=b.name表示，将a表中没有的，而b表中有的字段也显示出来
+投影字段中表a没有的字段则显示为空
+将＋放在数据少的那一边
+SQL> select * from t2;
+
+G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+---------- ---------- ---------- ---------- ----------
+00         A          0001               60
+00         A          0002               59
+00         A          0003               61
+01         B          0101               80
+01         B          0102               90
+02         C          0201              100
+
+6 rows selected.
+
+SQL> select * from t1;
+
+G1_ID G1_NAME    G2_ID      G2_NAME
+----- ---------- ---------- ----------
+0     a          00         A
+1     b          01         B
+
+SQL> r
+  1  select g1_id, g1_name, t1.g2_id, t1.g2_name
+  2  , member, score, score2
+  3  from t1, t2
+  4* where t1.g2_id(+) = t2.g2_id
+
+G1_ID G1_NAME    G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+----- ---------- ---------- ---------- ---------- ---------- ----------
+0     a          00         A          0003               61
+0     a          00         A          0002               59
+0     a          00         A          0001               60
+1     b          01         B          0102               90
+1     b          01         B          0101               80
+                                       0201              100
+
+6 rows selected.
+
+====================================
+两张表的笛卡尔积连接，oracle方法和1999标准sql语法：
+SQL> r
+  1  select g1_id, g1_name, t1.g2_id, t1.g2_name
+  2  , member, score, score2
+  3  from t1
+  4* cross join t2
+
+G1_ID G1_NAME    G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+----- ---------- ---------- ---------- ---------- ---------- ----------
+0     a          00         A          0001               60
+0     a          00         A          0002               59
+0     a          00         A          0003               61
+0     a          00         A          0101               80
+0     a          00         A          0102               90
+0     a          00         A          0201              100
+1     b          01         B          0001               60
+1     b          01         B          0002               59
+1     b          01         B          0003               61
+1     b          01         B          0101               80
+1     b          01         B          0102               90
+
+G1_ID G1_NAME    G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+----- ---------- ---------- ---------- ---------- ---------- ----------
+1     b          01         B          0201              100
+
+12 rows selected.
+
+SQL> r
+  1  select g1_id, g1_name, t1.g2_id, t1.g2_name
+  2  , member, score, score2
+  3* from t1, t2
+
+G1_ID G1_NAME    G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+----- ---------- ---------- ---------- ---------- ---------- ----------
+0     a          00         A          0001               60
+0     a          00         A          0002               59
+0     a          00         A          0003               61
+0     a          00         A          0101               80
+0     a          00         A          0102               90
+0     a          00         A          0201              100
+1     b          01         B          0001               60
+1     b          01         B          0002               59
+1     b          01         B          0003               61
+1     b          01         B          0101               80
+1     b          01         B          0102               90
+
+G1_ID G1_NAME    G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+----- ---------- ---------- ---------- ---------- ---------- ----------
+1     b          01         B          0201              100
+
+12 rows selected.
+=======================
+使用using的联合等同于相等连接查询：
+
+表样例：
+SQL> select * from t1;
+
+G1_ID G1_NAME    G2_ID      G2_NAME
+----- ---------- ---------- ----------
+0     a          00         A
+1     b          01         B
+1+    b+         01         B+
+
+SQL> select * from t2;
+
+G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+---------- ---------- ---------- ---------- ----------
+00         A          0001               60
+00         A          0002               59
+00         A          0003               61
+01         B          0101               80
+01         B          0102               90
+02         C          0201              100
+
+6 rows selected.
+
+相等连接：
+SQL> select g1_id, g1_name, t1.g2_id, t1.g2_name
+  2  , member, score, score2
+  3  from t1, t2
+  4  where t1.g2_id = t2.g2_id;
+
+G1_ID G1_NAME    G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+----- ---------- ---------- ---------- ---------- ---------- ----------
+0     a          00         A          0001               60
+0     a          00         A          0002               59
+0     a          00         A          0003               61
+1+    b+         01         B+         0101               80
+1     b          01         B          0101               80
+1+    b+         01         B+         0102               90
+1     b          01         B          0102               90
+
+7 rows selected.
+
+使用using
+SQL> r
+  1  select g1_id, g1_name, g2_id, t1.g2_name
+  2  , member, score, score2
+  3  from t1
+  4  join t2
+  5  using(g2_id)
+  6*
+
+G1_ID G1_NAME    G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+----- ---------- ---------- ---------- ---------- ---------- ----------
+0     a          00         A          0001               60
+0     a          00         A          0002               59
+0     a          00         A          0003               61
+1+    b+         01         B+         0101               80
+1     b          01         B          0101               80
+1+    b+         01         B+         0102               90
+1     b          01         B          0102               90
+
+7 rows selected.
+
+
+==========================
+以上t1和t2不变，on语句用法：
+SQL> select t1.g1_id, t1.g1_name, t1.g2_id, t1.g2_name
+  2  , t2.member, t2.score, t2.score2
+  3  from t1 
+  4  join t2
+  5  on (t1.g2_id = t2.g2_id);
+
+G1_ID G1_NAME    G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+----- ---------- ---------- ---------- ---------- ---------- ----------
+0     a          00         A          0001               60
+0     a          00         A          0002               59
+0     a          00         A          0003               61
+1+    b+         01         B+         0101               80
+1     b          01         B          0101               80
+1+    b+         01         B+         0102               90
+1     b          01         B          0102               90
+
+7 rows selected.
+==========================
+on语句不带表明：
+SQL> r
+  1  select g1_id, g1_name, t1.g2_id, t1.g2_name,
+  2  member, score, score2
+  3  from t1
+  4  join t2
+  5  on(t1.g2_id = t2.g2_id)
+  6*
+
+G1_ID G1_NAME    G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+----- ---------- ---------- ---------- ---------- ---------- ----------
+0     a          00         A          0001               60
+0     a          00         A          0002               59
+0     a          00         A          0003               61
+1+    b+         01         B+         0101               80
+1     b          01         B          0101               80
+1+    b+         01         B+         0102               90
+1     b          01         B          0102               90
+
+7 rows selected.
+===========================
+多表连接和附加条件：
+SQL> select * from t1;
+
+G1_ID G1_NAME    G2_ID      G2_NAME
+----- ---------- ---------- ----------
+0     a          00         A
+1     b          01         B
+1+    b+         01         B+
+
+SQL> select * from t2;
+
+G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+---------- ---------- ---------- ---------- ----------
+00         A          0001               60
+00         A          0002               59
+00         A          0003               61
+01         B          0101               80
+01         B          0102               90
+02         C          0201              100
+
+6 rows selected.
+
+SQL> select * from t3;
+
+ID   NAME       JOB        MANAGE
+---- ---------- ---------- ----------
+00   0001       boss       boss
+01   0002       manage     boss
+02   0003       normal     manage
+
+SQL> r
+  1  select g1_id, g1_name, t2.g2_id, t2.g2_name
+  2  , member, score, score2, name, job, manage
+  3  from t1
+  4  join t2
+  5  on t1.g2_id = t2.g2_id
+  6  join t3
+  7* on t2.member = t3.name
+
+G1_ID G1_NAME    G2_ID      G2_NAME    MEMBER          SCORE     SCORE2 NAME JOB        MANAGE
+----- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+0     a          00         A          0001               60            0001 boss       boss
+0     a          00         A          0002               59            0002 manage     boss
+0     a          00         A          0003               61            0003 normal     manage
+=========================
+相等连接，左连接和右连接：
+相等：
+SQL> r
+  1  select g1_id, g1_name, t1.g2_id, t1.g2_name
+  2  , member, score, score2
+  3  from t1
+  4  join t2
+  5* on t1.g2_id = t2.g2_id
+
+G1_ID G1_NAME    G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+----- ---------- ---------- ---------- ---------- ---------- ----------
+0     a          00         A          0001               60
+0     a          00         A          0002               59
+0     a          00         A          0003               61
+1+    b+         01         B+         0101               80
+1     b          01         B          0101               80
+1+    b+         01         B+         0102               90
+1     b          01         B          0102               90
+左连接和右连接：
+SQL> r
+  1  select g1_id, g1_name, t1.g2_id, t1.g2_name
+  2  , member, score, score2
+  3  from t1
+  4  left outer join t2
+  5* on t1.g2_id = t2.g2_id
+
+G1_ID G1_NAME    G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+----- ---------- ---------- ---------- ---------- ---------- ----------
+0     a          00         A          0001               60
+0     a          00         A          0002               59
+0     a          00         A          0003               61
+1+    b+         01         B+         0101               80
+1     b          01         B          0101               80
+1+    b+         01         B+         0102               90
+1     b          01         B          0102               90
+3     d          03         D
+
+8 rows selected.
+
+SQL> 4    
+  4* left outer join t2
+SQL> c /left/right
+  4* right outer join t2
+SQL> r
+  1  select g1_id, g1_name, t1.g2_id, t1.g2_name
+  2  , member, score, score2
+  3  from t1
+  4  right outer join t2
+  5* on t1.g2_id = t2.g2_id
+
+G1_ID G1_NAME    G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+----- ---------- ---------- ---------- ---------- ---------- ----------
+0     a          00         A          0003               61
+0     a          00         A          0002               59
+0     a          00         A          0001               60
+1     b          01         B          0102               90
+1     b          01         B          0101               80
+1+    b+         01         B+         0102               90
+1+    b+         01         B+         0101               80
+                                       0201              100
+
+8 rows selected.
+====================
+全连接：
+SQL> c /right/full
+  4* full outer join t2
+SQL> r
+  1  select g1_id, g1_name, t1.g2_id, t1.g2_name
+  2  , member, score, score2
+  3  from t1
+  4  full outer join t2
+  5* on t1.g2_id = t2.g2_id
+
+G1_ID G1_NAME    G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+----- ---------- ---------- ---------- ---------- ---------- ----------
+0     a          00         A          0001               60
+0     a          00         A          0002               59
+0     a          00         A          0003               61
+1+    b+         01         B+         0101               80
+1     b          01         B          0101               80
+1+    b+         01         B+         0102               90
+1     b          01         B          0102               90
+                                       0201              100
+3     d          03         D
+
+9 rows selected.
 
