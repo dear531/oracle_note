@@ -1671,3 +1671,86 @@ G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
 00         A          0002               59
 00         A          0003               61
 
+=============================
+having子句中的单行子查询：
+显示按g2_id分组平均中大于最小平均值的分组：
+SQL> r  
+  1  select min(score), max(score), avg(score), g2_id
+  2  from t2
+  3  group by g2_id
+  4  having avg(score) >
+  5  (select min(avg(score))
+  6     from t2
+  7*    group by g2_id)
+
+MIN(SCORE) MAX(SCORE) AVG(SCORE) G2_ID
+---------- ---------- ---------- ----------
+        80         90         85 01
+       100        100        100 02
+=================================
+from子句中单行子句用法：
+先得到按g2_id分组的平均值
+再按g2_id和表中score成绩进行比较，得到大于平均值的记录：
+SQL> r
+  1  select a.g2_id, g2_name, member, score, score2
+  2  , avg
+  3  from t2 a,
+  4  (select g2_id, avg(score) avg from t2 group by g2_id) b
+  5  where a.g2_id = b.g2_id
+  6* and a.score > b.avg
+
+G2_ID      G2_NAME    MEMBER          SCORE     SCORE2        AVG
+---------- ---------- ---------- ---------- ---------- ----------
+00         A          0003               61                    60
+01         B          0102               90                    85
+
+原始数据和未加限定条件大于平均值时情况如下：
+SQL> select * from t2;
+
+G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+---------- ---------- ---------- ---------- ----------
+00         A          0001               60
+00         A          0002               59
+00         A          0003               61
+01         B          0101               80
+01         B          0102               90
+02         C          0201              100
+
+6 rows selected.
+
+SQL> select a.g2_id, g2_name, member, score, score2
+  2  , avg   
+  3  from t2 a,
+  4  (select g2_id, avg(score) avg from t2 group by g2_id)
+  5  b                   
+  6  where a.g2_id = b.g2_id;
+
+G2_ID      G2_NAME    MEMBER          SCORE     SCORE2        AVG
+---------- ---------- ---------- ---------- ---------- ----------
+00         A          0001               60                    60
+00         A          0002               59                    60
+00         A          0003               61                    60
+01         B          0101               80                    85
+01         B          0102               90                    85
+02         C          0201              100                   100
+
+6 rows selected.
+
+============================
+找到按g2_id分组之后，每组中的最大值的记录：
+SQL> r
+  1  select a.g2_id, g2_name, member, score
+  2  , b.max_score
+  3  from t2 a,
+  4  (select g2_id, max(score) max_score from t2 group by g2_id) b
+  5  where a.g2_id = b.g2_id
+  6* and a.score = b.max_score
+
+G2_ID      G2_NAME    MEMBER          SCORE  MAX_SCORE
+---------- ---------- ---------- ---------- ----------
+00         A          0003               61         61
+01         B          0102               90         90
+02         C          0201              100        100
+
+
+
