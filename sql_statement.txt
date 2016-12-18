@@ -1796,4 +1796,40 @@ G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
 01         B          0102               90
 01         B          0101               80
 00         A          0003               61
+==================
+多列查询in：
+子句按g2_id分组查score最大值和显示g2_id
+主句按查到的g2_id和score最大值找所有记录：
+子句显示结果如下
+成对匹配：
+SQL> r
+  1* select g2_id, max(score) from t2 group by g2_id
+
+G2_ID      MAX(SCORE)
+---------- ----------
+00                 61
+01                 90
+02                100
+
+主句和子句组合之后如下
+SQL> select * from t2 where (g2_id, score) in
+  2  (select g2_id, max(score) from t2 group by g2_id);
+
+G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+---------- ---------- ---------- ---------- ----------
+00         A          0003               61
+01         B          0102               90
+02         C          0201              100
+非成对匹配：
+比成对匹配多了一条记录，因为g2_id和最大成绩是分别匹配的
+两个集合中任意组合，而成对匹配是两个条件组合已经确定
+SQL> select * from t2 where g2_id in (select distinct g2_id from t2)
+  2  and score in (select max(score) from t2 group by g2_id);
+
+G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+---------- ---------- ---------- ---------- ----------
+01         B          0103               61
+00         A          0003               61
+01         B          0102               90
+02         C          0201              100
 
