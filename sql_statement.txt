@@ -1752,5 +1752,48 @@ G2_ID      G2_NAME    MEMBER          SCORE  MAX_SCORE
 01         B          0102               90         90
 02         C          0201              100        100
 
+====================
+多行子句：
+通过in操作符的多行子句查询
+先通过分组找到分组中的最大值
+再通过主句将子句查询到的结果作为条件
+找到每个分组当中的最大值记录：
+SQL> r
+  1  select * from t2
+  2  where score in
+  3  (select max(score) from t2
+  4* group by g2_id)
 
+G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+---------- ---------- ---------- ---------- ----------
+00         A          0003               61
+01         B          0102               90
+02         C          0201              100
+
+====================
+子句用以g2_id作为分组，求出分组的平均值
+主句再用all < 找到小于返回数据最小值的记录：
+SQL> r
+  1  select * from t2
+  2  where score < all
+  3* (select avg(score) from t2 group by g2_id)
+
+G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+---------- ---------- ---------- ---------- ----------
+00         A          0002               59
+子句得到以g2_id作为分组，求出分组score平均值
+主句用any < any找到score小于最大数据的记录：
+any < 可理解为小于任意一个，也就是小于最大值
+哪怕其余的值都大于都满足条件，所以即为小于最大值
+SQL> r
+  1  select * from t2
+  2  where score >  any
+  3* (select avg(score) from t2 group by g2_id)
+
+G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+---------- ---------- ---------- ---------- ----------
+02         C          0201              100
+01         B          0102               90
+01         B          0101               80
+00         A          0003               61
 
