@@ -1832,4 +1832,197 @@ G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
 00         A          0003               61
 01         B          0102               90
 02         C          0201              100
+=====================
+当显示的记录超过一定行数时，则提示行数的数量：
+默认6行
+SQL> show feedback
+FEEDBACK ON for 6 or more rows
+改变行数显示设置：
+SQL> set feedback 5 
+SQL> r  
+  1* select  * from t1 where g2_name is not null and g2_name != 'shuju'
+
+G1_ID   G1_NAME         G2_ID   G2_NAME
+------- --------------- ------- ---------------
+001     yf01            001001  qianduan
+001     yf01            001002  lianji
+001     yf01            001003  rizhong
+002     yf02            002001  qudao
+002     yf02            002002  file
+
+5 rows selected.
+SQL> show feedback
+FEEDBACK ON for 5 or more rows
+==============================
+SQL> column member clear 
+SQL> column member
+SP2-0046: COLUMN 'member' not defined
+SQL> column heading member member1
+SP2-0158: unknown COLUMN option "member"
+SQL> column member heading member_1 for a9
+SQL> column member
+COLUMN   member ON
+HEADING  'member_1'
+FORMAT   a9
+SQL> select * from t2;
+
+G2_ID   G2_NAME         member_1       SCORE     SCORE2
+------- --------------- --------- ---------- ----------
+        ???                                          56
+001001  qianduan        010102            72         56
+001001  qianduan        010103            66         56
+001002  lianji          010201            65         56
+001001  qianduan        010101            86         56
+001002  lianji          010202            56         56
+001002  lianji          010202            56         56
+001003  rizhong         010301            44         56
+001003  rizhong         010302            78         56
+001003  rizhong         010303            55         56
+002001  qudao           020101            79         56
+
+=========================
+数字格式：
+QL> column score for $999.99
+SQL> select * from t2;
+
+G2_ID   G2_NAME         member_1     SCORE     SCORE2
+------- --------------- --------- -------- ----------
+        ???                                        56
+001001  qianduan        010102      $72.00         56
+001001  qianduan        010103      $66.00         56
+
+SQL> column score for $000,000.00
+SQL> select * from t2;
+
+G2_ID   G2_NAME         member_1         SCORE     SCORE2
+------- --------------- --------- ------------ ----------
+        ???                                            56
+001001  qianduan        010102     $000,072.00         56
+001001  qianduan        010103     $000,066.00         56
+001002  lianji          010201     $000,065.00         56
+
+本地化货币命令：
+SQL> column score for L999,999.99
+SQL> select * from t2;
+
+G2_ID   G2_NAME         member_1                  SCORE     SCORE2
+------- --------------- --------- --------------------- ----------
+        ???                                                     56
+001001  qianduan        010102                   $72.00         56
+001001  qianduan        010103                   $66.00         56
+001002  lianji          010201                   $65.00         56
+
+====================
+查询本用户名下所有的表：
+SQL> l
+  1  select table_name from user_tables
+查看当前用户名有哪些可以操作的表：
+SQL> l  
+  1* select table_name from all_tables where owner not like '%sys'
+查看当前用户所有表和属性：
+SQL> l
+  1  select * from user_catalog
+catalog的别名查询办法：
+SQL> l
+  1  select * from cat
+=========================
+以下为数据库管理员应当关心内容：
+以system数据库管理员登录数据，查看数据库的版本，创建时间和运行模式
+SQL> r
+  1  select name, created, log_mode
+  2* from v$database
+
+NAME      CREATED   LOG_MODE
+--------- --------- ------------
+ORCL      26-JAN-16 NOARCHIVELOG
+
+实例信息：
+SQL> select instance_name, host_name, version, archiver
+  2  from v$instance;
+
+INSTANCE_NAME
+----------------
+HOST_NAME
+----------------------------------------------------------------
+VERSION           ARCHIVE
+----------------- -------
+orcl
+ctos
+11.2.0.1.0        STOPPED
+
+查看系统上有多少用户和创建日期：
+SQL> select username, created  
+  2  from dba_users;
+
+USERNAME                       CREATED
+------------------------------ ---------
+MGMT_VIEW                      15-AUG-09
+SYS                            15-AUG-09
+SYSTEM                         15-AUG-09
+DBSNMP                         15-AUG-09
+SYSMAN                         15-AUG-09
+SCOTT                          15-AUG-09
+OUTLN                          15-AUG-09
+FLOWS_FILES                    15-AUG-09
+MDSYS                          15-AUG-09
+ORDSYS                         15-AUG-09
+EXFSYS                         15-AUG-09
+
+USERNAME                       CREATED
+------------------------------ ---------
+WMSYS                          15-AUG-09
+APPQOSSYS                      15-AUG-09
+APEX_030200                    15-AUG-09
+OWBSYS_AUDIT                   15-AUG-09
+ORDDATA                        15-AUG-09
+CTXSYS                         15-AUG-09
+ANONYMOUS                      15-AUG-09
+XDB                            15-AUG-09
+ORDPLUGINS                     15-AUG-09
+OWBSYS                         15-AUG-09
+SI_INFORMTN_SCHEMA             15-AUG-09
+
+USERNAME                       CREATED
+------------------------------ ---------
+OLAPSYS                        15-AUG-09
+ORACLE_OCM                     15-AUG-09
+XS$NULL                        15-AUG-09
+BI                             26-JAN-16
+PM                             26-JAN-16
+MDDATA                         15-AUG-09
+IX                             26-JAN-16
+SH                             26-JAN-16
+DIP                            15-AUG-09
+OE                             26-JAN-16
+APEX_PUBLIC_USER               15-AUG-09
+
+USERNAME                       CREATED
+------------------------------ ---------
+HR                             26-JAN-16
+SPATIAL_CSW_ADMIN_USR          15-AUG-09
+SPATIAL_WFS_ADMIN_USR          15-AUG-09
+
+36 rows selected.
+
+=======================
+创建数据库语句：
+SQL> create table product   
+  2     (p_code number(6),
+  3     p_name varchar2(30),
+  4     p_desc varchar2(100),
+  5     p_price number(5,2));
+
+Table created.
+
+SQL> desc product
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ P_CODE                                             NUMBER(6)
+ P_NAME                                             VARCHAR2(30)
+ P_DESC                                             VARCHAR2(100)
+ P_PRICE                                            NUMBER(5,2)
+==================
+修改system的密码为manager：
+SQL> alter user system identified by manager;
 
