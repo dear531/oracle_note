@@ -2025,4 +2025,208 @@ SQL> desc product
 ==================
 修改system的密码为manager：
 SQL> alter user system identified by manager;
+=======================
+指定列名并用已存在的表创建新表：
+SQL> r
+  1  create table t22 (t2_g2_id ,
+  2  t2_g2_name ,
+  3  t2_member ,
+  4  t2_score ,
+  5  t2_score2 )
+  6  as
+  7  select g2_id, g2_name, member, score, score2
+  8* from t2
+i
+Table created.
+
+SQL>select * from t22;
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2
+------- --------------- ------- ---------- ----------
+002001  qudao           020102          56         56
+002001  qudao           020103          69         56
+002001  qudao           020104          88         56
+002002  file            020201          54         56
+002002  file            020202          89         56
+003001  shuju           030101          75         56
+003001  shuju           030102          70         56
+1       ???                                        56
+00_11_  escape                                     56
+004001  Linshi          40101                      56
+
+21 rows selected.
+
+SQL> drop table t22;
+
+Table dropped.
+
+======================
+增加列：
+SQL> r
+  1* alter table t22 add (add1 varchar2(1))
+
+Table altered.
+=========================
+修改列属性：
+SQL> alter table t22
+  2  modify (add1 varchar2(2));
+
+Table altered.
+
+SQL> desc t22;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ T2_G2_ID                                           VARCHAR2(7)
+ T2_G2_NAME                                         VARCHAR2(15)
+ T2_MEMBER                                          VARCHAR2(7)
+ T2_SCORE                                           NUMBER(4)
+ T2_SCORE2                                          NUMBER(2)
+ ADD1                                               VARCHAR2(2)
+
+SQL> alter table t22
+  2  modify (add1 varchar2(1));
+
+Table altered.
+
+SQL> desc t22;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ T2_G2_ID                                           VARCHAR2(7)
+ T2_G2_NAME                                         VARCHAR2(15)
+ T2_MEMBER                                          VARCHAR2(7)
+ T2_SCORE                                           NUMBER(4)
+ T2_SCORE2                                          NUMBER(2)
+ ADD1                                               VARCHAR2(1)
+====================
+对t22增加一列日期类型
+SQL> alter table t22
+  2  add (date1 date);
+
+Table altered.
+
+修改日期类型列的默认值是系统时间
+SQL> alter table t22
+  2  modify (date1 default sysdate);
+
+对数据插入一条日期的列是默认值
+SQL> insert into t22
+  2  (date1)
+  3  values(default);
+
+1 row created.
+
+显示插入的内容：
+SQL> select * from t22;
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+...
+004001  Linshi          40101                      56
+                                                        20-DEC-16
+
+22 rows selected.
+====================
+删除列：
+删除前：
+SQL> desc t22;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ T2_G2_ID                                           VARCHAR2(7)
+ T2_G2_NAME                                         VARCHAR2(15)
+ T2_MEMBER                                          VARCHAR2(7)
+ T2_SCORE                                           NUMBER(4)
+ T2_SCORE2                                          NUMBER(2)
+ ADD1                                               VARCHAR2(1)
+ DATE1                                              DATE
+删除操作：
+SQL> alter table t22
+  2  drop column date1;
+
+Table altered.
+
+删除后：
+SQL> desc t22;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ T2_G2_ID                                           VARCHAR2(7)
+ T2_G2_NAME                                         VARCHAR2(15)
+ T2_MEMBER                                          VARCHAR2(7)
+ T2_SCORE                                           NUMBER(4)
+ T2_SCORE2                                          NUMBER(2)
+ ADD1                                               VARCHAR2(1)
+===================
+标记列为不用列和删除不用列：
+多次执行删除未用列不违反任何错误，没有就等于不删；
+未用列没有逆向操作命令:
+SQL> alter table t22
+  2  set unused (date1);
+
+Table altered.
+
+SQL> select * from t22;
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A
+------- --------------- ------- ---------- ---------- -
+        ???                                        56
+001001  qianduan        010102          72         56
+001001  qianduan        010103          66         56
+001002  lianji          010201          65         56
+001001  qianduan        010101          86         56
+001002  lianji          010202          56         56
+001002  lianji          010202          56         56
+001003  rizhong         010301          44         56
+001003  rizhong         010302          78         56
+001003  rizhong         010303          55         56
+002001  qudao           020101          79         56
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A
+------- --------------- ------- ---------- ---------- -
+002001  qudao           020102          56         56
+002001  qudao           020103          69         56
+002001  qudao           020104          88         56
+002002  file            020201          54         56
+002002  file            020202          89         56
+003001  shuju           030101          75         56
+003001  shuju           030102          70         56
+1       ???                                        56
+00_11_  escape                                     56
+004001  Linshi          40101                      56
+
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A
+------- --------------- ------- ---------- ---------- -
+
+
+
+24 rows selected.
+
+SQL> desc t22;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ T2_G2_ID                                           VARCHAR2(7)
+ T2_G2_NAME                                         VARCHAR2(15)
+ T2_MEMBER                                          VARCHAR2(7)
+ T2_SCORE                                           NUMBER(4)
+ T2_SCORE2                                          NUMBER(2)
+ ADD1                                               VARCHAR2(1)
+
+SQL> alter table t22  
+  2  drop unused column;
+
+==================
+修改表名字：
+SQL> rename t22 to t23;
+
+Table renamed.
+
+修改列名字：
+SQL> alter table t22
+  2  rename column add2 to add1;
+
+Table altered.
 
