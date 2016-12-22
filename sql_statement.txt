@@ -2676,4 +2676,312 @@ T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
                                                         20-DEC-16
 
 22 rows selected.
+============================
+插入空值的方法，字符串可以用''，也可以用null表示，或是干脆不插入任何in值
+SQL> insert into t222
+  2  (t2_g2_id, t2_g2_name, t2_member, t2_score, t2_score2)
+  3  values ('004003', '',  null, null, null);
+
+1 row created.
+
+SQL> select * from t222 where t2_g2_id = '004003';
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+004003
+
+===========================
+通过另外一个表创建表：
+SQL> create table t222    
+  2  as
+  3  select * from t22;
+
+Table created.
+
+SQL> select * from t222;
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+        ???                                        56
+001001  qianduan        010102          72         56
+001001  qianduan        010103          66         56
+001002  lianji          010201          65         56
+001001  qianduan        010101          86         56
+001002  lianji          010202          56         56
+001002  lianji          010202          56         56
+001003  rizhong         010301          44         56
+001003  rizhong         010302          78         56
+001003  rizhong         010303          55         56
+002001  qudao           020101          79         56
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+002001  qudao           020102          56         56
+002001  qudao           020103          69         56
+002001  qudao           020104          88         56
+002002  file            020201          54         56
+002002  file            020202          89         56
+003001  shuju           030101          75         56
+003001  shuju           030102          70         56
+1       ???                                        56
+00_11_  escape                                     56
+004001  Linshi          40101                      56
+                                                        20-DEC-16
+
+22 rows selected.
+
+=====================
+清空t222表，并通过查询子句插入另外一张表达的内容：
+SQL> truncate table t222;
+
+Table truncated.
+
+SQL> select * from t222;
+
+no rows selected
+
+执行完命令如下：
+SQL> insert into t222    
+  2  select * from t22;
+
+22 rows created.
+
+SQL> select * from t222;
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+        ???                                        56
+001001  qianduan        010102          72         56
+001001  qianduan        010103          66         56
+001002  lianji          010201          65         56
+001001  qianduan        010101          86         56
+001002  lianji          010202          56         56
+001002  lianji          010202          56         56
+001003  rizhong         010301          44         56
+001003  rizhong         010302          78         56
+001003  rizhong         010303          55         56
+002001  qudao           020101          79         56
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+002001  qudao           020102          56         56
+002001  qudao           020103          69         56
+002001  qudao           020104          88         56
+002002  file            020201          54         56
+002002  file            020202          89         56
+003001  shuju           030101          75         56
+003001  shuju           030102          70         56
+1       ???                                        56
+00_11_  escape                                     56
+004001  Linshi          40101                      56
+                                                        20-DEC-16
+
+22 rows selected.
+
+==============================
+利用替代变量向数据库中插入数据：
+SQL> r
+  1  insert into t222
+  2  (t2_g2_id, t2_g2_name, t2_member, t2_score, t2_score2, add1, date1)
+  3* values ('&g2_id', '&g2_name', '&member', &score, &score, '&a',
+to_date('&date1', 'YYYYMMDD'))
+Enter value for g2_id: 004004
+Enter value for g2_name: 44nn
+Enter value for member: 44nn
+Enter value for score: 57
+Enter value for score: 57
+Enter value for a: 1
+Enter value for date1: 20161222
+
+1 row created.
+
+将sqlplus中的内容存成脚本文件，replace是覆盖原有文件内容：
+SQL> save tmp replace
+Wrote file tmp.sql
+
+SQL> select * from t222 where t2_g2_id = '004004';
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+004004  44nn            44nn            57         57 1 22-DEC-16
+===================
+利用accept命令生成带提示的替代变量的脚本：
+[oracle@ctos oracle]$ cat tmp.sql 
+accept g2_id prompt 'please enter g2_id:'
+accept g2_name prompt 'please enter g2_name:'
+accept member prompt 'please enter member:'
+accept score prompt 'please enter score:'
+accept a prompt 'please enter add1:'
+accept date1 prompt 'please enter date1 format YYYYMMDD:'
+insert into t222
+(t2_g2_id, t2_g2_name, t2_member, t2_score, t2_score2, add1, date1)
+values ('&g2_id', '&g2_name', '&member', &score, &score, '&a',
+to_date('&date1', 'YYYYMMDD'))
+/
+SQL> @tmp 
+please enter g2_id:004006
+please enter g2_name:0406
+please enter member:0406
+please enter score:61
+please enter add1:3
+please enter date1 format YYYYMMDD:20161222
+
+1 row created.
+
+SQL> select * from t222 where t2_g2_id = '004006';
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+004006  0406            0406            61         61 3 22-DEC-16
+============================
+将一列清空，再改变字段大小，重新赋值之后，再将重新赋值之后的数字缩小0.9倍之后重新赋值：
+SQL> update t222 set t222 = null;
+update t222 set t222 = null
+                *
+ERROR at line 1:
+ORA-00904: "T222": invalid identifier
+
+
+SQL> update t222 set t2_score2 = null;
+
+25 rows updated.
+
+SQL> select * from t222;
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+        ???
+001001  qianduan        010102          65
+001001  qianduan        010103          59
+001002  lianji          010201          59
+001001  qianduan        010101          77
+001002  lianji          010202          50
+001002  lianji          010202          50
+001003  rizhong         010301          40
+001003  rizhong         010302          70
+001003  rizhong         010303          50
+002001  qudao           020101          71
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+002001  qudao           020102          50
+002001  qudao           020103          62
+002001  qudao           020104          79
+002002  file            020201          49
+002002  file            020202          80
+003001  shuju           030101          68
+003001  shuju           030102          63
+1       ???
+00_11_  escape
+004001  Linshi          40101
+                                                        20-DEC-16
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+004004  44nn            44nn            51            1 22-DEC-16
+004005  004005          004005          52            2 22-DEC-16
+004006  0406            0406            55            3 22-DEC-16
+
+25 rows selected.
+
+SQL> alter table t222   
+  2  modify (t2_score2 varchar2(3));
+
+Table altered.
+
+SQL> update t222 set t2_score2 = 100;
+
+25 rows updated.
+
+SQL> select * from t222;
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE T2_ A DATE1
+------- --------------- ------- ---------- --- - ---------
+        ???                                100
+001001  qianduan        010102          65 100
+001001  qianduan        010103          59 100
+001002  lianji          010201          59 100
+001001  qianduan        010101          77 100
+001002  lianji          010202          50 100
+001002  lianji          010202          50 100
+001003  rizhong         010301          40 100
+001003  rizhong         010302          70 100
+001003  rizhong         010303          50 100
+002001  qudao           020101          71 100
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE T2_ A DATE1
+------- --------------- ------- ---------- --- - ---------
+002001  qudao           020102          50 100
+002001  qudao           020103          62 100
+002001  qudao           020104          79 100
+002002  file            020201          49 100
+002002  file            020202          80 100
+003001  shuju           030101          68 100
+003001  shuju           030102          63 100
+1       ???                                100
+00_11_  escape                             100
+004001  Linshi          40101              100
+                                           100   20-DEC-16
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE T2_ A DATE1
+------- --------------- ------- ---------- --- - ---------
+004004  44nn            44nn            51 100 1 22-DEC-16
+004005  004005          004005          52 100 2 22-DEC-16
+004006  0406            0406            55 100 3 22-DEC-16
+
+25 rows selected.
+
+SQL> update t222 set t2_score2 = t2_score2 * 0.9;
+
+25 rows updated.
+
+SQL> select * from t222;
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE T2_ A DATE1
+------- --------------- ------- ---------- --- - ---------
+        ???                                90
+001001  qianduan        010102          65 90
+001001  qianduan        010103          59 90
+001002  lianji          010201          59 90
+001001  qianduan        010101          77 90
+001002  lianji          010202          50 90
+001002  lianji          010202          50 90
+001003  rizhong         010301          40 90
+001003  rizhong         010302          70 90
+001003  rizhong         010303          50 90
+002001  qudao           020101          71 90
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE T2_ A DATE1
+------- --------------- ------- ---------- --- - ---------
+002001  qudao           020102          50 90
+002001  qudao           020103          62 90
+002001  qudao           020104          79 90
+002002  file            020201          49 90
+002002  file            020202          80 90
+003001  shuju           030101          68 90
+003001  shuju           030102          63 90
+1       ???                                90
+00_11_  escape                             90
+004001  Linshi          40101              90
+                                           90    20-DEC-16
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE T2_ A DATE1
+------- --------------- ------- ---------- --- - ---------
+004004  44nn            44nn            51 90  1 22-DEC-16
+004005  004005          004005          52 90  2 22-DEC-16
+004006  0406            0406            55 90  3 22-DEC-16
+
+25 rows selected.
+
+SQL> desc t222;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ T2_G2_ID                                           VARCHAR2(7)
+ T2_G2_NAME                                         VARCHAR2(15)
+ T2_MEMBER                                          VARCHAR2(7)
+ T2_SCORE                                           NUMBER(4)
+ T2_SCORE2                                          VARCHAR2(3)
+ ADD1                                               VARCHAR2(1)
+ DATE1                                              DATE
 
