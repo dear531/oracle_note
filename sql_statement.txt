@@ -2229,4 +2229,396 @@ SQL> alter table t22
   2  rename column add2 to add1;
 
 Table altered.
+=========================
+给表格添加注释：
+SQL> comment on table t22
+  2  is 'this is exercise';
+
+Comment created.
+
+查看表格注释：
+SQL> select comments  
+  2  from user_tab_comments
+  3  where table_name = 'T22';
+
+COMMENTS
+--------------------------------------------------------------------------------
+this is exercise
+
+注意表格名字已经用单引号括起来了，区分大小写
+像下面这样执行，得不到想查找的结果：
+SQL> select comments 
+  2  from user_tab_comments
+  3  where table_name = 't22';
+
+no rows selected
+=========================
+给表列添加注释：
+SQL> comment on column t22.t2_g2_id
+  2  is 'this is group id';
+
+Comment created.
+
+查看表列注释：
+SQL> r
+  1  select comments
+  2  from user_col_comments
+  3  where table_name = 'T22'
+  4* and column_name = 'T2_G2_ID'
+
+COMMENTS
+--------------------------------------------------------------------------------
+this is group id
+
+注意查询时的字段使用单引号括起来的，是区分大小写的
+像下面这样执行，是得不到想查找的结果的
+SQL> select comments
+  2  from user_col_comments
+  3  where table_name = 't22'
+  4  and column_name = 't2_g2_id';
+
+no rows selected
+
+=======================
+删除注释只能通过添加空注释的方式，没有删除注释命令
+SQL> comment on table t22
+  2  is '';
+SQL> select comments
+  2  from user_tab_comments
+  3  where table_name = 'T22';
+
+COMMENTS
+--------------------------------------------------------------------------------
+
+=============================
+根据t22新创建一个表，再清空表：
+SQL> create table t222
+  2  as
+  3  select * from t22;
+
+Table created.
+
+SQL> select * from t222;
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+        ???                                        56
+001001  qianduan        010102          72         56
+001001  qianduan        010103          66         56
+001002  lianji          010201          65         56
+001001  qianduan        010101          86         56
+001002  lianji          010202          56         56
+001002  lianji          010202          56         56
+001003  rizhong         010301          44         56
+001003  rizhong         010302          78         56
+001003  rizhong         010303          55         56
+002001  qudao           020101          79         56
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+002001  qudao           020102          56         56
+002001  qudao           020103          69         56
+002001  qudao           020104          88         56
+002002  file            020201          54         56
+002002  file            020202          89         56
+003001  shuju           030101          75         56
+003001  shuju           030102          70         56
+1       ???                                        56
+00_11_  escape                                     56
+004001  Linshi          40101                      56
+                                                        20-DEC-16
+
+22 rows selected.
+
+SQL> truncete table t222;
+
+Table truncated.
+
+查询表没有数据：
+SQL> select * from t222;
+
+no rows selected
+
+查询表结构，表结构还在：
+SQL> desc t222;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ T2_G2_ID                                           VARCHAR2(7)
+ T2_G2_NAME                                         VARCHAR2(15)
+ T2_MEMBER                                          VARCHAR2(7)
+ T2_SCORE                                           NUMBER(4)
+ T2_SCORE2                                          NUMBER(2)
+ ADD1                                               VARCHAR2(1)
+ DATE1                                              DATE
+
+============================
+删除表：
+SQL> drop table t222;
+
+Table dropped.
+
+SQL> desc t222;
+ERROR:
+ORA-04043: object t222 does not exist
+
+========================
+创建并复制表结构：
+下列语句表示创建一个表t222，通过查找表t22创建
+而表t22的条件是1=2，此条件永远为假，所以只复制成功了表结构
+SQL> create table t222 as select * from t22 where 1=2;
+
+Table created.
+
+SQL> desc t222;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ T2_G2_ID                                           VARCHAR2(7)
+ T2_G2_NAME                                         VARCHAR2(15)
+ T2_MEMBER                                          VARCHAR2(7)
+ T2_SCORE                                           NUMBER(4)
+ T2_SCORE2                                          NUMBER(2)
+ ADD1                                               VARCHAR2(1)
+ DATE1                                              DATE
+
+=======================
+以＆开头的替代变量：
+SQL> r  
+  1  select * from t22
+  2* where t2_score > &v_score
+Enter value for v_score: 60
+old   2: where t2_score > &v_score
+new   2: where t2_score > 60
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+001001  qianduan        010102          72         56
+001001  qianduan        010103          66         56
+001002  lianji          010201          65         56
+001001  qianduan        010101          86         56
+001003  rizhong         010302          78         56
+002001  qudao           020101          79         56
+002001  qudao           020103          69         56
+002001  qudao           020104          88         56
+002002  file            020202          89         56
+003001  shuju           030101          75         56
+003001  shuju           030102          70         56
+
+11 rows selected.
+
+当运行时系统会提示输入要查找的数字比例
+======================
+开启变量显示原值功能：
+SQL> set verify on
+SQL> r
+  1  select * from t22
+  2* where t2_score > &v_score
+Enter value for v_score: 60
+old   2: where t2_score > &v_score
+new   2: where t2_score > 60
+
+========================
+字符串变量记得输入单引号：
+SQL> r
+  1  select * from t22
+  2* where t2_g2_name > &v_name
+Enter value for v_name: 'qianduan'
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+        ???                                        56
+001003  rizhong         010301          44         56
+001003  rizhong         010302          78         56
+001003  rizhong         010303          55         56
+002001  qudao           020101          79         56
+002001  qudao           020102          56         56
+002001  qudao           020103          69         56
+002001  qudao           020104          88         56
+003001  shuju           030101          75         56
+003001  shuju           030102          70         56
+1       ???                                        56
+
+11 rows selected.
+
+=======================
+或是直接在脚本的变量两端加上单引号：
+SQL> r
+  1  select * from t22
+  2* where t2_g2_name > '&v_name'
+Enter value for v_name: qianduan
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+        ???                                        56
+001003  rizhong         010301          44         56
+001003  rizhong         010302          78         56
+001003  rizhong         010303          55         56
+002001  qudao           020101          79         56
+002001  qudao           020102          56         56
+002001  qudao           020103          69         56
+002001  qudao           020104          88         56
+003001  shuju           030101          75         56
+003001  shuju           030102          70         56
+1       ???                                        56
+
+11 rows selected.
+
+======================
+&变量名：每次都要重新输入值
+&&只需要第一执行的时候输入变量值，以后再执行会自动用以前的旧值
+SQL> r
+  1  select * from t22
+  2* where t2_g2_name > '&&v_name'
+Enter value for v_name: qianduan
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+        ???                                        56
+001003  rizhong         010301          44         56
+001003  rizhong         010302          78         56
+001003  rizhong         010303          55         56
+002001  qudao           020101          79         56
+002001  qudao           020102          56         56
+002001  qudao           020103          69         56
+002001  qudao           020104          88         56
+003001  shuju           030101          75         56
+003001  shuju           030102          70         56
+1       ???                                        56
+
+11 rows selected.
+
+========================
+将变量当作列值：
+SQL> select &value from t22;
+Enter value for value: *
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+        ???                                        56
+001001  qianduan        010102          72         56
+001001  qianduan        010103          66         56
+001002  lianji          010201          65         56
+001001  qianduan        010101          86         56
+001002  lianji          010202          56         56
+001002  lianji          010202          56         56
+001003  rizhong         010301          44         56
+001003  rizhong         010302          78         56
+001003  rizhong         010303          55         56
+002001  qudao           020101          79         56
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+002001  qudao           020102          56         56
+002001  qudao           020103          69         56
+002001  qudao           020104          88         56
+002002  file            020201          54         56
+002002  file            020202          89         56
+003001  shuju           030101          75         56
+003001  shuju           030102          70         56
+1       ???                                        56
+00_11_  escape                                     56
+004001  Linshi          40101                      56
+                                                        20-DEC-16
+
+22 rows selected.
+
+SQL> r  
+  1* select &value from t22
+Enter value for value: t2_g2_id
+
+T2_G2_I
+-------
+
+001001
+001001
+001002
+001001
+001002
+001002
+001003
+001003
+001003
+002001
+
+T2_G2_I
+-------
+002001
+002001
+002001
+002002
+002002
+003001
+003001
+1
+00_11_
+004001
+
+
+22 rows selected.
+====================
+变量做表达式：
+SQL> r  
+  1* select * from t22 where &condition
+Enter value for condition: t2_g2_id = '003001'
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+003001  shuju           030101          75         56
+003001  shuju           030102          70         56
+
+=======================
+define命令的运用：
+SQL> define value
+SP2-0135: symbol value is UNDEFINED
+SQL> define value = t2_g2_id
+SQL> define value 
+DEFINE VALUE           = "t2_g2_id" (CHAR)
+SQL> select &value from t22;
+
+T2_G2_I
+-------
+
+001001
+001001
+001002
+001001
+001002
+001002
+001003
+001003
+001003
+002001
+
+T2_G2_I
+-------
+002001
+002001
+002001
+002002
+002002
+003001
+003001
+1
+00_11_
+004001
+
+
+22 rows selected.
+=================
+查看定义的全部变量：
+SQL> define
+DEFINE _DATE           = "21-DEC-16" (CHAR)
+DEFINE _CONNECT_IDENTIFIER = "orcl" (CHAR)
+DEFINE _USER           = "SYS" (CHAR)
+DEFINE _PRIVILEGE      = "AS SYSDBA" (CHAR)
+DEFINE _SQLPLUS_RELEASE = "1102000100" (CHAR)
+DEFINE _EDITOR         = "ed" (CHAR)
+DEFINE _O_VERSION      = "Oracle Database 11g Enterprise Edition Release
+11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options"
+(CHAR)
+DEFINE _O_RELEASE      = "1102000100" (CHAR)
+DEFINE V_NAME          = "qianduan" (CHAR)
+DEFINE VALUE           = "t2_g2_id" (CHAR)
 
