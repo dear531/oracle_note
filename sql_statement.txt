@@ -2985,3 +2985,252 @@ SQL> desc t222;
  ADD1                                               VARCHAR2(1)
  DATE1                                              DATE
 
+============================
+修改两列：
+SQL> select * from t222 where t2_g2_id = '004001';
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE T2_ A DATE1
+------- --------------- ------- ---------- --- - ---------
+004001  Linshi          40101              90
+                                           90    20-DEC-16
+
+SQL> update t222 set t2_g2_name = 'linshi'                    
+  2  , t2_member = '040101' 
+  3  where t2_g2_id = '004001';
+
+1 row updated.
+
+SQL> select * from t222 where t2_g2_id = '004001';
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE T2_ A DATE1
+------- --------------- ------- ---------- --- - ---------
+004001  linshi          040101             90
+==============================
+带查询子句的update语句：
+
+SQL> r
+  1  update t222 set t2_score = (select low from tab_score)
+  2* where t2_score > (select low from tab_score)
+
+20 rows updated.
+
+
+SQL> select * from t222;
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE T2_ A DATE1
+------- --------------- ------- ---------- --- - ---------
+        ???                                90
+001001  qianduan        010102          60 90
+001001  qianduan        010103          60 90
+001002  lianji          010201          60 90
+001001  qianduan        010101          60 90
+001002  lianji          010202          60 90
+001002  lianji          010202          60 90
+001003  rizhong         010301          60 90
+001003  rizhong         010302          60 90
+001003  rizhong         010303          60 90
+002001  qudao           020101          60 90
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE T2_ A DATE1
+------- --------------- ------- ---------- --- - ---------
+002001  qudao           020102          60 90
+002001  qudao           020103          60 90
+002001  qudao           020104          60 90
+002002  file            020201          60 90
+002002  file            020202          60 90
+003001  shuju           030101          60 90
+003001  shuju           030102          60 90
+1       ???                                90
+00_11_  escape                             90
+004001  linshi          040101             90
+                                           90    20-DEC-16
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE T2_ A DATE1
+------- --------------- ------- ---------- --- - ---------
+004004  44nn            44nn            60 90  1 22-DEC-16
+004005  004005          004005          60 90  2 22-DEC-16
+004006  0406            0406            60 90  3 22-DEC-16
+
+25 rows selected.
+
+SQL> select * from tab_score;
+
+     HIGHT        LOW I
+---------- ---------- -
+       100         60 1
+
+===========================
+带多列查询子句的update：
+SQL> r
+  1  update t222 set (t2_score, t2_score2) = (
+  2* select low, hight from tab_score where id = '1')
+
+25 rows updated.
+
+SQL> select * from t222;
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE T2_ A DATE1
+------- --------------- ------- ---------- --- - ---------
+        ???                             60 100
+001001  qianduan        010102          60 100
+001001  qianduan        010103          60 100
+001002  lianji          010201          60 100
+001001  qianduan        010101          60 100
+001002  lianji          010202          60 100
+001002  lianji          010202          60 100
+001003  rizhong         010301          60 100
+001003  rizhong         010302          60 100
+001003  rizhong         010303          60 100
+002001  qudao           020101          60 100
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE T2_ A DATE1
+------- --------------- ------- ---------- --- - ---------
+002001  qudao           020102          60 100
+002001  qudao           020103          60 100
+002001  qudao           020104          60 100
+002002  file            020201          60 100
+002002  file            020202          60 100
+003001  shuju           030101          60 100
+003001  shuju           030102          60 100
+1       ???                             60 100
+00_11_  escape                          60 100
+004001  linshi          040101          60 100
+                                        60 100   20-DEC-16
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE T2_ A DATE1
+------- --------------- ------- ---------- --- - ---------
+004004  44nn            44nn            60 100 1 22-DEC-16
+004005  004005          004005          60 100 2 22-DEC-16
+004006  0406            0406            60 100 3 22-DEC-16
+
+25 rows selected.
+
+========================
+多条件删除语句：
+SQL> insert into t222 
+  2  (t2_g2_id, t2_score) 
+  3  values ('005001', 70);
+
+1 row created.
+
+SQL> select * from t222
+  2  where t2_g2_id = '005001';
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE T2_ A DATE1
+------- --------------- ------- ---------- --- - ---------
+005001                                  70
+
+SQL> delete t222 where t2_g2_id = '005001'
+  2  and t2_score = 70;
+
+1 row deleted.
+
+SQL> select * from t222 where t2_g2_id = '005001';
+
+no rows selected
+
+或执行：
+SQL> delete from t222 where t2_g2_id = '005001';
+
+1 row deleted.
+
+
+==============
+查看sqlplus所有的设置：
+SQL> show all
+appinfo is OFF and set to "SQL*Plus"
+arraysize 15
+autocommit OFF
+autoprint OFF
+autorecovery OFF
+autotrace OFF
+blockterminator "." (hex 2e)
+btitle OFF and is the first few characters of the next SELECT statement
+cmdsep OFF
+colsep " "
+compatibility version NATIVE
+concat "." (hex 2e)
+copycommit 0
+COPYTYPECHECK is ON
+define "&" (hex 26)
+describe DEPTH 1 LINENUM OFF INDENT ON
+echo OFF
+editfile "afiedt.buf"
+embedded OFF
+escape OFF
+escchar OFF
+exitcommit ON
+FEEDBACK ON for 6 or more rows
+flagger OFF
+flush ON
+heading ON
+headsep "|" (hex 7c)
+instance "local"
+linesize 80
+lno 9
+loboffset 1
+logsource ""
+long 80
+longchunksize 80
+markup HTML OFF HEAD "<style type='text/css'> body {font:10pt
+Arial,Helvetica,sans-serif; color:black; background:White;} p {font:10pt
+Arial,Helvetica,sans-serif; color:black; background:White;} table,tr,td
+{font:10pt Arial,Helvetica,sans-serif; color:Black; background:#f7f7e7;
+padding:0px 0px 0px 0px; margin:0px 0px 0px 0px;} th {font:bold 10pt
+Arial,Helvetica,sans-serif; color:#336699; background:#cccc99; padding:0px 0px
+0px 0px;} h1 {font:16pt Arial,Helvetica,Geneva,sans-serif; color:#336699;
+background-color:White; border-bottom:1px solid #cccc99; margin-top:0pt;
+margin-bottom:0pt; padding:0px 0px 0px 0px;-
+} h2 {font:bold 10pt Arial,Helvetica,Geneva,sans-serif; color:#336699;
+background-color:White; margin-top:4pt; margin-bottom:0pt;} a {font:9pt
+Arial,Helvetica,sans-serif; color:#663300; background:#ffffff; margin-top:0pt;
+margin-bottom:0pt; vertical-align:top;}</style><title>SQL*Plus Report</title>"
+BODY "" TABLE "border='1' width='90%' align='center' summary='Script output'"
+SPOOL OFF ENTMAP ON PREFORMAT OFF
+newpage 1
+null ""
+numformat ""
+numwidth 10
+pagesize 14
+PAUSE is OFF
+pno 3
+recsep WRAP
+recsepchar " " (hex 20)
+release 1102000100
+repfooter OFF and is NULL
+repheader OFF and is NULL
+securedcol is OFF
+serveroutput OFF
+shiftinout INVISIBLE
+showmode OFF
+spool ON
+sqlblanklines OFF
+sqlcase MIXED
+sqlcode 0
+sqlcontinue "> "
+sqlnumber ON
+sqlpluscompatibility 11.2.0
+sqlprefix "#" (hex 23)
+sqlprompt "SQL> "
+sqlterminator ";" (hex 3b)
+suffix "sql"
+tab ON
+termout ON
+timing OFF
+trimout ON
+trimspool OFF
+ttitle OFF and is the first few characters of the next SELECT statement
+underline "-" (hex 2d)
+USER is "SYS"
+verify OFF
+wrap : lines will be wrapped
+errorlogging is OFF
+==================
+设置自动提交之后，执行dml之后，命令显示自动提交
+SQL> set autocommit on
+SQL> update t222 set t2_score2 = 75 where t2_g2_id = '005001';
+
+1 row updated.
+
+Commit complete.
+
