@@ -3233,4 +3233,174 @@ SQL> update t222 set t2_score2 = 75 where t2_g2_id = '005001';
 1 row updated.
 
 Commit complete.
+=====================
+创建索引方法：
+建表：
+SQL> select * from t1;
+
+G1_ID G1_NAME    G2_ID      G2_NAME
+----- ---------- ---------- ----------
+0     a          00         A
+1     b          01         B
+1+    b+         01         B+
+3     d          03         D
+
+SQL> select * from t2;
+
+G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+---------- ---------- ---------- ---------- ----------
+00         A          0001               60
+00         A          0002               59
+00         A          0003               61
+01         B          0101               80
+01         B          0102               90
+02         C          0201              100
+01         B          0103               61
+
+7 rows selected.
+
+SQL> create table t22 
+  2  as
+  3  select * from t2 where 1=2;
+
+Table created.
+
+SQL> desc t22;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ G2_ID                                              VARCHAR2(10)
+ G2_NAME                                            VARCHAR2(10)
+ MEMBER                                             VARCHAR2(10)
+ SCORE                                              NUMBER(4)
+ SCORE2                                             NUMBER(4)
+
+SQL> select * from t22;
+
+no rows selected
+
+建索引：
+给表t22的g2_id字段，添加上名为t22_g2_id的索引：
+SQL> create index t22_g2_id
+  2  on t22(g2_id);
+
+Index created.
+
+查询索引，在user_indexes表中查询表名为T22的索引信息
+注意表名区分大小写：
+SQL> col index_type for a10
+SQL> col index_name for a10
+SQL> r
+  1   select index_name, index_type, table_name,
+  2  uniqueness
+  3   from user_indexes
+  4*  where table_name = 'T22'
+
+INDEX_NAME INDEX_TYPE TABLE_NAME                     UNIQUENES
+---------- ---------- ------------------------------ ---------
+T22_G2_ID  NORMAL     T22                            NO
+在user_ind_columns表中，查询索引对应的列的情况：
+SQL> r
+  1   select index_name, table_name, column_name
+  2   , column_position
+  3   from user_ind_columns
+  4* where table_name = 'T22'
+
+INDEX_NAME TABLE_NAME                     COLUMN_NAME     COLUMN_POSITION
+---------- ------------------------------ --------------- ---------------
+T22_G2_ID  T22                            G2_ID                         1
+
+==========================
+表删除之后，表的索引在索引表中也没有了：
+SQL> drop table t22;
+
+Table dropped.
+
+SQL> select index_name, table_name, column_name 
+  2  , column_position
+  3  from user_ind_columns
+  4  where table_name = 'T22';
+
+no rows selected
+
+========================
+组合索引的建立：
+重新建表如下，变动以前列的位置，为稍后验证column_position显示的结果作准备
+SQL> r 
+  1  create table t22
+  2  as
+  3* select member, score, g2_name, g2_id, score2 from t2 where 2=1
+
+Table created.
+
+SQL> select * from t22;
+
+no rows selected
+
+SQL> desc t22;
+ Name
+Null?    Type
+ -----------------------------------------------------------------------------------------------------------------
+--------
+----------------------------------------------------------------------------
+ MEMBER
+VARCHAR2(10)
+ SCORE
+NUMBER(4)
+ G2_NAME
+VARCHAR2(10)
+ G2_ID
+VARCHAR2(10)
+ SCORE2
+NUMBER(4)
+
+SQL> create index t22_g2_id_and_name
+  2  on t22(g2_id, g2_name);
+
+Index created.
+
+查询索引位置可以看到，column_position显示的列在索引中的位置，而并非是索引所在列在表中的位置
+SQL> select index_name, table_name, column_name, column_position
+  2  from user_ind_columns
+  3  where table_name = 'T22';
+
+INDEX_NAME           TABLE_NAME      COLUMN_NAME     COLUMN_POSITION
+-------------------- --------------- --------------- ---------------
+T22_G2_ID_AND_NAME   T22             G2_NAME                       2
+T22_G2_ID_AND_NAME   T22             G2_ID                         1
+
+======================
+索引的删除：
+SQL> drop index T22_G2_ID_AND_NAME;
+
+Index dropped.
+
+===========================
+建立函数索引：
+
+SQL> create index t22_score_sub_20
+  2  on t22(score - 20);
+
+Index created.
+
+查询索引信息：
+SQL> get tmp
+  1  select index_name, index_type, table_name, uniqueness
+  2  from user_indexes
+  3* where table_name = 'T22'
+SQL> /
+
+INDEX_NAME           INDEX_TYPE                TABLE_NAME      UNIQUENESS
+-------------------- ------------------------- ---------------
+--------------------
+T22_SCORE_SUB_20     FUNCTION-BASED NORMAL     T22             NONUNIQUE
+
+查询索引和列对应的信息：
+SQL> select index_name, table_name, column_name, column_position
+  2  from user_ind_columns
+  3  where table_name = 'T22';
+
+INDEX_NAME           TABLE_NAME      COLUMN_NAME     COLUMN_POSITION
+-------------------- --------------- --------------- ---------------
+T22_SCORE_SUB_20     T22             SYS_NC00006$                  1
 
