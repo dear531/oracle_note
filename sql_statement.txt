@@ -3404,3 +3404,257 @@ INDEX_NAME           TABLE_NAME      COLUMN_NAME     COLUMN_POSITION
 -------------------- --------------- --------------- ---------------
 T22_SCORE_SUB_20     T22             SYS_NC00006$                  1
 
+============================
+SQL> @/home/oracle/app/oracle/product/11.2.0/dbhome_1/rdbms/admin/utlxplan.sql
+
+SQL> explain plan for
+  2  select g2_id    
+  3  from t22
+  4  where (score - 20) < 0;
+
+Explained.
+
+SQL> column id for 999
+SQL> column operation for a20
+SQL> column options for a15
+SQL> column object_name for a18
+SQL> r
+  1  select id, operation, options, object_name, position
+  2* from plan_table
+
+  ID OPERATION            OPTIONS         OBJECT_NAME          POSITION
+---- -------------------- --------------- ------------------ ----------
+   0 SELECT STATEMENT                                                 0
+   1 TABLE ACCESS         BY INDEX ROWID  T22                         1
+   2 INDEX                RANGE SCAN      T22_SCORE_SUB_20            1
+
+=========================
+SQL> truncate table plan_table;
+
+Table truncated.
+
+
+SQL> insert into t22 
+  2  values('001', 20, '001', '001', 21);
+
+1 row created.
+
+SQL> select * from t22;
+
+MEMBER          SCORE G2_NAME    G2_ID          SCORE2
+---------- ---------- ---------- ---------- ----------
+001                20 001        001                21
+
+
+SQL> r
+  1  select member, score, g2_name, g2_id, score2
+  2  from t22
+  3* where (score - 20) >= 0
+
+MEMBER          SCORE G2_NAME    G2_ID          SCORE2
+---------- ---------- ---------- ---------- ----------
+001                20 001        001                21
+
+
+=================
+++约束：
+++非空not null
+SQL> alter table t22
+  2  modify g2_id not null;
+
+Table altered.
+
+++查看表结构：
+SQL> desc t22;
+ Name
+Null?    Type
+ -----------------------------------------------------------------------------------------------------------------
+--------
+----------------------------------------------------------------------------
+ MEMBER
+VARCHAR2(10)
+ SCORE
+NUMBER(4)
+ G2_NAME
+VARCHAR2(10)
+ G2_ID
+NOT NULL VARCHAR2(10)
+ SCORE2
+NUMBER(4)
+
+++验证空值插入：
+SQL> insert into t22
+  2  (g2_id, member)
+  3  values('', 21);
+values('', 21)
+       *
+ERROR at line 3:
+ORA-01400: cannot insert NULL into ("SYS"."T22"."G2_ID")
+++update验证是否允许空值：
+SQL> update t22 
+  2  set g2_id = '';
+set g2_id = ''
+    *
+ERROR at line 2:
+ORA-01407: cannot update ("SYS"."T22"."G2_ID") to NULL
+
+
+SQL> update t22
+  2  set g2_id = null;
+set g2_id = null
+    *
+ERROR at line 2:
+ORA-01407: cannot update ("SYS"."T22"."G2_ID") to NULL
+
+无论是char型还是varchar型，空值的检查条件都是is null
+
+===================
+查看表的约束：
+SQL> r
+  1  select owner, constraint_name, constraint_type
+  2  , table_name
+  3  from user_constraints
+  4* where table_name = 'T22'
+
+OWNER      CONSTRAINT_NAME                C TABLE_NAME
+---------- ------------------------------ - ----------
+SYS        SYS_C0011294                   C T22
+
+==================
+查看约束对应的表和列：
+SQL> r
+  1  select owner, constraint_name, table_name,
+  2  column_name
+  3  from user_cons_columns
+  4* where table_name = 'T22'
+
+OWNER      CONSTRAINT_NAME                TABLE_NAME COLUMN_NAME
+---------- ------------------------------ ---------- ---------------
+SYS        SYS_C0011294                   T22        G2_ID
+====================
+++删除约束：
+SQL> alter table t22 
+  2  drop constraint SYS_C0011294;
+
+Table altered.
+
+查询表结构t22没有了非空条件：
+SQL> desc t22;
+ Name
+Null?    Type
+ -----------------------------------------------------------------------------------------------------------------
+--------
+----------------------------------------------------------------------------
+ MEMBER
+VARCHAR2(10)
+ SCORE
+NUMBER(4)
+ G2_NAME
+VARCHAR2(10)
+ G2_ID
+VARCHAR2(10)
+ SCORE2
+NUMBER(4)
+
+查询约束表中也没有了t22表的约束：
+SQL> r
+  1  select owner, constraint_name, table_name,
+  2  column_name
+  3  from user_cons_columns
+  4* where table_name = 'T22'
+
+no rows selected
+
+=========================
+++唯一约束：
+
+在表t22中添加唯一条件约束：
+SQL> alter table t22
+  2  add constraint t22_unique unique(g2_id);
+
+Table altered.
+
+++查看表结构，其中没有表示唯一条件的约束，这也验证了，只有非空条件才是列级的约束：
+SQL> desc t22;
+ Name
+Null?    Type
+ -----------------------------------------------------------------------------------------------------------------
+--------
+----------------------------------------------------------------------------
+ MEMBER
+VARCHAR2(10)
+ SCORE
+NUMBER(4)
+ G2_NAME
+VARCHAR2(10)
+ G2_ID
+VARCHAR2(10)
+ SCORE2
+NUMBER(4)
+
+++查看约束与表和列之间的关系：
+SQL> select owner, constraint_name, table_name, column_name
+  2  from user_cons_columns
+  3  where table_name = 'T22';
+
+OWNER      CONSTRAINT_NAME                TABLE_NAME COLUMN_NAME
+---------- ------------------------------ ---------- ---------------
+SYS        T22_UNIQUE                     T22        G2_ID
+
+++验证唯一约束：
+当表中已经存在g2_id为001的记录时，再添加001就报范围唯一约束条件错误：
+SQL> select * from t22;
+
+MEMBER          SCORE G2_NAME    G2_ID                    SCORE2
+---------- ---------- ---------- -------------------- ----------
+001                20 001        001                          21
+
+SQL> insert into t22
+  2  (g2_id) values ('001');
+insert into t22
+*
+ERROR at line 1:
+ORA-00001: unique constraint (SYS.T22_UNIQUE) violated
+
+++查询唯一条件约束用户表，查看t22表的唯一条件约束：
+SQL> column seach_condition for a23
+SQL> column constraint_name for a20
+SQL> select owner, constraint_name, constraint_type,
+  2  table_name, search_condition
+  3  from user_constraints 
+  4  where table_name = 'T22';
+
+OWNER      CONSTRAINT_NAME      C TABLE_NAME SEARCH_CONDITION
+---------- -------------------- - ----------
+--------------------------------------------------------------------------------
+SYS        T22_UNIQUE           U T22
+
+
+++验证唯一约束unique是否允许插入空值和多列空值：
+空值属于不确定，不确定不能与确定或者另外一个不确定比较得到确定的结果
+所以空值允许插入，并且允许插入多个
+SQL> insert into t22
+  2  (member, g2_id) values ('002', '');
+
+1 row created.
+
+SQL> l  
+  1  insert into t22
+  2* (member, g2_id) values ('002', '')
+SQL> c /002/003
+  2* (member, g2_id) values ('003', '')
+SQL> r
+  1  insert into t22
+  2* (member, g2_id) values ('003', '')
+
+1 row created.
+
+SQL> select * from t22;
+
+MEMBER          SCORE G2_NAME    G2_ID                    SCORE2
+---------- ---------- ---------- -------------------- ----------
+001                20 001        001                          21
+002
+003
+
+
