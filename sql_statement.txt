@@ -3657,4 +3657,380 @@ MEMBER          SCORE G2_NAME    G2_ID                    SCORE2
 002
 003
 
+=========================
+条件检查约束：
+SQL> r  
+  1  create table person(
+  2  id varchar2(10),
+  3  name varchar2(20),
+  4  gender char(1),
+  5  age number,
+  6  constraint person_gender_ck
+  7     check(gender = 'F'),
+  8  constraint person_age_ck
+  9     check(age between 18 and 35)
+ 10* )
 
+Table created.
+
+设置要查询的表列宽：
+SQL> column owner for a8
+SQL> column constrant_name for a20
+SQL> column table_name for a10
+SQL> column search_condition for a25
+
+查询约束表内容，查看关于表person的约束内容：
+SQL> r
+  1  select owner, constraint_name, constraint_type, table_name,
+  2  search_condition
+  3  from user_constraints
+  4* where table_name = 'PERSON'
+
+OWNER    CONSTRAINT_NAME                C TABLE_NAME SEARCH_CONDITION
+-------- ------------------------------ - ---------- -------------------------
+SYS      PERSON_GENDER_CK               C PERSON     gender = 'F'
+SYS      PERSON_AGE_CK                  C PERSON     age between 18 and 35
+
+==========================
+验证约束有效性：
+性别男不符合要求
+SQL> r
+  1  insert into person
+  2  (id, name, gender, age)
+  3* values('01', 'natasha', 'M', 30)
+insert into person
+*
+ERROR at line 1:
+ORA-02290: check constraint (SYS.PERSON_GENDER_CK) violated
+
+年龄不符合要求
+SQL> r
+  1  insert into person
+  2  (id, name, gender, age)
+  3* values('01', 'natasha', 'F', 36)
+insert into person
+*
+ERROR at line 1:
+ORA-02290: check constraint (SYS.PERSON_AGE_CK) violated
+
+=========================
+++主键约束：
+++当数据没有主键的列有重复记录，向该列添加主键违反约束的
+++删除之后，重新添加通过添加了
+SQL> select * from person;
+
+ID         NAME                 G        AGE
+---------- -------------------- - ----------
+01         natasha              F         19
+01         natasha              F         30
+
+++第一次添加主键约束因列有重复记录失败：
+SQL> alter table person   
+  2  add constraint person_id_pk   
+  3     primary key(id);
+add constraint person_id_pk
+               *
+ERROR at line 2:
+ORA-02437: cannot validate (SYS.PERSON_ID_PK) - primary key violated
+
+
+SQL> delete person where age = 30;
+
+1 row deleted.
+
+Commit complete.
+
+++再次添加主键约束，成功了
+SQL> select * from person;
+
+ID         NAME                 G        AGE
+---------- -------------------- - ----------
+01         natasha              F         19
+
+SQL> alter table person
+  2  add constraint person_id_pk
+  3     primary key(id);
+
+Table altered.
+
+++向表插入重复id列重复的列记录，会提示违反唯一约束的提示：
+SQL> insert into person
+  2  (id, name, gender, age)
+  3  values ('01', 'natasha', 'F', 20);
+insert into person
+*
+ERROR at line 1:
+ORA-00001: unique constraint (SYS.PERSON_ID_PK) violated
+
+++再次插入主键所在的列为空值，显示违反非空约束：
+SQL> r
+  1  insert into person
+  2  (id, name, gender, age)
+  3* values ('', 'natasha', 'F', 20)
+values ('', 'natasha', 'F', 20)
+        *
+ERROR at line 3:
+ORA-01400: cannot insert NULL into ("SYS"."PERSON"."ID")
+
+==========================
+++主键约束属性查询：
+SQL> r
+  1  select owner, constraint_name, constraint_type, table_name,
+  2     search_condition
+  3  from user_constraints
+  4* where table_name = 'PERSON'
+
+OWNER    CONSTRAINT_NAME                C TABLE_NAME SEARCH_CONDITION
+-------- ------------------------------ - ---------- -------------------------
+SYS      PERSON_GENDER_CK               C PERSON     gender = 'F'
+SYS      PERSON_AGE_CK                  C PERSON     age between 18 and 35
+SYS      PERSON_ID_PK                   P PERSON
+
+
+++查看主键约束与表和列之间的关系：
+SQL> col column_name for a10
+SQL> select owner, constraint_name, table_name, column_name, position 
+  2  from user_cons_columns
+  3  where table_name = 'PERSON';
+
+OWNER    CONSTRAINT_NAME                TABLE_NAME COLUMN_NAM   POSITION
+-------- ------------------------------ ---------- ---------- ----------
+SYS      PERSON_GENDER_CK               PERSON     GENDER
+SYS      PERSON_AGE_CK                  PERSON     AGE
+SYS      PERSON_ID_PK                   PERSON     ID                  1
+
+++查询主键的唯一索引的属性：
+SQL> select index_name, index_type, table_name, uniqueness
+  2  from user_indexes
+  3  where table_name = 'PERSON';
+
+INDEX_NAME           INDEX_TYPE TABLE_NAME UNIQUENES
+-------------------- ---------- ---------- ---------
+PERSON_ID_PK         NORMAL     PERSON     UNIQUE
+
+++查询主键的唯一索引，对应的表和列信息：
+
+SQL> column column_name for a15
+SQL> select index_name, table_name, column_name, column_position
+  2  from user_ind_columns
+  3  where table_name = 'PERSON';
+
+INDEX_NAME           TABLE_NAME COLUMN_NAME     COLUMN_POSITION
+-------------------- ---------- --------------- ---------------
+PERSON_ID_PK         PERSON     ID                            1
+
+++说明：创建唯一约束和创建包合唯一约束的主键，都会自动创建一个唯一约束索引。
+
+++创建主键：
+SQL> alter table t1111
+  2  add constraint t1111_g2id_pk
+  3  primary key (g2_id);
+
+Table altered.
+
+
+++删除主键
+SQL> alter table t1111
+  2  drop constraint T1111_G2ID_PK;
+
+Table altered.
+
+=======================
+外键：
+创建表t2222
+SQL> create table t2222
+  2  as
+  3  select * from t2 where 1=2;
+
+Table created.
+
+SQL> select * from t2222;
+
+no rows selected
+
+SQL> desc t2222;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ G2_ID                                              VARCHAR2(7)
+ G2_NAME                                            VARCHAR2(15)
+ MEMBER                                             VARCHAR2(7)
+ SCORE                                              NUMBER(4)
+ SCORE2                                             NUMBER(2)
+
+++创建表t1111
+SQL> create table t1111
+  2  as
+  3  select * from t1 where 1=2;
+
+Table created.
+
+++创建表t1111主键:
+SQL> alter table t1111  
+  2  add constraint t1111_g2id_pk
+  3  primary key(g2_id);
+
+Table altered.
+
+++查看创建主键属性:
+SQL> select constraint_name, constraint_type, table_name
+  2  from user_constraints
+  3  where table_name = 'T1111';
+
+CONSTRAINT_NAME      C TABLE_NAME
+-------------------- - --------------------
+T1111_G2ID_PK        P T1111
+
+++创建t2222的外键:
+SQL> alter table t2222
+  2  add constraint t2222_g2id_t1111_fk
+  3  foreign key(g2_id) references t1111(g2_id);
+
+Table altered.
+
+++查看t2222的外键属性:
+SQL> r
+  1  select constraint_name, table_name, r_constraint_name, constraint_type
+  2  from user_constraints
+  3* where table_name = 'T2222'
+
+CONSTRAINT_NAME      TABLE_NAME           R_CONSTRAINT_NAME              C
+-------------------- -------------------- ------------------------------ -
+T2222_G2ID_T1111_FK  T2222                T1111_G2ID_PK                  R
+
+++注意:一定要创建带名字的主键和外键,让约束的名字显示的确定
+
+===============
+＋＋验证外键：
+++向主表当中插入数据：
+SQL> insert into t1111
+  2  values('001001', 'A', '010101', 'AA');
+
+1 row created.
+
+Commit complete.
+
+++查询主表内容：
+SQL> select * from t1111;
+
+G1_ID   G1_NAME         G2_ID   G2_NAME
+------- --------------- ------- ---------------
+001001  A               010101  AA
+
+++向从表当中插入两条合法内容：
+SQL> insert into t2222
+  2  values('010101', 'AA', 'AA01', 60, 60);
+
+1 row created.
+
+Commit complete.
+
+SQL> r  
+  1  insert into t2222
+  2* values('010101', 'AA', 'AA02', 60, 60)
+
+1 row created.
+
+Commit complete.
+
+++查询从表内容：
+SQL> select * from t2222;
+
+G2_ID   G2_NAME         MEMBER       SCORE     SCORE2
+------- --------------- ------- ---------- ----------
+010101  AA              AA01            60         60
+010101  AA              AA02            60         60
+
+＋＋向从表插入非法内容：
+SQL> r
+  1  insert into t2222
+  2* values('010102', 'AA', 'AA02', 60, 60)
+insert into t2222
+*
+ERROR at line 1:
+ORA-02291: integrity constraint (SYS.T2222_G2ID_T1111_FK) violated - parent
+key
+not found
+
+++通过以上过程可以验证，只有在主表主键有该值的时候
+++从表才能以该值作为字段值，插入了相应的值得
+++并且插入的值是可以重复的
+
+++再增加t1111记录的新值，使主键增加一条新记录：
+SQL> insert into t1111
+  2  values('001001', 'AA', '010102', 'BB');
+
+1 row created.
+
+Commit complete.
+
+查看表t1111内容：
+SQL> select * from t1111;
+
+G1_ID   G1_NAME         G2_ID   G2_NAME
+------- --------------- ------- ---------------
+001001  A               010101  AA
+001001  AA              010102  BB
+
+++再想从表插入以表t1111主键新增值为外键值的记录，成功了：
+SQL> r
+  1  insert into t2222
+  2* values('010102', 'AA', 'AA02', 60, 60)
+
+1 row created.
+
+Commit complete.
+
+++查看表t2222内容：
+SQL> select * from t2222;
+
+G2_ID   G2_NAME         MEMBER       SCORE     SCORE2
+------- --------------- ------- ---------- ----------
+010101  AA              AA01            60         60
+010101  AA              AA02            60         60
+010102  AA              AA02            60         60
+
+++外键总结：
+＋＋外键是以另外主表的主键为约束的约束方式，可以重复插入主表主键当中出现的值，但必须是存在的，不存在的将被限制。
+
+==================
+++删除对外键的影响：
+SQL> r
+  1* delete t1111 where g2_id = '010102'
+delete t1111 where g2_id = '010102'
+*
+ERROR at line 1:
+ORA-02292: integrity constraint (SYS.T2222_G2ID_T1111_FK) violated - child
+record found
+
+
+++删除从表同值主键对弈姑娘的记录：
+SQL> delete t2222 where g2_id = '010102';
+
+1 row deleted.
+
+Commit complete.
+SQL> select * from t2222;
+
+G2_ID   G2_NAME         MEMBER       SCORE     SCORE2
+------- --------------- ------- ---------- ----------
+010101  AA              AA01            60         60
+010101  AA              AA02            60         60
+
+再次删除主表当中的同值字段：
+SQL> delete t1111 where g2_id = '010102';
+
+1 row deleted.
+
+Commit complete.
+SQL> select * from t1111;
+
+G1_ID   G1_NAME         G2_ID   G2_NAME
+------- --------------- ------- ---------------
+001001  A               010101  AA
+
+已经允许删除！
+
+＋＋当从表中有对主表的引用，主表不允许删除有外键引用的主表记录
+＋＋反之，主表可以删除无从表引用的主键记录
+＋＋从表则可以随意删除表中记录。
