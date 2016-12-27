@@ -4393,4 +4393,128 @@ TABLE_NAME           C CONSTRAINT_NAME                DELETE_RULE          R_CON
 -------------------- - ------------------------------ -------------------- ------------------------------ --------
 T2222                R T2222_G2ID_T1111_FK            CASCADE              T1111_G2ID_PK                  ENABLED
 
+======================
+++约束的维护
+++以下t11为主表，t22为从表：
+++主表有主键T11_G2ID_PK，从表有外键T22_G2ID_FK
+++主外键视图如下：
+SQL> r
+  1  select table_name, constraint_name, constraint_type, r_constraint_name, status, delete_rule
+  2  from user_constraints
+  3* where table_name in ('T11', 'T22')
+
+TABLE_NAME CONSTRAINT_NAME      C R_CONSTRAINT_NAME              STATUS   DELETE_RU
+---------- -------------------- - ------------------------------ -------- ---------
+T11        T11_G2ID_PK          P                                ENABLED
+T22        T22_G2ID_FK          R T11_G2ID_PK                    ENABLED  NO ACTION
+
+++当停用主表主键时，范围从表外键引用完整性，所以报错：
+SQL> alter table t11
+  2  disable constraint T11_G2ID_PK;
+alter table t11
+*
+ERROR at line 1:
+ORA-02297: cannot disable constraint (SYS.T11_G2ID_PK) - dependencies exist
+
+＋＋当我们加上级联命令时，主键从属的外键也跟着主键的关闭而关闭了：
+++停用主表主键命令被正确执行：
+SQL> l  
+  1  alter table t11
+  2* disable constraint T11_G2ID_PK
+SQL> 2 disable constraint T11_G2ID_PK cascade 
+SQL> /
+
+Table altered.
+
+++查看主从表的主外键状态
+SQL> select table_name, constraint_name, constraint_type, r_constraint_name, status, delete_rule
+  2  from user_constraints
+  3  where table_name in ('T11', 'T22')
+  4  /
+
+TABLE_NAME CONSTRAINT_NAME      C R_CONSTRAINT_NAME              STATUS   DELETE_RU
+---------- -------------------- - ------------------------------ -------- ---------
+T11        T11_G2ID_PK          P                                DISABLED
+T22        T22_G2ID_FK          R T11_G2ID_PK                    DISABLED NO ACTION
+
+＋＋开启主外键：
+＋＋在主键并未开启的状态下，开启外键会报错
+SQL> alter table t22  
+  2  enable constraint T22_G2ID_FK
+  3  /  
+alter table t22
+*
+ERROR at line 1:
+ORA-02270: no matching unique or primary key for this column-list
+
+++直接使用带级联的开启外键命令，会报错：
+SQL> alter table t11
+  2  enable constraint T11_G2ID_PK cascade
+  3  ;
+enable constraint T11_G2ID_PK cascade
+                              *
+ERROR at line 2:
+ORA-00933: SQL command not properly ended
+
+++开启主键：
+SQL> r  
+  1  alter table t11
+  2* enable constraint T11_G2ID_PK
+
+Table altered.
+
+＋＋查看主外键状态：
+SQL> r
+  1   select table_name, constraint_name, constraint_type, r_constraint_name, status, delete_rule
+  2  from user_constraints
+  3* where table_name in ('T11', 'T22')
+
+TABLE_NAME CONSTRAINT_NAME      C R_CONSTRAINT_NAME              STATUS   DELETE_RU
+---------- -------------------- - ------------------------------ -------- ---------
+T11        T11_G2ID_PK          P                                ENABLED
+T22        T22_G2ID_FK          R T11_G2ID_PK                    DISABLED NO ACTION
+
+＋＋开启外键：
+SQL> alter table t22
+  2  enable constraint T22_G2ID_FK
+  3  /
+
+Table altered.
+
+++查看主外键状态，均已开启：
+SQL> select table_name, constraint_name, constraint_type, r_constraint_name, status, delete_rule
+  2  from user_constraints
+  3  where table_name in ('T11', 'T22')
+  4  /
+
+TABLE_NAME CONSTRAINT_NAME      C R_CONSTRAINT_NAME              STATUS   DELETE_RU
+---------- -------------------- - ------------------------------ -------- ---------
+T11        T11_G2ID_PK          P                                ENABLED
+T22        T22_G2ID_FK          R T11_G2ID_PK                    ENABLED  NO ACTION
+
+========================
+＋＋删除带外键的主键：
+++直接删除会报错，违反约束完整性
+SQL> alter table t11    
+  2  drop constraint T11_G2ID_PK
+  3  /
+drop constraint T11_G2ID_PK
+                *
+ERROR at line 2:
+ORA-02273: this unique/primary key is referenced by some foreign keys
+
+++用带cascade的删除语句，直接删除级联：
+
+SQL> r
+  1  alter table t11
+  2* drop constraint T11_G2ID_PK cascade
+
+Table altered.
+＋＋删除之后，查看主外键所在视图，已经没有内容
+SQL> r  
+  1  select table_name, constraint_name, constraint_type, r_constraint_name, status, delete_rule
+  2  from user_constraints
+  3* where table_name in ('T11', 'T22')
+
+no rows selected
 
