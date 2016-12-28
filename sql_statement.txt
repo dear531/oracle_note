@@ -4518,3 +4518,134 @@ SQL> r
 
 no rows selected
 
+==========================
+++当显示全部的时候，用oracle连接两张表的方法，比用sql标准要多一列：
+SQL> select * from t1111, t2222   
+  2  where t1111.g2_id = t2222.g2_id;
+
+G1_ID   G1_NAME         G2_ID   G2_NAME         G2_ID   G2_NAME         MEMBER       SCORE     SCORE2
+------- --------------- ------- --------------- ------- --------------- ------- ---------- ----------
+001001  A               010101  AA              010101  AA              AA01            60         60
+001001  A               010101  AA              010101  AA              AA02            60         60
+001003  CC              030101  CC01            030101  CC              CC01            62         62
+001002  BB              020101  BB01            020101  BB              BB01            61         62
+
+SQL> select * from t1111
+  2  join t2222
+  3  using(g2_id);
+
+G2_ID   G1_ID   G1_NAME         G2_NAME         G2_NAME         MEMBER       SCORE     SCORE2
+------- ------- --------------- --------------- --------------- ------- ---------- ----------
+010101  001001  A               AA              AA              AA01            60         60
+010101  001001  A               AA              AA              AA02            60         60
+030101  001003  CC              CC01            CC              CC01            62         62
+020101  001002  BB              BB01            BB              BB01            61         62
+
+==========================
+＋＋注意当作为using的参数出现时，联合的字段就不用加表明了，因为using一旦用了这个字段，则量表的相同值会显示出来
+SQL> r
+  1  create or replace view view_t1111_t2222
+  2  as
+  3  select g1_id, g1_name, g2_id, t1111.g2_name, member, score, score2
+  4  from t1111
+  5  join t2222
+  6* using(g2_id)
+
+View created.
+
+＋＋查看视图：
+++查看视图结构：
+SQL> desc view_t1111_t2222
+ Name                                                                                      Null?    Type
+ ----------------------------------------------------------------------------------------- -------- ------------------------------------------------------------
+ G1_ID                                                                                              VARCHAR2(7)
+ G1_NAME                                                                                            VARCHAR2(15)
+ G2_ID                                                                                              VARCHAR2(7)
+ G2_NAME                                                                                            VARCHAR2(15)
+ MEMBER                                                                                             VARCHAR2(7)
+ SCORE                                                                                              NUMBER(4)
+ SCORE2                                                                                             NUMBER(2)
+
+++查看视图全部内容：
+SQL> select * from view_t1111_t2222;
+
+G1_ID   G1_NAME         G2_ID   G2_NAME         MEMBER       SCORE     SCORE2
+------- --------------- ------- --------------- ------- ---------- ----------
+001001  A               010101  AA              AA01            60         60
+001001  A               010101  AA              AA02            60         60
+001003  CC              030101  CC01            CC01            62         62
+001002  BB              020101  BB01            BB01            61         62
+
+++查看视图某一列：
+SQL> select g1_id from view_t1111_t2222;
+
+G1_ID
+-------
+001001
+001001
+001003
+001002
+
+===================
+＋＋在视图命令当中建立字段名的建立视图命令：
+SQL> r
+  1  create or replace view view_t1111_t2222("g1_id_r", "g1_name_r", "g2_id_r", "g2_name_r", "member_r", "score_r", "score2_r")
+  2  as
+  3  select g1_id, g1_name, g2_id, t1111.g2_name, member, score, score2
+  4  from t1111
+  5  join t2222
+  6* using(g2_id)
+
+View created.
+
+SQL> select * from view_t1111_t2222;
+
+g1_id_r g1_name_r       g2_id_r g2_name_r       member_    score_r   score2_r
+------- --------------- ------- --------------- ------- ---------- ----------
+001001  A               010101  AA              AA01            60         60
+001001  A               010101  AA              AA02            60         60
+001003  CC              030101  CC01            CC01            62         62
+001002  BB              020101  BB01            BB01            61         62
+
+=====================================
+++当视图包含创建字段，select语句也包含定义字段，那么视图字段会最终有效：
+SQL> get tmp
+  1  create or replace view view_t1111_t2222
+  2  ("g1_id_r", "g1_name_r", "g2_id_r", "g2_name_r", "member_r", "score_r", "score2_r")
+  3  as
+  4  select g1_id, g1_name, g2_id, t1111.g2_name, member, score, score2 score2_n
+  5  from t1111
+  6  join t2222
+  7* using(g2_id)
+  8  /  
+
+View created.
+
+SQL> select * from view_t1111_t2222;
+
+g1_id_r g1_name_r       g2_id_r g2_name_r       member_    score_r   score2_r
+------- --------------- ------- --------------- ------- ---------- ----------
+001001  A               010101  AA              AA01            60         60
+001001  A               010101  AA              AA02            60         60
+001003  CC              030101  CC01            CC01            62         62
+001002  BB              020101  BB01            BB01            61         62
+
+========================
+＋＋查看当前用户下的视图命令：
+＋＋内容太多，不写都有哪些表了：
+SQL> l
+  1  select view_name, text_length, text
+  2* from user_views
+
+++查看VIEW_T1111_T2222视图内容
+SQL> r  
+  1  select view_name, text_length, text
+  2  from user_views
+  3* where view_name = 'VIEW_T1111_T2222'
+
+VIEW_NAME                      TEXT_LENGTH TEXT
+------------------------------ ----------- --------------------------------------------------------------------------------
+VIEW_T1111_T2222                       110 select g1_id, g1_name, g2_id, t1111.g2_name, member, score, score2 score2_n
+                                           from
+
+
