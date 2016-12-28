@@ -4648,4 +4648,86 @@ VIEW_NAME                      TEXT_LENGTH TEXT
 VIEW_T1111_T2222                       110 select g1_id, g1_name, g2_id, t1111.g2_name, member, score, score2 score2_n
                                            from
 
+=====================
+＋＋视图的删除：
+
+＋＋根据t11一个表创建简单视图：
+SQL> create view view_t11
+  2  as
+  3  select * from t11;
+
+View created.
+
+++查看视图内容
+SQL> select * from view_t11;
+
+G1_ID G1_NAME    G2_ID                G2_NAME
+----- ---------- -------------------- ----------
+0     a          00                   A
+1     b          01                   B
+3     d          03                   D
+2     b          02                   B
+++查看t11内容：内容相符
+SQL> select * from t11;
+
+G1_ID G1_NAME    G2_ID                G2_NAME
+----- ---------- -------------------- ----------
+0     a          00                   A
+1     b          01                   B
+3     d          03                   D
+2     b          02                   B
+
+＋＋向简单视图插入内容：
+SQL> insert into view_t11
+  2  values('4', 'e', '04', 'E');
+
+1 row created.
+
+＋＋查询简单视图内容，增加了插入的一行
+SQL> select * from view_t11;
+
+G1_ID G1_NAME    G2_ID                G2_NAME
+----- ---------- -------------------- ----------
+0     a          00                   A
+1     b          01                   B
+3     d          03                   D
+2     b          02                   B
+4     e          04                   E
+
+＋＋查询简单视图的原表，内容也增加：
+SQL> select * from t11;
+
+G1_ID G1_NAME    G2_ID                G2_NAME
+----- ---------- -------------------- ----------
+0     a          00                   A
+1     b          01                   B
+3     d          03                   D
+2     b          02                   B
+4     e          04                   E
+
+++删除简单视图的g2_id是04的记录：
+SQL> delete view_t11 where g2_id = '04';
+
+1 row deleted.
+
+++查看简单视图内容，04记录增加
+SQL> select * from view_t11;
+
+G1_ID G1_NAME    G2_ID                G2_NAME
+----- ---------- -------------------- ----------
+0     a          00                   A
+1     b          01                   B
+3     d          03                   D
+2     b          02                   B
+
+++查询视图的原表，内容也增加，验证完成
+SQL> select * from t11;
+
+G1_ID G1_NAME    G2_ID                G2_NAME
+----- ---------- -------------------- ----------
+0     a          00                   A
+1     b          01                   B
+3     d          03                   D
+2     b          02                   B
+
 
