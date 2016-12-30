@@ -5549,7 +5549,7 @@ SQL> alter user cat
 
 User altered.
 
-++回到cat用户下，向表cat下的表插入数据，先前的表更改为现在这表名：
+++回到cat用户下，向表cat下的表插入数据，先前的表更改为现在这表名：================
 SQL> r
   1  insert into table_test
   2* values('0101', 60)
@@ -5567,5 +5567,17 @@ SQL> select * from cat.table_test;
 ID        SCORE
 ---- ----------
 0101         60
+
+==================
+++用户权限查看：
+++登录cat用户，查询session_privs字典，查看当前用户权限
+SQL> select * from session_privs;
+
+PRIVILEGE
+----------------------------------------
+CREATE SESSION
+CREATE TABLE
+SELECT ANY TABLE
+CREATE VIEW
 
 
