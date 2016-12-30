@@ -5072,3 +5072,335 @@ SQL> select SEQUENCE_TEST.currval from dual;
 ----------
          1
 
+++向t2表中添加sequence_test.nextval序列号的值和序列号加1：
+SQL> r
+  1  insert into t2
+  2* values ('005001', 'sequence1', '050101', sequence_test.nextval,
+sequence_test.nextval + 1)
+
+1 row created.
+
+++查询结果，结果和我们预想的一样，sequence_test.nextval的值变为了2，加1则是3
+SQL> select * from t2 where g2_name = 'sequence1';
+
+G2_ID   G2_NAME         MEMBER       SCORE     SCORE2
+------- --------------- ------- ---------- ----------
+005001  sequence1       050101           2          3
+
+===========================
+＋＋创建不缓存的序列号：
+++序列号的连续性
+SQL> r
+  1  create sequence sequence_test2
+  2  start with 10000
+  3  increment by 1
+  4  maxvalue 99999
+  5  nocache
+  6* nocycle
+
+Sequence created.
+
+＋＋查看序列号表中的内容：
+SQL> select * from user_sequences where sequence_name like upper('sequence_test%');
+
+SEQUENCE_NAME       MIN_VALUE  MAX_VALUE INCREMENT_BY C O CACHE_SIZE LAST_NUMBER
+------------------ ---------- ---------- ------------ - - ---------- -----------
+SEQUENCE_TEST               1     999999            1 Y N         10          11
+SEQUENCE_TEST2              1      99999            1 N N          0       10000
+
+＋＋利用不缓存的序列号语句，可以通过序列号表查询到下一个要应用的值，如果对其他值赋值失败
+＋＋则不会产生不联系的序号：
+SQL> select SEQUENCE_TEST2.nextval from dual;
+
+   NEXTVAL
+----------
+     10001
+
+SQL> select * from user_sequences where sequence_name like upper('sequence_test%');
+
+SEQUENCE_NAME       MIN_VALUE  MAX_VALUE INCREMENT_BY C O CACHE_SIZE LAST_NUMBER
+------------------ ---------- ---------- ------------ - - ---------- -----------
+SEQUENCE_TEST               1     999999            1 Y N         10          11
+SEQUENCE_TEST2              1      99999            1 N N          0       10002
+
+++对序列号表进行查询时得到结果：
+SQL> SQL> r
+  1* select LAST_NUMBER from user_sequences where sequence_name like upper('sequence_test2')
+
+LAST_NUMBER
+-----------
+      10002
+
+++当我们取序列号表中的last_number时，无论做多少次操作，序列号都不会发生变化，所以不会影响序列号的值：
+++例如如果以下的插入子句要是发生错误，不会影响序列号的连续性
+SQL> r  
+  1  insert into t22
+  2  (t2_score)
+  3  values(
+  4  (select LAST_NUMBER from user_sequences where sequence_name = upper('sequence_test2'))
+  5  )
+  6*
+(select LAST_NUMBER from user_sequences where sequence_name = upper('sequence_test2'))
+        *
+ERROR at line 4:
+ORA-01438: value larger than specified precision allowed for this column
+
+=======================
+＋＋序列号的修改，也可修改多个属性，如创建时那样用
+++只是初始值start　with选项不能修改，要想重新开始只能删掉重新创建
+SQL> alter sequence sequence_test  
+  2  increment by 2;
+
+Sequence altered.
+
+＋＋当属性修改时，可以看见，当前的序列号的值并未发生变化：
+SQL> select SEQUENCE_TEST.currval from dual;
+
+   CURRVAL
+----------
+         2
+
+++只是下一个值发生了变化：
+SQL> select * from user_sequences where sequence_name like upper('sequence_test%');
+
+SEQUENCE_NAME       MIN_VALUE  MAX_VALUE INCREMENT_BY C O CACHE_SIZE LAST_NUMBER
+------------------ ---------- ---------- ------------ - - ---------- -----------
+SEQUENCE_TEST               1     999999            2 Y N         10           4
+SEQUENCE_TEST2              1      99999            1 N N          0       10002
+++修改后的序列号只影响修改以后的数据，不影响修改之前的数据。这和初始值不能修改的初衷是一直的
+
+===============
+＋＋序列号的删除：
+SQL> drop sequence sequence_test;
+
+Sequence dropped.
+++此命令为数据库定义语言，会自动提交。
+
+======================
+++同义词：
+++创建同义词：
+SQL> create synonym t_s
+  2  for t22;
+
+Synonym created.
+
+++查询同义词：
+SQL> select * from t_s;
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+        ???                                        56
+001001  qianduan        010102          72         56
+001001  qianduan        010103          66         56
+001002  lianji          010201          65         56
+001001  qianduan        010101          86         56
+001002  lianji          010202          56         56
+001002  lianji          010202          56         56
+001003  rizhong         010301          44         56
+001003  rizhong         010302          78         56
+001003  rizhong         010303          55         56
+002001  qudao           020101          79         56
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+002001  qudao           020102          56         56
+002001  qudao           020103          69         56
+002001  qudao           020104          88         56
+002002  file            020201          54         56
+002002  file            020202          89         56
+003001  shuju           030101          75         56
+003001  shuju           030102          70         56
+1       ???                                        56
+00_11_  escape                                     56
+004001  Linshi          40101                      56
+                                                        20-DEC-16
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+005001                                                  27-DEC-16
+                                        11              30-DEC-16
+                                        11              30-DEC-16
+                                        11              30-DEC-16
+
+26 rows selected.
+
+++用其他用户通过同义词对表进行访问时，得到查询不到对象的结果
+＋＋因为对象不是公共的，对其他用户是隐藏的：
+SQL> connect system        
+Enter password: 
+Connected.
+SQL> select * from t_s;  
+select * from t_s
+              *
+ERROR at line 1:
+ORA-00942: table or view does not exist
+
+++通过用户对象访问私有同义词是可以访问到的：
+SQL> select * from sys.t_s;
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+        ???                                        56
+001001  qianduan        010102          72         56
+001001  qianduan        010103          66         56
+001002  lianji          010201          65         56
+001001  qianduan        010101          86         56
+001002  lianji          010202          56         56
+001002  lianji          010202          56         56
+001003  rizhong         010301          44         56
+001003  rizhong         010302          78         56
+001003  rizhong         010303          55         56
+002001  qudao           020101          79         56
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+002001  qudao           020102          56         56
+002001  qudao           020103          69         56
+002001  qudao           020104          88         56
+002002  file            020201          54         56
+002002  file            020202          89         56
+003001  shuju           030101          75         56
+003001  shuju           030102          70         56
+1       ???                                        56
+00_11_  escape                                     56
+004001  Linshi          40101                      56
+                                                        20-DEC-16
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+005001                                                  27-DEC-16
+                                        11              30-DEC-16
+                                        11              30-DEC-16
+                                        11              30-DEC-16
+
+26 rows selected.
+
+
+＋＋通过用户工程表查询同义词定义：
+SQL> column object_name for a20
+SQL> r
+  1  select object_name,  object_type, created, status
+  2  from user_objects
+  3* where object_type like upper('synonym')
+
+OBJECT_NAME          OBJECT_TYPE         CREATED   STATUS
+-------------------- ------------------- --------- -------
+DEF$_AQCALL          SYNONYM             15-AUG-09 VALID
+DEF$_CALLDEST        SYNONYM             15-AUG-09 VALID
+DEF$_DEFAULTDEST     SYNONYM             15-AUG-09 VALID
+DEF$_ERROR           SYNONYM             15-AUG-09 VALID
+DEF$_LOB             SYNONYM             15-AUG-09 VALID
+DEF$_SCHEDULE        SYNONYM             15-AUG-09 VALID
+T_S                  SYNONYM             30-DEC-16 VALID
+XMLDOM               SYNONYM             15-AUG-09 VALID
+XMLPARSER            SYNONYM             15-AUG-09 VALID
+XSLPROCESSOR         SYNONYM             15-AUG-09 VALID
+
+10 rows selected.
+
+++通过用户同义词表查询同义词的用户信息：
+++可以看到同义词名为t_s的表名为t22
+SQL> column table_owner for a12
+SQL> column table_name for a12
+SQL> select synonym_name, table_owner, table_name
+  2  from user_synonyms;
+i  
+SYNONYM_NAME                   TABLE_OWNER  TABLE_NAME
+------------------------------ ------------ ------------
+DEF$_AQCALL                    SYSTEM       DEF$_AQCALL
+DEF$_CALLDEST                  SYSTEM       DEF$_CALLDES
+                                            T
+
+DEF$_SCHEDULE                  SYSTEM       DEF$_SCHEDUL
+                                            E
+
+DEF$_ERROR                     SYSTEM       DEF$_ERROR
+DEF$_DEFAULTDEST               SYSTEM       DEF$_DEFAULT
+                                            DEST
+
+
+SYNONYM_NAME                   TABLE_OWNER  TABLE_NAME
+------------------------------ ------------ ------------
+DEF$_LOB                       SYSTEM       DEF$_LOB
+XMLDOM                         XDB          DBMS_XMLDOM
+XMLPARSER                      XDB          DBMS_XMLPARS
+                                            ER
+
+XSLPROCESSOR                   XDB          DBMS_XSLPROC
+                                            ESSOR
+
+T_S                            SYS          T22
+
+10 rows selected.
+===================
+＋＋公共同义词的创建：
+++在sys用户下，创建以下同义词：
+SQL> create public synonym t_s_p  
+  2  for sys.t22;
+
+Synonym created.
+
+++在非sys用户下，通过同义词查看表内容：
+SQL> select * from t_s_p;
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+        ???                                        56
+001001  qianduan        010102          72         56
+001001  qianduan        010103          66         56
+001002  lianji          010201          65         56
+001001  qianduan        010101          86         56
+001002  lianji          010202          56         56
+001002  lianji          010202          56         56
+001003  rizhong         010301          44         56
+001003  rizhong         010302          78         56
+001003  rizhong         010303          55         56
+002001  qudao           020101          79         56
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+002001  qudao           020102          56         56
+002001  qudao           020103          69         56
+002001  qudao           020104          88         56
+002002  file            020201          54         56
+002002  file            020202          89         56
+003001  shuju           030101          75         56
+003001  shuju           030102          70         56
+1       ???                                        56
+00_11_  escape                                     56
+004001  Linshi          40101                      56
+                                                        20-DEC-16
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A DATE1
+------- --------------- ------- ---------- ---------- - ---------
+005001                                                  27-DEC-16
+                                        11              30-DEC-16
+                                        11              30-DEC-16
+                                        11              30-DEC-16
+
+26 rows selected.
+
+=============
+++删除同义词：
+++删除前查看用户同义词表：
+SQL> r  
+  1  select synonym_name, table_owner, table_name
+  2  from user_synonyms
+  3* where SYNONYM_NAME = 'T_S'
+
+SYNONYM_NAME                   TABLE_OWNER  TABLE_NAME
+------------------------------ ------------ ------------
+T_S                            SYS          T22
+
+++删除用户同义词：
+SQL> drop synonym  t_s;
+
+Synonym dropped.
+
+++删除后再查看用户同义词表：
+SQL> select synonym_name, table_owner, table_name
+  2  from user_synonyms
+  3  where SYNONYM_NAME = 'T_S';
+
+no rows selected
+＋＋已经没有同义词为t_s的同义词
