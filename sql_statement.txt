@@ -5404,3 +5404,168 @@ SQL> select synonym_name, table_owner, table_name
 
 no rows selected
 ＋＋已经没有同义词为t_s的同义词
+
+=================================
+＋＋用户管理：
+++格式create user user_name identified by password;
+
+SQL> create user dog
+  2  identified by wangwang;
+
+User created.
+
+++查看创建的用户：
+SQL> r
+  1  select username, created
+  2  from dba_users
+  3* where round(created, 'DAY') = round(sysdate, 'DAY')
+
+USERNAME                       CREATED
+------------------------------ ---------
+DOG                            30-DEC-16
+
+++建立用户后进行数据库登录，显示没有建立连接权限，即不允许该用户登录
+SQL> connect dog
+Enter password: 
+ERROR:
+ORA-01045: user DOG lacks CREATE SESSION privilege; logon denied
+
+
+Warning: You are no longer connected to ORACLE.
+
+＋＋用sys登录的用户，或是用system用户登录，给dog用户授权登录权限：
+SQL> grant create session to dog;
+
+Grant succeeded.
+
+++用新建的dog用户再次登录，有登录权限了：
+SQL> connect dog
+Enter password: 
+Connected.
+SQL>    
+
+++在dog用户下查询用户对象表：
+SQL> select object_name, created
+  2  from user_objects;
+
+no rows selected
+++因为没有授权，而没有任何对象访问权限
+
+++新建一个用户cat，并创建后修改密码：
+SQL> create user cat identified by cat;
+
+User created.
+
+SQL> alter user cat identified by miaomiao;
+
+User altered.
+
+++授权给dog和cat用户进行：
+SQL> grant select any table, create table, create view
+  2  to dog, cat;
+
+Grant succeeded.
+
+++登录cat用户查看system用户下的t22表：
+SQL> select  * from system.t22;
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A
+------- --------------- ------- ---------- ---------- -
+        ???                                        56
+001001  qianduan        010102          72         56
+001001  qianduan        010103          66         56
+001002  lianji          010201          65         56
+001001  qianduan        010101          86         56
+001002  lianji          010202          56         56
+001002  lianji          010202          56         56
+001003  rizhong         010301          44         56
+001003  rizhong         010302          78         56
+001003  rizhong         010303          55         56
+002001  qudao           020101          79         56
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A
+------- --------------- ------- ---------- ---------- -
+002001  qudao           020102          56         56
+002001  qudao           020103          69         56
+002001  qudao           020104          88         56
+002002  file            020201          54         56
+002002  file            020202          89         56
+003001  shuju           030101          75         56
+003001  shuju           030102          70         56
+1       ???                                        56
+00_11_  escape                                     56
+004001  Linshi          40101                      56
+
+
+T2_G2_I T2_G2_NAME      T2_MEMB   T2_SCORE  T2_SCORE2 A
+------- --------------- ------- ---------- ---------- -
+
+
+
+24 rows selected.
+++在cat用户下创建表：
+SQL> create table t1    
+  2  (id varchar2(4), score number(3));
+
+Table created.
+++但插入数据失败了：
+SQL> insert into t1 
+  2  values('0101', 60);
+insert into t1
+            *
+ERROR at line 1:
+ORA-01950: no privileges on tablespace 'USERS'
+++因为该新建用户没有表空间。
+
+++在system用户下，查找：
+SQL> select tablespace_name from dba_tablespaces;
+
+TABLESPACE_NAME
+------------------------------
+SYSTEM
+SYSAUX
+UNDOTBS1
+TEMP
+USERS
+EXAMPLE
+
+6 rows selected.
+
+++分配表空间，将cat用户的表空间，分配在users表空间上：
+SQL> alter user cat   
+  2  default tablespace users;
+
+User altered.
+
+++删除用户名：
+SQL> drop user cat cascade;
+
+User dropped.
+
+++给cat用户创建表空间：
+SQL> alter user cat
+  2  default tablespace users
+  3  quota 20m on users;
+
+User altered.
+
+++回到cat用户下，向表cat下的表插入数据，先前的表更改为现在这表名：
+SQL> r
+  1  insert into table_test
+  2* values('0101', 60)
+i
+1 row created.
+
+
+++连接dog用户：
+SQL>connect dog
+Enter password: 
+Connected.
+++查看cat用户下table_test表的内容：
+SQL> select * from cat.table_test;
+
+ID        SCORE
+---- ----------
+0101         60
+
+
