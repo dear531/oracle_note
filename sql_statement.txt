@@ -5542,7 +5542,7 @@ SQL> drop user cat cascade;
 
 User dropped.
 
-++给cat用户创建表空间：
+++给cat用户创建表空间，是用users表空间，使用20m
 SQL> alter user cat
   2  default tablespace users
   3  quota 20m on users;
@@ -5580,4 +5580,290 @@ CREATE TABLE
 SELECT ANY TABLE
 CREATE VIEW
 
+=======================
+++角色：role
+++回首dog和cat用户下的以下权限：
+SQL> revoke create session, select any table, create table,
+  2  create view
+  3  from dog, cat;
+
+++用dog和cat用户连接，都显示没有权限：
+SQL> connect cat/miaomiao;
+ERROR:
+ORA-01045: user CAT lacks CREATE SESSION privilege; logon denied
+
+
+Warning: You are no longer connected to ORACLE.
+SQL> connect dog/wangwang
+ERROR:
+ORA-01045: user DOG lacks CREATE SESSION privilege; logon denied
+
+++创建用户pig（猪）：
+SQL> create user pig
+  2  identified by hengheng;
+
+User created.
+
+++创建角色animal（动物）：
+SQL> create role animal;
+
+Role created.
+
+++授权给角色以下权限：
+SQL> grant create session, select any table, create table, create view
+  2  to animal;
+
+Grant succeeded.
+
+++用角色animal给cat，dog和pig赋权限：
+SQL> grant animal to dog, cat, pig;
+
+Grant succeeded.
+
+++查询角色animal的权限：
+SQL> select * from role_sys_privs
+  2  where role = upper('animal');
+
+ROLE                           PRIVILEGE                                ADM
+------------------------------ ---------------------------------------- ---
+ANIMAL                         CREATE TABLE                             NO
+ANIMAL                         CREATE VIEW                              NO
+ANIMAL                         CREATE SESSION                           NO
+ANIMAL                         SELECT ANY TABLE                         NO
+
+++查看管理员角色权限表，查找animal都授予了那些用户：
+SQL> select *         
+  2  from dba_role_privs
+  3  where granted_role = upper('animal');
+
+GRANTEE                        GRANTED_ROLE                   ADM DEF
+------------------------------ ------------------------------ --- ---
+SYS                            ANIMAL                         YES YES
+CAT                            ANIMAL                         NO  YES
+DOG                            ANIMAL                         NO  YES
+PIG                            ANIMAL                         NO  YES
+
+++也可以通过登录上被授予权限的用户，直接查询当前登录用户的session权限：
+SQL> connect dog/wangwang
+Connected.
+
+＋＋查看用户拥有的角色：
+SQL> SELECT * FROM USER_ROLE_PRIVS;
+
+USERNAME                       GRANTED_ROLE                   ADM DEF OS_
+------------------------------ ------------------------------ --- --- ---
+CAT                            ANIMAL                         NO  YES NO
+
+
+SQL> select * from session_privs;
+
+PRIVILEGE
+----------------------------------------
+CREATE SESSION
+CREATE TABLE
+SELECT ANY TABLE
+CREATE VIEW
+
+===============
+＋＋角色权限的改变，对授权用户的影响：
+＋＋连接pig用户，用其查看cat下的t1表，并查看本连接的权限
+SQL> connect pig    
+Enter password: 
+Connected.
+＋＋能看到cat下t1表有内容：
+SQL> select * from cat.t1;
+
+ID        SOCRE
+---- ----------
+0101         60
+
+＋＋查看sesstion是有权限的：
+SQL> select * from session_privs;
+
+PRIVILEGE
+----------------------------------------
+CREATE SESSION
+CREATE TABLE
+SELECT ANY TABLE
+CREATE VIEW
+
+++连接system管理员角色用户，并将animal角色的查看表格权限回收
+SQL> connect system/manager
+Connected.
+SQL> revoke select any table
+  2  from animal;
+
+Revoke succeeded.
+
+++连接pig用户，再查看cat.t1下的表格，已经查看不到内容
+SQL> connect pig/hengheng
+Connected.
+SQL> select * from cat.t1;
+select * from cat.t1
+                  *
+ERROR at line 1:
+ORA-00942: table or view does not exist
+
+++查看当前用户连接的权限，已经没有查看表格的权限
+SQL> select * from session_privs;
+
+PRIVILEGE
+----------------------------------------
+CREATE SESSION
+CREATE TABLE
+CREATE VIEW
+
+++登录cat用户查看表格内容是存在，验证了我们的结论，是因为没有查看表格权限：
+SQL> connect cat/miaomiao
+Connected.
+SQL> select * from t1;
+
+ID        SOCRE
+---- ----------
+0101         60
+
+++在cat用户上，将t1表格查询权限，单独赋给pig用户：
+SQL> grant select         
+  2  on t1
+  3  to pig
+  4  with grant option;
+
+Grant succeeded.
+
+++登录pig用户，再次查询cat.t1表格的权限，已经能查看到了，说明已经有权限了： 
+SQL> connect pig/hengheng;
+Connected.
+SQL> select * from cat.t1;
+
+ID        SOCRE
+---- ----------
+0101         60
+
+++登录dog用户，查询cat.t1表，查询不到内容，因为没有授权：
+SQL> connect dog
+Enter password: 
+Connected.
+SQL> select * from cat.t1;
+select * from cat.t1
+                  *
+ERROR at line 1:
+ORA-00942: table or view does not exist
+
+++登录pig用户，将cat用户给的有授权权限的查询cat.t1的权限，再授权给dog：
+SQL> connect pig
+Enter password: 
+Connected.
+SQL> grant     
+  2  select on cat.t1
+  3  to dog;
+
+Grant succeeded.
+
+++登录dog，查询cat.t1，能查询到内容：
+SQL> connect dog/wangwang;
+Connected.
+SQL> select * from cat.t1;
+
+ID        SOCRE
+---- ----------
+0101         60
+
+++登录cat用户，创建public_cat_t1表，通过查询子句完成创建；
+SQL> r
+  1  create table public_cat_t1
+  2  as
+  3* select * from t1
+
+Table created.
+
+SQL> connect cat/miaomiao;
+Connected.
+++登录pig用户，对刚的cat.publib_cat_t1进行查询，没有权限：
+SQL> connect pig/hengheng;
+Connected.
+SQL> select * from cat.public_cat_t1;
+select * from cat.public_cat_t1
+                  *
+ERROR at line 1:
+ORA-00942: table or view does not exist
+
+++登录cat用户，将表我的查询权限授权给所有用户：
+++这样的授权方法，对以后创建的用户，只要有select any table权限，也有效
+SQL> connect cat/miaomiao;
+Connected.
+SQL> grant   
+  2  select on public_cat_t1
+  3  to public;
+
+Grant succeeded.
+++登录上dog用户和pig用户，都能查询到cat下对所有用户公开的表：
+SQL> connect dog/wangwang;
+Connected.
+SQL> select * from cat.public_cat_t1;
+
+ID        SOCRE
+---- ----------
+0101         60
+
+SQL> connect pig/hengheng;
+Connected.
+SQL> select * from cat.public_cat_t1;
+
+ID        SOCRE
+---- ----------
+0101         60
+
+++查看当前用户都授权了那些自己有的权限：
+SQL> connect cat/miaomiao;
+Connected.
+
+SQL> column grantee for a8
+SQL> column table_name for a20
+SQL> column grantor for a8
+SQL> column privilege for a18
+
+SQL> r
+  1* select * from user_tab_privs_made
+
+GRANTEE  TABLE_NAME           GRANTOR  PRIVILEGE          GRA HIE
+-------- -------------------- -------- ------------------ --- ---
+PIG      T1                   CAT      SELECT             YES NO
+DOG      T1                   PIG      SELECT             NO  NO
+PUBLIC   PUBLIC_CAT_T1        CAT      SELECT             NO  NO
+
+++以上表明，cat用户把表t1授权给了pig用户，并且pig可以继续将授权其他用户
+＋＋第二行表明，pig用户确实对t1表作了进一步的授权，授权给了dog用户，并且权限是不能继续授权：
+＋＋除此以外，cat用户还把PUBLIC_CAT_T1表做了公开。
+==================
+＋＋修改列授权：
+++登录cat用户，并将修改score列授权给dog用户：
+SQL> connect cat/miaomiao;
+Connected.
+SQL> grant update(score)
+  2  on t1
+  3  to dog;
+
+Grant succeeded.
+++查看用户的列权限：
+SQL> select * from user_col_privs;
+
+GRANTEE    OWNER                          TABLE_NAME           COLUMN_NAME                    GRANTOR    PRIVILEGE  GRA
+---------- ------------------------------ -------------------- ------------------------------ ---------- ---------- ---
+DOG        CAT                            T1                   SCORE                          CAT        UPDATE     NO
+
+++连接dog用户，修改成功：
+SQL> connect dog;
+Enter password: 
+Connected.
+SQL> update cat.t1 t set t.score = 65 where t.id = '0101';
+
+1 row updated.
+
+++查询表情况，已经修改成功：
+SQL> select * from cat.t1;
+
+ID        SCORE
+---- ----------
+0102         61
+0101         65
 
