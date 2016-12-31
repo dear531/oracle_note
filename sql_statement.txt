@@ -5834,6 +5834,7 @@ PUBLIC   PUBLIC_CAT_T1        CAT      SELECT             NO  NO
 ++以上表明，cat用户把表t1授权给了pig用户，并且pig可以继续将授权其他用户
 ＋＋第二行表明，pig用户确实对t1表作了进一步的授权，授权给了dog用户，并且权限是不能继续授权：
 ＋＋除此以外，cat用户还把PUBLIC_CAT_T1表做了公开。
+++即完成cat(t1表)->pig->dog依次授权。
 ==================
 ＋＋修改列授权：
 ++登录cat用户，并将修改score列授权给dog用户：
@@ -5866,4 +5867,99 @@ ID        SCORE
 ---- ----------
 0102         61
 0101         65
+
+====================
+＋＋回收权限：
+SQL> revoke select
+  2  on t1
+  3  from pig;
+
+Revoke succeeded.
+
+++回收之后，以前的cat(t1)->pig->dog依次的授权顺序都没有了
+＋＋如果想要恢复以前的授权，只能再重新做一次授权
+＋＋这很容易理解，如果授权的发生变化，还有以前的授权顺序存在，很显然会造成混乱
+SQL> select * from user_tab_privs;
+
+GRANTEE    OWNER                          TABLE_NAME           GRANTOR    PRIVILEGE  GRA HIE
+---------- ------------------------------ -------------------- ---------- ---------- --- ---
+PUBLIC     CAT                            PUBLIC_CAT_T1        CAT        SELECT     NO  NO
+
+++登录pig和dog查看，用户不在有权限查看了：
+SQL> connect pig;     
+Enter password: 
+Connected.
+SQL> select * from user_tab_privs;
+
+no rows selected
+
+SQL> select * from cat.t1;
+select * from cat.t1
+                  *
+ERROR at line 1:
+ORA-00942: table or view does not exist
+
+
+SQL> connect dog;
+Enter password: 
+Connected.
+SQL> select * from user_tab_privs;
+
+no rows selected
+
+SQL> select * from cat.t1;
+select * from cat.t1
+                  *
+ERROR at line 1:
+ORA-01031: insufficient privileges
+
+＋＋重新连接cat进行授权：
+SQL> connect cat/miaomiao;
+Connected.
+SQL> grant select  
+  2  on t1
+  3  to pig
+  4  with grant option;
+
+Grant succeeded.
+
+++只能看到pig被授权了：
+SQL> select * from user_tab_privs;
+
+GRANTEE    OWNER                          TABLE_NAME           GRANTOR    PRIVILEGE  GRA HIE
+---------- ------------------------------ -------------------- ---------- ---------- --- ---
+PUBLIC     CAT                            PUBLIC_CAT_T1        CAT        SELECT     NO  NO
+PIG        CAT                            T1                   CAT        SELECT     YES NO
+
+++分别连接pig和dog进行验证，可以看到pig有查看cat.t1权限，而dog没有
+＋＋要想变成以前的样子，要重新授权：
+++pig有权限：
+SQL> connect pig/hengheng;
+Connected.
+SQL> select * from user_tab_privs;
+
+GRANTEE    OWNER                          TABLE_NAME           GRANTOR    PRIVILEGE  GRA HIE
+---------- ------------------------------ -------------------- ---------- ---------- --- ---
+PIG        CAT                            T1                   CAT        SELECT     YES NO
+
+SQL> select * from cat.t1;
+
+ID        SCORE
+---- ----------
+0102         61
+0101         65
+
+++dog因为撤销过权限，而失去了从pig用户授予的查询cat.t1的权限：
+SQL> connect dog/wangwang
+Connected.
+SQL> select * from user_tab_privs;
+
+no rows selected
+
+SQL> select * from cat.t1;
+select * from cat.t1
+                  *
+ERROR at line 1:
+ORA-01031: insufficient privileges
+
 
