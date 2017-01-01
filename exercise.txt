@@ -1,0 +1,78 @@
+SQL> select * from t22;
+
+G2_ID      G2_NAME    MEMBER          SCORE     SCORE2 TMP
+---------- ---------- ---------- ---------- ---------- -----
+00         A          0001               60
+00         A          0002               59
+00         A          0003               61
+01         B          0101               80
+01         B          0102               90
+02         C          0201              100
+01         B          0103               61
+03         D
+
+8 rows selected.
+
+
+1.＋＋列出至少有一个员工的所有部门：
+SQL> select g2_name
+  2  from t22
+  3  group by g2_name
+  4  having count(member) > 0
+  5* order by g2_name
+
+G2_NAME
+----------
+A
+B
+C
+
+++order by中排序的列，必须是group by分组的关键词或之一。
+++而且必须是分组之后再排序
+
+++另外一种方案：
+++将所有员工不空的部门显示出来，并且去重，理解起来比较简单：
+SQL> select distinct g2_name
+  2  from t22
+  3  where member is not null;
+
+G2_NAME
+----------
+A
+B
+C
+
+2.++列出成绩比0001高的所有记录：
+++利用查询子句完成
+SQL> r
+  1  select * from t22
+  2  where score > (
+  3     select score from t22 where member = '0001'
+  4* )
+
+G2_ID      G2_NAME    MEMBER          SCORE     SCORE2 TMP
+---------- ---------- ---------- ---------- ---------- -----
+00         A          0003               61
+01         B          0101               80
+01         B          0102               90
+02         C          0201              100
+01         B          0103               61
+
+++可以将0001的score等于60，换成0003的成绩等于61
+SQL> 3  
+  3*    select score from t22 where member = '0001'
+SQL> c /0001/0003
+  3*    select score from t22 where member = '0003'
+SQL> r
+  1  select * from t22
+  2  where score > (
+  3     select score from t22 where member = '0003'
+  4* )
+
+G2_ID      G2_NAME    MEMBER          SCORE     SCORE2 TMP
+---------- ---------- ---------- ---------- ---------- -----
+01         B          0101               80
+01         B          0102               90
+02         C          0201              100
+
+
