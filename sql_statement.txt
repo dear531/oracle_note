@@ -5962,4 +5962,178 @@ select * from cat.t1
 ERROR at line 1:
 ORA-01031: insufficient privileges
 
+===================
+＋＋修改用户的密码：
+SQL> alter user cat
+  2  identified by guagua;
+
+User altered.
+
+SQL> connect cat/guagua;
+Connected.
+
+＋＋登录自己所在的用户，可以修改自己的密码：
+SQL> alter user cat  
+  2  identified by miaomiao;
+
+User altered.
+
+SQL> connect cat/miaomiao;
+Connected.
+=================
+＋＋删除用户：
+++先建立fox狐狸用户：
+SQL> connect system/manager;
+Connected.
+SQL> create user fox
+  2  identified by fox;
+
+User created.
+
+++查看建立的用户:
+SQL> select username, created  
+  2  from dba_users
+  3  where username = upper('fox');
+
+USERNAME                       CREATED
+------------------------------ ---------
+FOX                            01-JAN-17
+
+
+
+++再删掉fox用户，演示用：
+SQL> drop user fox;
+
+User dropped.
+
+++删除之后，再次查询，fox已经查不到：
+SQL> select username, created 
+  2  from dba_users
+  3  where username = upper('fox');
+
+no rows selected
+
+++查询两周之内建立的用户，都在：
+SQL> r
+  1  select username, created
+  2  from dba_users
+  3* where round(created, upper('day')) >= round(sysdate, upper('day')) - 14
+
+USERNAME                       CREATED
+------------------------------ ---------
+PIG                            31-DEC-16
+DOG                            31-DEC-16
+CAT                            31-DEC-16
+
+=================
+＋＋带有表的用户删除方法：
+++直接删除会
+SQL> drop user cat;
+drop user cat
+*
+ERROR at line 1:
+ORA-01922: CASCADE must be specified to drop 'CAT'
+
+++用级联的方式删掉用户，也删掉用户下的表格：
+SQL> r
+  1* drop user cat cascade
+
+User dropped.
+
+++查询数据库系统管理员表，查找条件是按日期按天四舍五入之后，查找两个星期前创建的用户：
+SQL> select username, created 
+  2  from dba_users 
+  3  where round(created, upper('day')) > round(sysdate, upper('day')) - 14;
+
+USERNAME                       CREATED
+------------------------------ ---------
+PIG                            31-DEC-16
+DOG                            31-DEC-16
+
+++cat已经被删掉了，其他的用户也还在
+
+++连接pig用户，原来有的查询cat表和对cat.t1.score的列修改权限都没有了，因为用户和表都不存在了：
+SQL> connect pig/hengheng
+Connected.
+SQL> select * from user_tab_privs;
+
+no rows selected
+
+SQL> select * from user_col_privs;
+
+no rows selected
+++connect和resource角色：
+++两个角色权限查看：
+SQL> select * from role_sys_privs
+  2  where role in (upper('connect'), upper('resource'));
+
+ROLE                           PRIVILEGE                                ADM
+------------------------------ ---------------------------------------- ---
+RESOURCE                       CREATE SEQUENCE                          NO
+RESOURCE                       CREATE TRIGGER                           NO
+RESOURCE                       CREATE CLUSTER                           NO
+RESOURCE                       CREATE PROCEDURE                         NO
+RESOURCE                       CREATE TYPE                              NO
+CONNECT                        CREATE SESSION                           NO
+RESOURCE                       CREATE OPERATOR                          NO
+RESOURCE                       CREATE TABLE                             NO
+RESOURCE                       CREATE INDEXTYPE                         NO
+
+9 rows selected.
+
+++建立cat用户，尝试连接一下：
+SQL> create user cat
+  2  identified by miaomiao;
+
+User created.
+
+SQL> connect cat/miaomiao;
+ERROR:
+ORA-01045: user CAT lacks CREATE SESSION privilege; logon denied
+
+
+Warning: You are no longer connected to ORACLE.
+＋＋连接不上，没有权限。
+
+SQL> connect cat/miaomiao;
+Connected.
+
+SQL> select * from session_privs;
+
+PRIVILEGE
+----------------------------------------
+CREATE SESSION
+
+＋＋再此切换回sys用户，将resource权限赋给cat，连接上cat用户查看权限，已经多了：
+SQL> grant resource to cat;
+
+Grant succeeded.
+
+SQL> connect cat/miaomiao;
+Connected.
+SQL> select * from session_privs;
+
+PRIVILEGE
+----------------------------------------
+CREATE SESSION
+UNLIMITED TABLESPACE
+CREATE TABLE
+CREATE CLUSTER
+CREATE SEQUENCE
+CREATE PROCEDURE
+CREATE TRIGGER
+CREATE TYPE
+CREATE OPERATOR
+CREATE INDEXTYPE
+
+10 rows selected.
+
+++查看用户拥有的角色：与我们赋予的角色相同：
+SQL> select * from user_role_privs;
+
+USERNAME                       GRANTED_ROLE                   ADM DEF OS_
+------------------------------ ------------------------------ --- --- ---
+CAT                            CONNECT                        NO  YES NO
+CAT                            RESOURCE                       NO  YES NO
+
 
