@@ -75,4 +75,46 @@ G2_ID      G2_NAME    MEMBER          SCORE     SCORE2 TMP
 01         B          0102               90
 02         C          0201              100
 
+3.++显示成员所在的组的全部信息：
+SQL> r
+  1  select g1_id, g1_name, t2.g2_id, t2.g2_name, member, score, score2
+  2  from t1, t2
+  3* where t1.g2_id = t2.g2_id
 
+G1_ID G1_NAME    G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+----- ---------- ---------- ---------- ---------- ---------- ----------
+0     a          00         A          0001               60
+0     a          00         A          0002               59
+0     a          00         A          0003               61
+1+    b+         01         B          0101               80
+1     b          01         B          0101               80
+1+    b+         01         B          0102               90
+1     b          01         B          0102               90
+1+    b+         01         B          0103               61
+1     b          01         B          0103               61
+
+9 rows selected.
+
+SQL> r
+  1  select g1_id, g1_name, g2_id, t2.g2_name, member, score, score2
+  2  from t1
+  3  join t2
+  4* using(g2_id)
+
+G1_ID G1_NAME    G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
+----- ---------- ---------- ---------- ---------- ---------- ----------
+0     a          00         A          0001               60
+0     a          00         A          0002               59
+0     a          00         A          0003               61
+1+    b+         01         B          0101               80
+1     b          01         B          0101               80
+1+    b+         01         B          0102               90
+1     b          01         B          0102               90
+1+    b+         01         B          0103               61
+1     b          01         B          0103               61
+
+9 rows selected.
+
+++注意用oracle的连接方法和sql标准语句的区别
+＋＋标准sql中using中引用的列在select显示列中可以不标注表明，因为using就标志这两个表连接的这一列是相同的，彼此一样
+＋＋而oracle的连接函数则不能省略表名，因为oracle连接用的where语句比较两列，两列的名称可以相同，也可以不同，显示的列无法辨别是相同的
