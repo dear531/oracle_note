@@ -118,3 +118,152 @@ G1_ID G1_NAME    G2_ID      G2_NAME    MEMBER          SCORE     SCORE2
 ++注意用oracle的连接方法和sql标准语句的区别
 ＋＋标准sql中using中引用的列在select显示列中可以不标注表明，因为using就标志这两个表连接的这一列是相同的，彼此一样
 ＋＋而oracle的连接函数则不能省略表名，因为oracle连接用的where语句比较两列，两列的名称可以相同，也可以不同，显示的列无法辨别是相同的
+
+=================================
+++老师及学生成绩数据分析：
+++执行sql脚本：exercise_sql_01.sql
+++1、查询“c001”课程比“c002”课程成绩高的所有学生的学号；
+++自己想到的做法：
+SQL> r
+  1  select a.sno, a.score c001_score,  b.score c002_score
+  2  from sc a, sc b
+  3* where a.sno = b.sno and a.cno = 'c001' and b.cno = 'c002' and a.score >
+b.score
+
+SNO                  C001_SCORE C002_SCORE
+-------------------- ---------- ----------
+s002                       80.9       72.9
+
+++参考答案给的做法两种：
+++第一种：
+++先为两种成绩准备好两个表，然后再进行对比
+SQL> r
+  1  select a.sno, a.score c001_score,  b.score c002_score
+  2  from (select * from sc where cno = 'c001') a
+  3  , (select * from sc where cno = 'c002') b
+  4* where a.sno = b.sno and a.score > b.score
+
+SNO                  C001_SCORE C002_SCORE
+-------------------- ---------- ----------
+s002                       80.9       72.9
+++第二种：
+++按成绩1查找到出记录，再按成绩2查找该表，并配合是否是该人成绩和成绩2是否大于成绩1，如果存在则返回where条件的真值
+＋＋则查询语句会输出
+SQL> select * from sc a where a.cno = 'c001'
+  2  and exists(select * from sc b where a.sno = b.sno and b.cno = 'c002' and a.score > b.score);
+
+SNO                  CNO                                 SCORE
+-------------------- ------------------------------ ----------
+s002                 c001                                 80.9
+
+++2、查询平均成绩大于60 分的同学的学号和平均成绩；
+++没啥太多需要解释的，分组函数查平均成绩，并且对分组函数加条件，所以用having
+SQL> select sno, avg(score) from sc       
+  2  group by sno 
+  3  having  avg(score) > 60;
+
+SNO                  AVG(SCORE)
+-------------------- ----------
+s001                      70.95
+s002                       76.9
+s003                       81.9
+s004                       60.9
+
+++3、查询所有同学的学号、姓名、选课数、总成绩；
+++自我实现方法：
+SQL> r
+  1  select a.sno, sname, count, sum
+  2  from student a
+  3  , (select sno, count(cno) count, sum(score) sum from sc group by sno) b
+  4* where a.sno = b.sno
+
+SNO                  SNAME                     COUNT        SUM
+-------------------- -------------------- ---------- ----------
+s001                 张三                          2      141.9
+s002                 李四                          2      153.8
+s003                 吴鹏                          2      163.8
+s004                 琴沁                          1       60.9
+
+＋＋参考答案实现方法：
+SQL> select a.*,s.sname from (select sno,sum(score),count(cno) from sc group
+by sno) a ,student s where a.sno=s.sno;
+
+SNO                  SUM(SCORE) COUNT(CNO) SNAME
+-------------------- ---------- ---------- --------------------
+s001                      141.9          2 张三
+s002                      153.8          2 李四
+s003                      163.8          2 吴鹏
+s004                       60.9          1 琴沁
+
+++4、查询姓“刘”的老师的个数；
+++自我实现方法：
+SQL> select count(tname) from teacher where tname like '刘%';
+
+COUNT(TNAME)
+------------
+           1
+
+++5、查询没学过“谌燕”老师课的同学的学号、姓名；
+++逐表依次查找得到的全表信息：
+SQL> r
+  1  select a.tname, a.tno, b.cno, c.sno, c.score, d.sname
+  2  from teacher a, course b, sc c, student d
+  3  where a.tno = b.tno and b.cno = c.cno
+  4* and c.sno = d.sno
+
+TNAME           TNO             CNO             SNO                  SCORE
+SNAME
+--------------- --------------- --------------- --------------- ----------
+------------------------------------------------------------
+谌燕            t002            c002            s001                  82.9 张三
+刘阳            t001            c003            s001                    59 张三
+谌燕            t002            c002            s002                  72.9 李四
+谌燕            t002            c002            s003                  81.9 吴鹏
+
+
+＋＋没加任何条件的学生与老师选课匹配：
+SQL> r
+  1  select a.tname, c.sno, c.score, d.sname
+  2  from teacher a, course b, sc c, student d
+  3  where a.tno = b.tno and b.cno = c.cno
+  4* and c.sno = d.sno
+
+TNAME           SNO                  SCORE SNAME
+--------------- --------------- ----------
+------------------------------------------------------------
+谌燕            s001                  82.9 张三
+刘阳            s001                    59 张三
+谌燕            s002                  72.9 李四
+谌燕            s003                  81.9 吴鹏
+
+++加上所有限制条件：
+SQL> r
+  1  select a.tname, c.sno, c.score, d.sname
+  2  from teacher a, course b, sc c, student d
+  3  where a.tname = '谌燕' and a.tno = b.tno and b.cno = c.cno
+  4  and c.score > 60
+  5* and c.sno = d.sno
+
+TNAME           SNO                  SCORE SNAME
+--------------- --------------- ----------
+------------------------------------------------------------
+谌燕            s001                  82.9 张三
+谌燕            s002                  72.9 李四
+谌燕            s003                  81.9 吴鹏
+
+++层层套用查询子句写法：
+SQL> r  
+  1  select * from student where SNO in
+  2     (select sno from sc where cno in
+  3             (select cno from course where TNO in
+  4                     (select TNO from teacher where TNAME = '谌燕')
+  5             ) and score > 60
+  6*    )
+
+SNO             SNAME                                                              SAGE SSEX
+--------------- ------------------------------------------------------------ ---------- ---------------
+s001            张三                                                                 23 男
+s002            李四                                                                 23 男
+s003            吴鹏                                                                 25 男
+
+
