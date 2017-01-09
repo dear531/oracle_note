@@ -204,66 +204,48 @@ COUNT(TNAME)
            1
 
 ++5、查询没学过“谌燕”老师课的同学的学号、姓名；
-++逐表依次查找得到的全表信息：
+++先查到学过'谌燕'课程的学生，再从学生的总表里去掉学过的列表
 SQL> r
-  1  select a.tname, a.tno, b.cno, c.sno, c.score, d.sname
-  2  from teacher a, course b, sc c, student d
-  3  where a.tno = b.tno and b.cno = c.cno
-  4* and c.sno = d.sno
+  1  select sno, sname from student where sno not in (
+  2     select sno from sc where cno in (
+  3             select cno from course where tno in (
+  4                     select tno from teacher where tname = '谌燕'
+  5             )
+  6     )
+  7* )
 
-TNAME           TNO             CNO             SNO                  SCORE
-SNAME
---------------- --------------- --------------- --------------- ----------
-------------------------------------------------------------
-谌燕            t002            c002            s001                  82.9 张三
-刘阳            t001            c003            s001                    59 张三
-谌燕            t002            c002            s002                  72.9 李四
-谌燕            t002            c002            s003                  81.9 吴鹏
+SNO             SNAME
+--------------- --------------------
+s008            萧蓉
+s007            刘玉
+s006            李波
+s005            王丽
+s009            陈萧晓
+s004            琴沁
+s010            陈美
 
+7 rows selected.
 
-＋＋没加任何条件的学生与老师选课匹配：
-SQL> r
-  1  select a.tname, c.sno, c.score, d.sname
-  2  from teacher a, course b, sc c, student d
-  3  where a.tno = b.tno and b.cno = c.cno
-  4* and c.sno = d.sno
-
-TNAME           SNO                  SCORE SNAME
---------------- --------------- ----------
-------------------------------------------------------------
-谌燕            s001                  82.9 张三
-刘阳            s001                    59 张三
-谌燕            s002                  72.9 李四
-谌燕            s003                  81.9 吴鹏
-
-++加上所有限制条件：
-SQL> r
-  1  select a.tname, c.sno, c.score, d.sname
-  2  from teacher a, course b, sc c, student d
-  3  where a.tname = '谌燕' and a.tno = b.tno and b.cno = c.cno
-  4  and c.score > 60
-  5* and c.sno = d.sno
-
-TNAME           SNO                  SCORE SNAME
---------------- --------------- ----------
-------------------------------------------------------------
-谌燕            s001                  82.9 张三
-谌燕            s002                  72.9 李四
-谌燕            s003                  81.9 吴鹏
-
-++层层套用查询子句写法：
+++通过子句联合查询得到的结果：
 SQL> r  
-  1  select * from student where SNO in
-  2     (select sno from sc where cno in
-  3             (select cno from course where TNO in
-  4                     (select TNO from teacher where TNAME = '谌燕')
-  5             ) and score > 60
-  6*    )
+  1  select * from student where sno not in (
+  2     select c.sno from sc c, (
+  3             select a.cno from course a,(
+  4                     select tno from teacher where tname = '谌燕'
+  5             ) b where a.tno = b.tno
+  6     ) d where c.cno = d.cno
+  7* )
 
-SNO             SNAME                                                              SAGE SSEX
---------------- ------------------------------------------------------------ ---------- ---------------
-s001            张三                                                                 23 男
-s002            李四                                                                 23 男
-s003            吴鹏                                                                 25 男
+SNO             SNAME                      SAGE SSEX
+--------------- -------------------- ---------- ---------------
+s008            萧蓉                         21 女
+s007            刘玉                         21 男
+s006            李波                         21 男
+s005            王丽                         20 女
+s009            陈萧晓                       23 女
+s004            琴沁                         20 女
+s010            陈美                         22 女
+
+7 rows selected.
 
 
