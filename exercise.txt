@@ -248,4 +248,79 @@ s010            陈美                         22 女
 
 7 rows selected.
 
+++用多表联合语句查询到学习'谌燕'老师课的所有学生的单列记录
+＋＋然后再学生表将查询到的记录去除，即得到结果
+SQL> r
+  1  select * from student where sno not in (
+  2     select c.sno
+  3     from teacher a, course b, sc c
+  4     where a.tname = '谌燕' and b.tno = a.tno and c.cno = b.cno
+  5* )
+
+SNO             SNAME                      SAGE SSEX
+--------------- -------------------- ---------- ---------------
+s008            萧蓉                         21 女
+s007            刘玉                         21 男
+s006            李波                         21 男
+s005            王丽                         20 女
+s009            陈萧晓                       23 女
+s004            琴沁                         20 女
+s010            陈美                         22 女
+
+7 rows selected.
+
+++6、查询学过“c001”并且也学过编号“c002”课程的同学的学号、姓名；
+++先将成绩表内联，找到本表中两个学科都有的学生记录的学号
+＋＋再根据学号匹配学号记录表
+SQL> r
+  1  select * from student
+  2  where sno in (select a.sno from (
+  3     select sno from sc where cno = 'c001') a,
+  4     (select sno from sc where cno = 'c002') b
+  5* where a.sno = b.sno)
+
+SNO        SNAME            SAGE SSEX
+---------- ---------- ---------- ----------
+s002       李四               23 男
+s003       吴鹏               25 男
+
+++直接联合语句实现：
+SQL> select * from student 
+  2  where sno in (select a.sno from sc a, sc b
+  3     where a.sno = b.sno and a.cno = 'c001' and b.cno = 'c002'
+  4     );
+
+SNO        SNAME            SAGE SSEX
+---------- ---------- ---------- ----------
+s002       李四               23 男
+s003       吴鹏               25 男
+
+++7、查询学过“谌燕”老师所教的所有课的同学的学号、姓名；
+SQL> r
+  1  select a.sno, a.sname
+  2  from student a, sc b, course c, teacher d
+  3  where d.tname = '谌燕'
+  4  and d.tno = c.tno
+  5  and c.cno = b.cno
+  6* and b.sno = a.sno
+
+SNO        SNAME
+---------- ----------
+s001       张三
+s002       李四
+s003       吴鹏
+
+++8、查询课程编号“c002”的成绩比课程编号“c001”课程低的所有同学的学号、姓名；
+++多表直接联合，分表找c002和c001的记录，在成绩表中，找到再对比成绩，是c002小于c001的记录，再联合学生信息表，并匹配学号和姓名
+SQL> r
+  1  select distinct a.sno, a.sname
+  2  from student a
+  3  , sc b, sc c
+  4* where b.cno = 'c002' and c.cno = 'c001' and b.score < c.score and b.sno =
+a.sno
+
+SNO        SNAME
+---------- ----------
+s002       李四
+
 
