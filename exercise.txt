@@ -323,4 +323,26 @@ SNO        SNAME
 ---------- ----------
 s002       李四
 
+++9、查询所有课程成绩小于60 分的同学的学号、姓名；
+++注意去重的结果是所有记录都相同才能去重，否则无法去重
+SQL> r
+  1  select distinct a.sno, a.sname, b.score
+  2  from student a, sc b
+  3* where b.score < 60 and b.sno = a.sno
+
+SNO        SNAME           SCORE
+---------- ---------- ----------
+s001       张三               59
+s001       张三               58
+
+SQL> 1 select distinct a.sno, a.sname
+SQL> r
+  1  select distinct a.sno, a.sname
+  2  from student a, sc b
+  3* where b.score < 60 and b.sno = a.sno
+
+SNO        SNAME
+---------- ----------
+s001       张三
+
 
