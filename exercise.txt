@@ -345,4 +345,42 @@ SNO        SNAME
 ---------- ----------
 s001       张三
 
+++10、查询没有学全所有课的同学的学号、姓名；
+++想得到所有学生成绩，必须对学生表做左联取得学生表代学科的总表，并按学号分组之后对学科做个数统计，统计之前去重；再将得到学科数量和教师授课表的去重的学科总数做比较，小于教师学科教课总数就输出学号和姓名：
+SQL> r
+  1  select a.sno, a.sname, count(distinct b.cno)
+  2  from student a
+  3  left join sc b
+  4  on a.sno = b.sno
+  5  group by a.sno, a.sname
+  6  having count(distinct b.cno) < (
+  7* select count(distinct cno) from course)
+
+SNO        SNAME      COUNT(DISTINCTB.CNO)
+---------- ---------- --------------------
+s003       吴鹏                          2
+s008       萧蓉                          0
+s002       李四                          2
+s007       刘玉                          0
+s009       陈萧晓                        0
+s001       张三                          3
+s005       王丽                          0
+s004       琴沁                          1
+s010       陈美                          0
+s006       李波                          0
+
+10 rows selected.
+
+++11、查询至少有一门课与学号为“s001”的同学所学相同的同学的学号和姓名；
+++先将成绩表内联，找到与s001相同的其他成员，内联其他学生时，一定要将自己s001去掉，得到学生列表之后，再连接学生信息表，连接学号和姓名信息：
+SQL> r  
+  1  select distinct b.sno, c.sname
+  2  from sc a, sc b, student c
+  3* where a.sno = 's001' and b.sno != 's001' and a.cno = b.cno and b.sno = c.sno
+
+SNO        SNAME
+---------- ----------
+s003       吴鹏
+s002       李四
+
 
