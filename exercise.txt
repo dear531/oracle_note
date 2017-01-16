@@ -383,4 +383,135 @@ SNO        SNAME
 s003       吴鹏
 s002       李四
 
+++13、把“SC”表中“谌燕”老师教的课的成绩都更改为此课程的平均成绩；
+
+++心得结果：
+++先得到通过老师查询学生成绩的平均值结果，再update 表格名 set 字段 ＝ (得到平均值的查询子句) where 条件进行更新：
+++查询平均值结果：
+SQL> r  
+  1  select c.cno, avg(score)
+  2  from teacher a, course b, sc c
+  3  where a.tname = '谌燕' and a.tno = b.tno
+  4     and b.cno = c.cno
+  5* group by c.cno
+
+CNO        AVG(SCORE)
+---------- ----------
+c002       79.2333333
+
+++直接得到的结果去更新成绩表，会的到没有满足条件的列被更新为空的情况：
+SQL> select * from sc;
+
+SNO        CNO             SCORE
+---------- ---------- ----------
+s002       c001
+s003       c001
+s004       c001
+s001       c002            79.23
+s002       c002            79.23
+s003       c002            79.23
+s001       c003
+s001       c004
+
+8 rows selected.
+
+++所以最直观的方法是，如果为空的结果，则用nvl函数更新成原来的值，结果这样做的过程可想而知，所有数据都更新了一遍，可以想象，耗时，还会引起字段被更新一遍而引起的字段被更新的数据库关联问题：
+SQL> r  
+  1  update sc set score = nvl((
+  2     select avg(score) avg
+  3     from teacher a, course b, sc c
+  4     where a.tname = '谌燕' and a.tno = b.tno
+  5             and b.cno = c.cno and sc.cno = c.cno
+  6     group by c.cno
+  7* ), sc.score)
+
+8 rows updated.
+++结果随正确，但却有问题
+SQL> select * from sc;
+
+SNO        CNO             SCORE
+---------- ---------- ----------
+s002       c001             80.9
+s003       c001             81.9
+s004       c001             60.9
+s001       c002            79.23
+s002       c002            79.23
+s003       c002            79.23
+s001       c003               59
+s001       c004               58
+
+8 rows selected.
+
+++所以我们有必要找更合适的方法：
+＋＋方法1：用where exists函数，检查查询子句是否有值，有值则更新：
+
+SQL> r  
+  1  update sc set score = (
+  2     select avg(score) avg
+  3     from teacher a, course b, sc c
+  4     where a.tname = '谌燕' and a.tno = b.tno
+  5             and b.cno = c.cno and sc.cno = c.cno
+  6     group by c.cno
+  7  ) where exists(
+  8  select avg(score) avg
+  9     from teacher a, course b, sc c
+ 10     where a.tname = '谌燕' and a.tno = b.tno
+ 11             and b.cno = c.cno and sc.cno = c.cno
+ 12     group by c.cno
+ 13* )
+
+3 rows updated.
+
+SQL> select * from sc;
+
+SNO        CNO             SCORE
+---------- ---------- ----------
+s002       c001             80.9
+s003       c001             81.9
+s004       c001             60.9
+s001       c002            79.23
+s002       c002            79.23
+s003       c002            79.23
+s001       c003               59
+s001       c004               58
+
+8 rows selected.
+
+++我们可以看到，c002的三行已经被全部更新了。
+
+＋＋方法2：
+++通过同样的方法统计出平均值，作为需要更记录的成绩新值
+＋＋再通过查询老师对应的科目和学生学号，作为更新成绩表学号和学科两列的多列查询条件
+＋＋更新sc成绩表时将上述两条子句按所说条件组合即可：
+SQL> r  
+  1  update sc set score = (
+  2     select avg(score) avg
+  3     from teacher a, course b, sc c
+  4     where a.tname = '谌燕' and a.tno = b.tno
+  5             and b.cno = c.cno and sc.cno = c.cno
+  6     group by c.cno
+  7  ) where (sc.sno, sc.cno) in (
+  8     select c.sno, c.cno
+  9     from teacher a, course b, sc c
+ 10     where a.tname = '谌燕' and a.tno = b.tno
+ 11             and b.cno = c.cno and sc.cno = c.cno
+ 12* )
+
+3 rows updated.
+
+SQL> select * from sc;
+
+SNO        CNO             SCORE
+---------- ---------- ----------
+s002       c001             80.9
+s003       c001             81.9
+s004       c001             60.9
+s001       c002            79.23
+s002       c002            79.23
+s003       c002            79.23
+s001       c003               59
+s001       c004               58
+
+8 rows selected.
+
 

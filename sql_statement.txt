@@ -6136,4 +6136,35 @@ USERNAME                       GRANTED_ROLE                   ADM DEF OS_
 CAT                            CONNECT                        NO  YES NO
 CAT                            RESOURCE                       NO  YES NO
 
+++将一张表的数据，复制到另外一张表中，完全复制：
+++先截断，查看结果为空，再将另外一张表内容复制进来
+＋＋查看后有内容了
+SQL> truncate table sc;
+
+Table truncated.
+
+SQL> select * from sc;
+
+no rows selected
+
+SQL> insert into sc (
+  2  select * from sc2);
+
+8 rows created.
+
+SQL> select * from sc;
+
+SNO        CNO             SCORE
+---------- ---------- ----------
+s002       c001             80.9
+s003       c001             81.9
+s004       c001             60.9
+s001       c002             82.9
+s002       c002             72.9
+s003       c002             81.9
+s001       c003               59
+s001       c004               58
+
+8 rows selected.
+
 
