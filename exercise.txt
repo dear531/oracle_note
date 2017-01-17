@@ -514,4 +514,110 @@ s001       c004               58
 
 8 rows selected.
 
+++14、查询和“s001”号的同学学习的课程完全相同的其他同学学号和姓名；
+++利用以下学生信息表：
+SQL> select * from sc;
+
+SNO        CNO             SCORE
+---------- ---------- ----------
+s002       c003             80.9
+s003       c001             81.9
+s004       c001             60.9
+s001       c002             82.9
+s002       c002             72.9
+s003       c002             81.9
+s001       c003               59
+
+
+++必须用存储过程完成这个实例了：
+＋＋先获得课程完全相同的学号
+＋＋再加上显示学号和姓名
+SET SERVEROUTPUT ON 
+declare
+  cursor c_job is
+        select distinct sno from sc where sno != 's001';
+  c_row c_job%rowtype;
+        counter integer := 0;
+        sno character(20) := '0';
+        sname character(20) := '0';
+begin
+  for c_row in c_job loop
+	/* a-b and b-a = 0 则表示两集合完全相同，包括空集 */
+        select count(*) into counter from ((
+                select cno from sc where sno = 's001'
+                minus
+                select cno from sc where sno = c_row.sno
+        ) union (
+                select cno from sc where sno = c_row.sno
+                minus
+                select cno from sc where sno = 's001'
+        ));
+	/* 当两集合相同时，找到与s001对比的该同学信息 */
+        if counter = 0 then
+        select sname, sno into sname, sno from student where sno = c_row.sno;
+                dbms_output.put_line('sno:'||sno||',sname:'||sname);
+        end if;
+  end loop;
+end; 
+/
+
+++将上述内容存成脚本，执行即可得到结果：
+
+SQL> @tmp
+sno:s002                ,sname:李四
+
+PL/SQL procedure successfully completed.
+
+++15、删除学习“谌燕”老师课的SC 表记录；
+++联合教师信息表，课程表，找到教师所授课程
+＋＋再在学生成绩表中根据找到的教师课程删除所有该课程的记录，即该教师所有所教课程的所有记录。
+＋＋未删除之前：
+SQL> select * from sc;
+
+SNO        CNO             SCORE
+---------- ---------- ----------
+s002       c003             80.9
+s003       c001             81.9
+s004       c001             60.9
+s001       c002             82.9
+s002       c002             72.9
+s003       c002             81.9
+s001       c003               59
+
+7 rows selected.
+
+++根据教师信息表和课程表找到的教师课程：
+SQL> r
+  1  select cno
+  2  from teacher a, course b
+  3  where a.tno = b.tno
+  4* and a.tname = '谌燕'
+
+CNO
+----------
+c002
+c007
+c010
+
+++根据找到的课程删除学生成绩表：
+SQL> r
+  1  delete sc where cno in (
+  2     select cno
+  3     from teacher a, course b
+  4     where a.tno = b.tno and a.tname = '谌燕'
+  5* )
+
+3 rows deleted.
+
+＋＋删除结果：
+SQL> select * from sc;
+
+SNO        CNO             SCORE
+---------- ---------- ----------
+s002       c003             80.9
+s003       c001             81.9
+s004       c001             60.9
+s001       c003               59
+
+
 
