@@ -620,4 +620,163 @@ s004       c001             60.9
 s001       c003               59
 
 
+++16、向SC 表中插入一些记录，这些记录要求符合以下条件：没有上过编号“c002”课程的同学学号、“c002”号课的平均成绩；
+++用成绩表以不等于c002的学科为条件查到所有学号
+＋＋再次用成绩表以等于c002为条件，得到成绩的平均值
+＋＋联合以上两张表，获得第一列为学号，第二列为平均成绩的表格
+＋＋以获得到的联合表格为新值，插入到sc学生成绩的sno和score两列中
+SQL> get tmp4
+  1  insert into sc
+  2  (sno, score)
+  3  select sno, score from (
+  4     select avg(score) score
+  5     from sc
+  6     where cno = 'c002'
+  7  ), (
+  8     select distinct sno
+  9     from sc
+ 10     where cno != 'c002'
+ 11* )
+ 12  /
+
+4 rows created.
+
+SQL> select * from sc;
+
+SNO        CNO             SCORE
+---------- ---------- ----------
+s002       c001             80.9
+s003       c001             81.9
+s004       c001             60.9
+s001       c002             82.9
+s002       c002             72.9
+s003       c002             81.9
+s001       c003               59
+s001       c004               58
+s001                       79.23
+s002                       79.23
+s003                       79.23
+
+SNO        CNO             SCORE
+---------- ---------- ----------
+s004                       79.23
+
+12 rows selected.
+
+++要插入的新值的列名和要插入表的列名可以相同，也可以不同
+SQL> r
+  1  insert into sc
+  2  (sno, score)
+  3  select sno, avg from (
+  4     select avg(score) avg
+  5     from sc
+  6     where cno = 'c002'
+  7  ), (
+  8     select distinct sno
+  9     from sc
+ 10     where cno != 'c002'
+ 11* )
+
+4 rows created.
+
+++17、查询各科成绩最高和最低的分：以如下形式显示：课程ID，最高分，最低分
+++比较常规，根据各科成绩进行分组
+SQL> select cno, min(score), max(score)
+  2  from sc
+  3  group by cno;
+
+CNO        MIN(SCORE) MAX(SCORE)
+---------- ---------- ----------
+c002             72.9       82.9
+c001             60.9       81.9
+c004               58         58
+c003               59         59
+
+++18、按各科平均成绩从低到高和及格率的百分数从高到低顺序
+++获得百分比的方法需要特殊处理，利用case语句对成绩大于或等于60的成绩做计数统计，成绩及格则计1，否则计0，然后再求和，之后除以总数量，即得到及格率。
+＋＋最后再排序：
+SQL> get tmp
+  1  select cno, avg(score) avg, sum(case when score >= 60 then 1 else 0 end)
+/ count(score) * 100 "及格率"
+  2  from sc
+  3  group by cno
+  4* order by avg, "及格率" desc
+  5  /
+
+CNO               AVG     及格率
+---------- ---------- ----------
+c004               58          0
+c003               59          0
+c001       74.5666667        100
+c002       79.2333333        100
+
+++19、查询不同老师所教不同课程平均分从高到低显示
+++先联合教师表，课程表以及成绩表
+＋＋再对生成的表对教师和科目两列进行分组求成绩平均值
+＋＋最后加排序
+SQL> r
+  1  select a.tname, b.cno, avg(c.score)
+  2  from teacher a, course b, sc c
+  3  where a.tno = b.tno and b.cno = c.cno
+  4  group by a.tname, b.cno
+  5* order by AVG(C.SCORE) desc
+
+TNAME      CNO        AVG(C.SCORE)
+---------- ---------- ------------
+谌燕       c002         79.2333333
+谌燕       c001         74.5666667
+刘阳       c003                 59
+刘阳       c004                 58
+
+++20、统计列印各科成绩,各分数段人数:课程ID,课程名称,[100-85],[85-70],[70-60],[
+<60]
+++先联合课程表和成绩表，再利用case语句对成绩做分段有效计数，再分段内计1，不在计0
+＋＋最后分列统计总数，得到统计表
+SQL> r
+  1  select a.cno, a.cname,
+  2  sum(case when b.score >= 85 and b.score <= 100 then 1 else 0 end)
+"[85,100]",
+  3  sum(case when b.score >= 70 and b.score < 85 then 1 else 0 end)
+"[70,85)",
+  4  sum(case when b.score >= 60 and b.score < 70 then 1 else 0 end)
+"[60,70)",
+  5  sum(case when b.score < 60 then 1 else 0 end) "[<60]"
+  6  from course a, sc b
+  7  where a.cno = b.cno
+  8* group by a.cno, a.cname
+
+CNO        CNAME             [85,100]    [70,85)    [60,70)      [<60]
+---------- --------------- ---------- ---------- ---------- ----------
+c002       Java Web                 0          3          0          0
+c004       Oracle                   0          0          0          1
+c003       SSH                      0          0          0          1
+c001       J2SE                     0          2          1          0
+
+++21、查询各科成绩前三名的记录:(不考虑成绩并列情况)
+＋＋利用分类聚合函数over(partition by columnA order by columnB)
+++本函数的意思是根据列A进行分类汇总，根据列B进行排序
+++row_number()是对得到结果进行标号，之后重命名为rn列
+++最后将得到的结果当作子句表，外层对子句表进行条件限定，显示rn < 4的结果
+SQL> get tmp
+  1  select * from (
+  2     select sno, cno, score,
+  3     row_number() over(partition by cno order by score desc) rn
+  4     from sc
+  5  )
+  6* where rn < 4
+  7  /
+
+SNO        CNO             SCORE         RN
+---------- ---------- ---------- ----------
+s003       c001             81.9          1
+s002       c001             80.9          2
+s004       c001             60.9          3
+s001       c002             82.9          1
+s003       c002             81.9          2
+s002       c002             72.9          3
+s001       c003               59          1
+s001       c004               58          1
+
+8 rows selected.
+
 
