@@ -779,4 +779,159 @@ s001       c004               58          1
 
 8 rows selected.
 
+++几种分类聚合函数：
+＋＋以下以下列表格作为原型：
+SQL> select * from sc;
+
+SNO        CNO             SCORE
+---------- ---------- ----------
+s002       c001             80.9
+s003       c001             81.9
+s004       c001             60.9
+s001       c002             82.9
+s002       c002             72.9
+s003       c002             81.9
+s001       c003               59
+s001       c004               58
+s005       c001             81.9
+
+9 rows selected.
+
+＋＋rank考虑并列情况，有并列下一个名次为前边排名留出来名词计数：
+SQL> get tmp
+  1     select sno, cno, score,
+  2     rank() over(partition by cno order by score desc) rn
+  3*    from sc
+  4  /
+
+SNO        CNO             SCORE         RN
+---------- ---------- ---------- ----------
+s003       c001             81.9          1
+s005       c001             81.9          1
+s002       c001             80.9          3
+s004       c001             60.9          4
+s001       c002             82.9          1
+s003       c002             81.9          2
+s002       c002             72.9          3
+s001       c003               59          1
+s001       c004               58          1
+
+9 rows selected.
+
+＋＋c001的排名，因有两个并列第一，第三个人只能是第三名
+
+++dense_rank函数：
+＋＋不计并列，并且只记分数排名，并且以显示并列排名
+SQL> get tmp
+  1     select sno, cno, score,
+  2     dense_rank() over(partition by cno order by score desc) rn
+  3*    from sc
+  4  /
+
+SNO        CNO             SCORE         RN
+---------- ---------- ---------- ----------
+s003       c001             81.9          1
+s005       c001             81.9          1
+s002       c001             80.9          2
+s004       c001             60.9          3
+s001       c002             82.9          1
+s003       c002             81.9          2
+s002       c002             72.9          3
+s001       c003               59          1
+s001       c004               58          1
+
+9 rows selected.
+
+++row_number函数，正常排序，重复的也正常加一计数：
+SQL> get tmp
+  1     select sno, cno, score,
+  2     row_number() over(partition by cno order by score desc) rn
+  3*    from sc
+  4  /
+
+SNO        CNO             SCORE         RN
+---------- ---------- ---------- ----------
+s003       c001             81.9          1
+s005       c001             81.9          2
+s002       c001             80.9          3
+s004       c001             60.9          4
+s001       c002             82.9          1
+s003       c002             81.9          2
+s002       c002             72.9          3
+s001       c003               59          1
+s001       c004               58          1
+
+9 rows selected.
+
+++lag将前几个值改变成其他的值：
+++分类汇总，将前两个值改成99
+SQL> get tmp
+  1     select sno, cno, score,
+  2     lag(score, 2, 99) over(partition by cno order by score desc) rn
+  3*    from sc
+  4  /
+
+SNO        CNO             SCORE         RN
+---------- ---------- ---------- ----------
+s003       c001             81.9         99
+s005       c001             81.9         99
+s002       c001             80.9       81.9
+s004       c001             60.9       81.9
+s001       c002             82.9         99
+s003       c002             81.9         99
+s002       c002             72.9       82.9
+s001       c003               59         99
+s001       c004               58         99
+
+9 rows selected.
+
+++23、查询出只选修了一门课程的全部学生的学号和姓名
+SQL>1 select sno, sname
+SQL> r
+  1  select sno, sname
+  2  from student
+  3  where sno in (
+  4     select sno
+  5     from sc
+  6     group by sno
+  7     having count(cno) = 1
+  8* )
+
+SNO        SNAME
+---------- ----------
+s004       琴沁
+s005       王丽
+
+++24、查询男生、女生人数
+SQL> r
+  1  select count(*) 人数, ssex
+  2  from student
+  3* group by ssex
+
+      人数 SSEX
+---------- ----------
+         5 男
+         5 女
+
+++25、查询姓“张”的学生名单
+SQL> r
+  1  select * from student
+  2* where sname like '张%'
+
+SNO        SNAME            SAGE SSEX
+---------- ---------- ---------- ----------
+s001       张三               23 男
+
+++26、查询同名同性学生名单，并统计同名人数
+++按学号和名字分组计数，大于一行的是有重名的
+＋＋即学号不同，但名字相同，按相同名字处理
+
+SQL> r
+  1  select sno, sname, count(*) count
+  2  from student
+  3  group by sno, sname
+  4* having count(*) > 1
+
+no rows selected
+
 
