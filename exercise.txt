@@ -934,4 +934,238 @@ SQL> r
 
 no rows selected
 
+++27、1981 年出生的学生名单(注：Student 表中Sage 列的类型是number)
+++通过日期转换成字符型进行日期计算：
+SQL> select to_char(sysdate,'yyyy') - sage from student;
+
+TO_CHAR(SYSDATE,'YYYY')-SAGE
+----------------------------
+                        1994
+                        1994
+                        1992
+                        1997
+                        1997
+                        1996
+                        1996
+                        1996
+                        1994
+                        1995
+
+10 rows selected.
+++通过系统当前日期换算成字符型，再换算成数字型计算，效果相同
+SQL> select to_number(to_char(sysdate, 'yyyy')) - sage from student;
+
+TO_NUMBER(TO_CHAR(SYSDATE,'YYYY'))-SAGE
+---------------------------------------
+                                   1994
+                                   1994
+                                   1992
+                                   1997
+                                   1997
+                                   1996
+                                   1996
+                                   1996
+                                   1994
+                                   1995
+
+10 rows selected.
+
+++28、查询每门课程的平均成绩，结果按平均成绩升序排列，平均成绩相同时，按课程号降序排列
+SQL> r
+  1  select cno, avg(score) avg
+  2  from sc
+  3  group by cno
+  4* order by avg, cno desc
+
+CNO               AVG
+---------- ----------
+c004               58
+c003               59
+c001             76.4
+c002       79.2333333
+
+++29、查询平均成绩大于85 的所有学生的学号、姓名和平均成绩
+SQL> select sno, avg(score)
+  2  from sc 
+  3  group by sno;
+
+SNO        AVG(SCORE)
+---------- ----------
+s003             81.9
+s004             60.9
+s005             81.9
+s002             76.9
+s001       66.6333333
+
+SQL> 4 having avg(score) > 80
+SQL> r
+  1  select sno, avg(score)
+  2  from sc
+  3  group by sno
+  4* having avg(score) > 80
+
+SNO        AVG(SCORE)
+---------- ----------
+s003             81.9
+s005             81.9
+
+++30、查询课程名称为“数据库”，且分数低于60 的学生姓名和分数
+++查询所有学习oracle的学生情况：
+SQL> select a.cname, c.sno, c.sname
+  2  from course a, sc b, student c
+  3  where a.cname = 'Oracle' and a.cno = b.cno    
+  4  and b.sno = c.sno;
+
+CNAME           SNO        SNAME
+--------------- ---------- ----------
+Oracle          s001       张三
+++加上小于成绩60分的限制条件：
+SQL> r
+  1  select a.cname, c.sno, c.sname
+  2  from course a, sc b, student c
+  3  where a.cname = 'Oracle' and b.score < 60 and a.cno = b.cno
+  4* and b.sno = c.sno
+
+CNAME           SNO        SNAME
+--------------- ---------- ----------
+Oracle          s001       张三
+
+++31、查询所有学生的选课情况；
+++方法一：
+++先将课程表和成绩表做相等连接，做成一个课程成绩表
+＋＋再将学生信息表和得到课程成绩表做左联，以学生信息表为基础表显示全部内容
+SQL> get tmp
+  1  select c.sname, c.sno, d.cno, d.cname
+  2  from student c, (
+  3     select a.sno, a.cno, b.cname
+  4     from sc a, course b
+  5     where a.cno = b.cno
+  6* ) d where c.sno = d.sno(+)
+  7  /
+
+SNAME      SNO        CNO        CNAME
+---------- ---------- ---------- ---------------
+李四       s002       c001       J2SE
+吴鹏       s003       c001       J2SE
+琴沁       s004       c001       J2SE
+张三       s001       c002       Java Web
+李四       s002       c002       Java Web
+吴鹏       s003       c002       Java Web
+张三       s001       c003       SSH
+张三       s001       c004       Oracle
+王丽       s005       c001       J2SE
+萧蓉       s008
+刘玉       s007
+
+SNAME      SNO        CNO        CNAME
+---------- ---------- ---------- ---------------
+李波       s006
+陈萧晓     s009
+陈美       s010
+
+14 rows selected.
+
+++方法二：
+＋＋依次将学生信息表做基础表，课程表和成绩表作匹配表做左联
+SQL> get tmp2
+  1  select a.sno, a.sname, b.cno, c.cname
+  2  from student a, sc b, course c
+  3* where a.sno = b.sno(+) and b.cno = c.cno(+)
+  4  /
+
+SNO        SNAME      CNO        CNAME
+---------- ---------- ---------- ---------------
+s005       王丽       c001       J2SE
+s004       琴沁       c001       J2SE
+s003       吴鹏       c001       J2SE
+s002       李四       c001       J2SE
+s003       吴鹏       c002       Java Web
+s002       李四       c002       Java Web
+s001       张三       c002       Java Web
+s001       张三       c003       SSH
+s001       张三       c004       Oracle
+s010       陈美
+s009       陈萧晓
+
+SNO        SNAME      CNO        CNAME
+---------- ---------- ---------- ---------------
+s006       李波
+s007       刘玉
+s008       萧蓉
+
+14 rows selected.
+
+++方法三：标准sql语句left outer join做左联：
+++先将学生学生课程表和成绩表做相等连接
+＋＋然后以学生信息表做基础表，得到相等连接表作匹配表作左联
+SQL> get tmp
+  1  select c.sname, c.sno, d.cno, d.cname
+  2  from student c
+  3  left outer join (
+  4     select a.sno, a.cno, b.cname
+  5     from sc a, course b
+  6     where a.cno = b.cno
+  7* ) d on c.sno = d.sno
+SQL> /
+
+SNAME      SNO        CNO        CNAME
+---------- ---------- ---------- ---------------
+李四       s002       c001       J2SE
+吴鹏       s003       c001       J2SE
+琴沁       s004       c001       J2SE
+张三       s001       c002       Java Web
+李四       s002       c002       Java Web
+吴鹏       s003       c002       Java Web
+张三       s001       c003       SSH
+张三       s001       c004       Oracle
+王丽       s005       c001       J2SE
+萧蓉       s008
+刘玉       s007
+
+SNAME      SNO        CNO        CNAME
+---------- ---------- ---------- ---------------
+李波       s006
+陈萧晓     s009
+陈美       s010
+
+14 rows selected.
+
+++32、查询任何一门课程成绩在70 分以上的姓名、课程名称和分数；
+++多表联合结果，未加限制条件：
+SQL> r
+  1  select a.sname, c.cname, b.score
+  2  from student a, sc b, course c
+  3* where a.sno = b.sno and b.cno = c.cno
+
+SNAME      CNAME                SCORE
+---------- --------------- ----------
+张三       Oracle                  58
+张三       SSH                     59
+张三       Java Web              82.9
+李四       Java Web              72.9
+李四       J2SE                  80.9
+吴鹏       Java Web              81.9
+吴鹏       J2SE                  81.9
+琴沁       J2SE                  60.9
+王丽       J2SE                  81.9
+
+9 rows selected.
+
+++多表联合，加上限制条件的结果：
+SQL> r
+  1  select a.sname, c.cname, b.score
+  2  from student a, sc b, course c
+  3* where b.score > 70 and a.sno = b.sno and b.cno = c.cno
+
+SNAME      CNAME                SCORE
+---------- --------------- ----------
+张三       Java Web              82.9
+李四       Java Web              72.9
+李四       J2SE                  80.9
+吴鹏       Java Web              81.9
+吴鹏       J2SE                  81.9
+王丽       J2SE                  81.9
+
+6 rows selected.
+
 
