@@ -1,0 +1,10 @@
+1.
+oracle企业管理器启动：
+[oracle@ctos oracle]$ emctl start dbconsoleOracle Enterprise Manager 11g Database Control Release 11.2.0.1.0 
+Copyright (c) 1996, 2009 Oracle Corporation.  All rights reserved.
+https://ctos:1158/em/console/aboutApplication
+ - An instance of Oracle Enterprise Manager 11g Database Control is already running. 
+企业管理器登录地址：
+https://192.168.118.128:1158/em/
+别忘了设置或关闭防火墙，要不然访问的地址是不允许访问的
+
