@@ -10,3 +10,64 @@ https://192.168.118.128:1158/em/
 2.
 oracle配置助手：
 $ netca
+====================
+＋＋关闭数据库：
+SQL> shutdown immediate
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+＋＋startup nomount
+startup
+nomount选项启动实例，但不安装数据库。当数据库以这个模式启动时，参数文件被读取；后台进程和内存结构被启动；但它们不被附加或与数据库的磁盘结构进行通信。当实例处于这个状态时，数据库是不可使用的。
+SQL> startup nomount;
+ORACLE instance started.
+
+Total System Global Area  839282688 bytes
+Fixed Size                  2217992 bytes
+Variable Size             591398904 bytes
+Database Buffers          239075328 bytes
+Redo Buffers                6590464 bytes
+
+＋＋当我们用命令查询数据表时，发现不能操作：
+SQL> select * from student;
+select * from student
+              *
+ERROR at line 1:
+ORA-01219: database not open: queries allowed on fixed tables/views only
+
+
+＋＋我们重新关闭并用默认的加载数据库方式进行启动，发现多了加载和打开数据库两个操作
+SQL> shutdown immediate;
+ORA-01507: database not mounted
+
+
+ORACLE instance shut down.
+SQL> startup 
+ORACLE instance started.
+
+Total System Global Area  839282688 bytes
+Fixed Size                  2217992 bytes
+Variable Size             591398904 bytes
+Database Buffers          239075328 bytes
+Redo Buffers                6590464 bytes
+Database mounted.
+Database opened.
+++这时我们再查询操作，发现数据库是可以进行操作的：
+SQL> select * from student;
+
+SNO        SNAME            SAGE SSEX
+---------- ---------- ---------- ----------
+s001       张三               23 男
+s002       李四               23 男
+s003       吴鹏               25 男
+s004       琴沁               20 女
+s005       王丽               20 女
+s006       李波               21 男
+s007       刘玉               21 男
+s008       萧蓉               21 女
+s009       陈萧晓             23 女
+s010       陈美               22 女
+
+10 rows selected.
+
+++当然如果数据库格式显示有问题，则要对字段宽度显示作个设置。
