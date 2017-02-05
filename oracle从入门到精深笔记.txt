@@ -71,3 +71,103 @@ s010       陈美               22 女
 10 rows selected.
 
 ++当然如果数据库格式显示有问题，则要对字段宽度显示作个设置。
+
+++startup mount
+＋＋停止数据库时有关闭和卸载过程，这是因为打开时作了加载和打开操作：
+++startup mount命令启动数据库实例，加载数据库，但不打开数据库：
+SQL> shutdown immediate
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+SQL> startup mount
+ORACLE instance started.
+
+Total System Global Area  839282688 bytes
+Fixed Size                  2217992 bytes
+Variable Size             603981816 bytes
+Database Buffers          226492416 bytes
+Redo Buffers                6590464 bytes
+Database mounted.
+SQL> 
+
+++startup mount启动的命令执行关闭样貌
+SQL> shutdown immediate
+ORA-01109: database not open
+
+
+Database dismounted.
+ORACLE instance shut down.
+
+++startup [open]
+SQL> startup open
+ORACLE instance started.
+
+Total System Global Area  839282688 bytes
+Fixed Size                  2217992 bytes
+Variable Size             603981816 bytes
+Database Buffers          226492416 bytes
+Redo Buffers                6590464 bytes
+Database mounted.
+Database opened.
+SQL> shutdown immediate
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+++或如下这样执行：
+SQL> startup
+ORACLE instance started.
+
+Total System Global Area  839282688 bytes
+Fixed Size                  2217992 bytes
+Variable Size             603981816 bytes
+Database Buffers          226492416 bytes
+Redo Buffers                6590464 bytes
+Database mounted.
+Database opened.
+＋＋startup 执行关闭样貌
+SQL> shutdown immediate
+Database closed.
+Database dismounted.
+lORACLE instance shut down.
+============
+SQL>startup force
+++startup force强制启动，在其他启动选项都不可用的情况下
+ORACLE instance started.
+
+Total System Global Area  839282688 bytes
+Fixed Size                  2217992 bytes
+Variable Size             603981816 bytes
+Database Buffers          226492416 bytes
+Redo Buffers                6590464 bytes
+Database mounted.
+Database opened.
+
+======================
+＋＋关闭数据库实例：
+++shutdown normal
+++禁止新连接，等当前用户主动断开连接，然后关闭数据库
+SQL> shutdown normal
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+
+++shutdown transactional
+++保持现有事物能进行提交，阻止新连接和阻止新事物，当所有用户都进行完事物提交后，断开用户连接，然后关闭数据库
+SQL> shutdown transactional
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+
+++shutdown immediate
+++将用户的事物回退，并关闭连接，关闭数据库
+SQL> shutdown immediate
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+
+++shutdown abort
+＋＋阻止新用户建立连接和阻止新事物，取消提交的事物，但不回滚，断开用户连接，关闭数据库 
+SQL> shutdown abort 
+ORACLE instance shut down.
+
+
