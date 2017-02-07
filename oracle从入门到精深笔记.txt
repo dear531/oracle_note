@@ -170,4 +170,218 @@ ORACLE instance shut down.
 SQL> shutdown abort 
 ORACLE instance shut down.
 
+=================
+++oracle标准块大小查看：
+SQL> column name format a30
+SQL> column value format a20
+SQL> r  
+  1  select name, value
+  2  from v$parameter
+  3* where name = 'db_block_size'
+
+NAME                           VALUE
+------------------------------ --------------------
+db_block_size                  8192
+===================
+＋＋查询数据库字典信息：
+SQL> column table_name format a30
+SQL> column comments format a30
+SQL> select * from dict;
+/* 结果只展示最后几行 */
+TABLE_NAME                     COMMENTS
+------------------------------ ------------------------------
+V$MVREFRESH                    Synonym for V_$MVREFRESH
+V$SQL_BIND_CAPTURE             Synonym for V_$SQL_BIND_CAPTUR
+                               E
+
+GV$SQL_BIND_CAPTURE            Synonym for GV_$SQL_BIND_CAPTU
+                               RE
+
+ALL_OLAP2_AWS                  Synonym for ALL$OLAP2_AWS
+
+2553 rows selected.
+
+===================
+++查询数据库内部系统表信息：
+SQL> column view_name format a30
+SQL> column view_difinition format a30
+SQL> select * from v$fixed_view_definition;
+/* 结果只展示最后几行 */
+VIEW_NAME                      VIEW_DEFINITION
+------------------------------ ------------------------------
+                               sabled_knlasg  FROM x$knlasg
+
+V$STREAMS_POOL_STATISTICS      SELECT TOTAL_MEMORY_ALLOCATED,
+                                CURRENT_SIZE, SGA_TARGET_VALU
+                               E,         SHRINK_PHASE, ADVIC
+                               E_DISABLED  FROM   GV$STREAMS_
+                               POOL_STATISTICS WHERE  INST_ID
+                                = USERENV('Instance')
+
+
+1023 rows selected.
+
+===================
+++查询oracle系统文件信息：
+SQL> select file_name, tablespace_name       
+  2  from dba_data_files;
+
+FILE_NAME
+--------------------------------------------------
+TABLESPACE_NAME
+------------------------------------------------------------------------------------------
+/home/oracle/app/oradata/orcl/users01.dbf
+USERS
+
+/home/oracle/app/oradata/orcl/undotbs01.dbf
+UNDOTBS1
+
+/home/oracle/app/oradata/orcl/sysaux01.dbf
+SYSAUX
+
+
+FILE_NAME
+--------------------------------------------------
+TABLESPACE_NAME
+------------------------------------------------------------------------------------------
+/home/oracle/app/oradata/orcl/system01.dbf
+SYSTEM
+
+=======================
+++系统表查询：
+SQL> select * from dba_data_files;
+
+FILE_NAME                                             FILE_ID
+-------------------------------------------------- ----------
+TABLESPACE_NAME
+------------------------------------------------------------------------------------------
+     BYTES     BLOCKS STATUS                      RELATIVE_FNO AUTOEXTEN
+MAXBYTES  MAXBLOCKS
+---------- ---------- --------------------------- ------------ ---------
+---------- ----------
+INCREMENT_BY USER_BYTES USER_BLOCKS ONLINE_STATUS
+------------ ---------- ----------- ---------------------
+/home/oracle/app/oradata/orcl/users01.dbf                   4
+USERS
+   5242880        640 AVAILABLE                              4 YES  3.4360E+10
+4194302
+         160    4194304         512 ONLINE
+
+
+FILE_NAME                                             FILE_ID
+-------------------------------------------------- ----------
+TABLESPACE_NAME
+------------------------------------------------------------------------------------------
+     BYTES     BLOCKS STATUS                      RELATIVE_FNO AUTOEXTEN
+MAXBYTES  MAXBLOCKS
+---------- ---------- --------------------------- ------------ ---------
+---------- ----------
+INCREMENT_BY USER_BYTES USER_BLOCKS ONLINE_STATUS
+------------ ---------- ----------- ---------------------
+/home/oracle/app/oradata/orcl/undotbs01.dbf                 3
+UNDOTBS1
+  99614720      12160 AVAILABLE                              3 YES  3.4360E+10
+4194302
+         640   98566144       12032 ONLINE
+
+
+FILE_NAME                                             FILE_ID
+-------------------------------------------------- ----------
+TABLESPACE_NAME
+------------------------------------------------------------------------------------------
+     BYTES     BLOCKS STATUS                      RELATIVE_FNO AUTOEXTEN
+MAXBYTES  MAXBLOCKS
+---------- ---------- --------------------------- ------------ ---------
+---------- ----------
+INCREMENT_BY USER_BYTES USER_BLOCKS ONLINE_STATUS
+------------ ---------- ----------- ---------------------
+/home/oracle/app/oradata/orcl/sysaux01.dbf                  2
+SYSAUX
+ 576716800      70400 AVAILABLE                              2 YES  3.4360E+10
+4194302
+        1280  575668224       70272 ONLINE
+
+
+FILE_NAME                                             FILE_ID
+-------------------------------------------------- ----------
+TABLESPACE_NAME
+------------------------------------------------------------------------------------------
+     BYTES     BLOCKS STATUS                      RELATIVE_FNO AUTOEXTEN
+MAXBYTES  MAXBLOCKS
+---------- ---------- --------------------------- ------------ ---------
+---------- ----------
+INCREMENT_BY USER_BYTES USER_BLOCKS ONLINE_STATUS
+------------ ---------- ----------- ---------------------
+/home/oracle/app/oradata/orcl/system01.dbf                  1
+SYSTEM
+ 713031680      87040 AVAILABLE                              1 YES  3.4360E+10
+4194302
+        1280  711983104       86912 SYSTEM
+
+
+＋＋系统临时表：
+SQL> select * from dba_temp_files;
+
+FILE_NAME                                             FILE_ID
+-------------------------------------------------- ----------
+TABLESPACE_NAME
+------------------------------------------------------------------------------------------
+     BYTES     BLOCKS STATUS                RELATIVE_FNO AUTOEXTEN   MAXBYTES
+MAXBLOCKS
+---------- ---------- --------------------- ------------ --------- ----------
+----------
+INCREMENT_BY USER_BYTES USER_BLOCKS
+------------ ---------- -----------
+/home/oracle/app/oradata/orcl/temp01.dbf                    1
+TEMP
+  30408704       3712 ONLINE                           1 YES
+3.4360E+10    4194302
+          80   29360128        3584
+
+======================
+++系统空间名字对应文件名：
+SQL> r
+  1* select file_name, tablespace_name from dba_data_files
+
+FILE_NAME
+--------------------------------------------------
+TABLESPACE_NAME
+------------------------------------------------------------------------------------------
+/home/oracle/app/oradata/orcl/users01.dbf
+USERS
+
+/home/oracle/app/oradata/orcl/undotbs01.dbf
+UNDOTBS1
+
+/home/oracle/app/oradata/orcl/sysaux01.dbf
+SYSAUX
+
+
+FILE_NAME
+--------------------------------------------------
+TABLESPACE_NAME
+------------------------------------------------------------------------------------------
+/home/oracle/app/oradata/orcl/system01.dbf
+SYSTEM
+
+
+++临时表空间及其文件名：
+SQL> select file_name, tablespace_name 
+  2  from dba_temp_files;
+
+FILE_NAME
+--------------------------------------------------
+TABLESPACE_NAME
+------------------------------------------------------------------------------------------
+/home/oracle/app/oradata/orcl/temp01.dbf
+TEMP
+++控制文件：
+SQL> column name format a60
+SQL> select name from v$controlfile;  
+
+NAME
+------------------------------------------------------------
+/home/oracle/app/oradata/orcl/control01.ctl
+/home/oracle/app/recovery_area/orcl/control02.ctl
+
 
