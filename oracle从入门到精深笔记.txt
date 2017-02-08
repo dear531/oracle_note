@@ -384,4 +384,236 @@ NAME
 /home/oracle/app/oradata/orcl/control01.ctl
 /home/oracle/app/recovery_area/orcl/control02.ctl
 
+===================
+＋＋查看oracle日志文件：
+SQL> column member format a50
+SQL> select member from v$logfile;
+
+MEMBER
+--------------------------------------------------
+/home/oracle/app/oradata/orcl/redo03.log
+/home/oracle/app/oradata/orcl/redo02.log
+/home/oracle/app/oradata/orcl/redo01.log
+
+======================
+++查看oracle数据库是否采用日志归档：
+SQL> select dbid, name, log_mode from v$database;
+
+      DBID NAME                           LOG_MODE
+---------- ------------------------------ ------------------------------------
+1460352071 ORCL                           NOARCHIVELOG
+
+====================
+++查看归档文件所在的路径：
+SQL> set pagesize 30;
+SQL> show parameter log_archive_dest;
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+log_archive_dest                     string
+
+log_archive_dest_1                   string
+
+log_archive_dest_10                  string
+
+log_archive_dest_11                  string
+
+log_archive_dest_12                  string
+
+log_archive_dest_13                  string
+
+log_archive_dest_14                  string
+
+log_archive_dest_15                  string
+
+log_archive_dest_16                  string
+
+log_archive_dest_17                  string
+
+log_archive_dest_18                  string
+
+log_archive_dest_19                  string
+
+log_archive_dest_2                   string
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+
+log_archive_dest_20                  string
+
+log_archive_dest_21                  string
+
+log_archive_dest_22                  string
+
+log_archive_dest_23                  string
+
+log_archive_dest_24                  string
+
+log_archive_dest_25                  string
+
+log_archive_dest_26                  string
+
+log_archive_dest_27                  string
+
+log_archive_dest_28                  string
+
+log_archive_dest_29                  string
+
+log_archive_dest_3                   string
+
+log_archive_dest_30                  string
+
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+log_archive_dest_31                  string
+
+log_archive_dest_4                   string
+
+log_archive_dest_5                   string
+
+log_archive_dest_6                   string
+
+log_archive_dest_7                   string
+
+log_archive_dest_8                   string
+
+log_archive_dest_9                   string
+
+log_archive_dest_state_1             string
+enable
+log_archive_dest_state_10            string
+enable
+log_archive_dest_state_11            string
+enable
+log_archive_dest_state_12            string
+enable
+log_archive_dest_state_13            string
+enable
+log_archive_dest_state_14            string
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+enable
+log_archive_dest_state_15            string
+enable
+log_archive_dest_state_16            string
+enable
+log_archive_dest_state_17            string
+enable
+log_archive_dest_state_18            string
+enable
+log_archive_dest_state_19            string
+enable
+log_archive_dest_state_2             string
+enable
+log_archive_dest_state_20            string
+enable
+log_archive_dest_state_21            string
+enable
+log_archive_dest_state_22            string
+enable
+log_archive_dest_state_23            string
+enable
+log_archive_dest_state_24            string
+enable
+log_archive_dest_state_25            string
+enable
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+log_archive_dest_state_26            string
+enable
+log_archive_dest_state_27            string
+enable
+log_archive_dest_state_28            string
+enable
+log_archive_dest_state_29            string
+enable
+log_archive_dest_state_3             string
+enable
+log_archive_dest_state_30            string
+enable
+log_archive_dest_state_31            string
+enable
+log_archive_dest_state_4             string
+enable
+log_archive_dest_state_5             string
+enable
+log_archive_dest_state_6             string
+enable
+log_archive_dest_state_7             string
+enable
+log_archive_dest_state_8             string
+enable
+log_archive_dest_state_9             string
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+enable
+=====================
+＋＋查看参数值，能否被修改以及是否被修改过：
+SQL> r
+  1  select name, value, ismodified
+  2* from v$parameter
+NAME                           VALUE                          ISMODIFIED
+------------------------------ ------------------------------
+------------------------------
+asm_preferred_read_failure_gro                                FALSE
+ups
+
+asm_diskgroups                                                FALSE
+asm_power_limit                1                              FALSE
+control_management_pack_access NONE                           FALSE
+sqltune_category               DEFAULT                        FALSE
+diagnostic_dest                /home/oracle/app               FALSE
+tracefile_identifier                                          FALSE
+max_dump_file_size             unlimited                      FALSE
+trace_enabled                  TRUE                           FALSE
+
+342 rows selected.
+
+=====================
+++查看服务器参数：
+
+SQL> show parameter
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+tracefile_identifier                 string
+
+transactions                         integer
+272
+transactions_per_rollback_segment    integer
+5
+undo_management                      string
+AUTO
+undo_retention                       integer
+900
+undo_tablespace                      string
+UNDOTBS1
+use_indirect_data_buffers            boolean
+FALSE
+user_dump_dest                       string
+/home/oracle/app/diag/rdbms/or
+cl/orcl/trace
+utl_file_dir                         string
+
+workarea_size_policy                 string
+AUTO
+xml_db_events                        string
+enable
 
