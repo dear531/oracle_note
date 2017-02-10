@@ -727,3 +727,19 @@ alter system set db_block_size=8192
 ERROR at line 1:
 ORA-02095: specified initialization parameter cannot be modified
 
+++密码文件：
+ /home/oracle/app/oracle/product/11.2.0/dbhome_1/dbs/orapworcl
+＋＋或是:
+$ORACLE_HOME/dbs/orapworcl
+/home/oracle/app/oracle/product/11.2.0/dbhome_1/dbs/orapworcl
+$ORACLE_HOME/dbs/orapw<sid>
+
+===============
+++创建密码文件：
+[oracle@ctos oracle]$ orapwd
+file=/home/oracle/app/oracle/product/11.2.0/dbhome_1/dbs/orapwd_text
+entries=40 password=123456
+[oracle@ctos oracle]$ ls
+/home/oracle/app/oracle/product/11.2.0/dbhome_1/dbs/orapwd_text
+/home/oracle/app/oracle/product/11.2.0/dbhome_1/dbs/orapwd_text
+
