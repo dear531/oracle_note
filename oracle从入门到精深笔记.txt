@@ -743,3 +743,425 @@ entries=40 password=123456
 /home/oracle/app/oracle/product/11.2.0/dbhome_1/dbs/orapwd_text
 /home/oracle/app/oracle/product/11.2.0/dbhome_1/dbs/orapwd_text
 
+=================
+++警告文件：
+SQL> r
+  1  select name, value from v$parameter
+  2* where name = 'background_dump_dest'
+
+NAME                 VALUE
+-------------------- --------------------------------------------------
+background_dump_dest /home/oracle/app/diag/rdbms/orcl/orcl/trace
+
+++文件众多，只展示部分：
+[oracle@ctos oracle]$ ls /home/oracle/app/diag/rdbms/orcl/orcl/trace
+alert_orcl.log       orcl_ora_23986.trm
+orcl_cjq0_14085.trc  orcl_ora_23989.trc
+orcl_cjq0_14085.trm  orcl_ora_23989.trm
+orcl_cjq0_22139.trc  orcl_ora_24021.trc
+orcl_cjq0_22139.trm  orcl_ora_24021.trm
+orcl_cjq0_23618.trc  orcl_ora_24110.trc
+... ...
+
+++跟踪文件：
+++用于跟踪sql语句的执行情况，能看得出sql语句的执行效率
+SQL> select value from v$parameter 
+  2  where name = 'user_dump_dest';
+
+VALUE
+--------------------------------------------------
+/home/oracle/app/diag/rdbms/orcl/orcl/trace
+
+++文件众多，只展示部分：
+[oracle@ctos oracle]$ ls /home/oracle/app/diag/rdbms/orcl/orcl/trace
+alert_orcl.log       orcl_ora_23986.trm
+orcl_cjq0_14085.trc  orcl_ora_23989.trc
+orcl_cjq0_14085.trm  orcl_ora_23989.trm
+orcl_cjq0_22139.trc  orcl_ora_24021.trc
+orcl_cjq0_22139.trm  orcl_ora_24021.trm
+... ...
+
+++查看系统参数共享池大小：
+SQL> show parameter shared_pool_size;
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+shared_pool_size                     big integer
+0
+＋＋修改共享池大小：
+SQL> alter system set shared_pool_size=30m;
+
+System altered.
+
+++修改之后大小
+SQL> show parameter shared_pool_size;
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+shared_pool_size                     big integer
+32M
+
+++设置前后的大型池：
+SQL> show parameter large_pool_size;
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+large_pool_size                      big integer
+0
+
+SQL> alter system set large_pool_size=30m
+  2  ;  
+it
+System altered.
+
+SQL       
+SQL> show parameter large_pool_size;
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+large_pool_size                      big integer
+32M
+SQL>    
+
+++查看全局区大小：
+
+SQL> show parameter pga;
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+pga_aggregate_target                 big integer
+0
+++查询当前实例进程信息：
+SQL> column description format a50
+SQL> r  
+  1* select name, description from v$bgprocess
+
+NAME            DESCRIPTION
+--------------- --------------------------------------------------
+PMON            process cleanup
+VKTM            Virtual Keeper of TiMe process
+GEN0            generic0
+DIAG            diagnosibility process
+DBRM            DataBase Resource Manager
+VKRM            Virtual sKeduler for Resource Manager
+RSMN            Remote Slave Monitor
+PING            interconnect latency measurement
+FMON            File Mapping Monitor Process
+PSP0            process spawner 0
+ACMS            Atomic Controlfile to Memory Server
+DSKM            slave DiSKMon process
+DIA0            diagnosibility process 0
+DIA1            diagnosibility process 1
+DIA2            diagnosibility process 2
+DIA3            diagnosibility process 3
+DIA4            diagnosibility process 4
+DIA5            diagnosibility process 5
+DIA6            diagnosibility process 6
+DIA7            diagnosibility process 7
+DIA8            diagnosibility process 8
+DIA9            diagnosibility process 9
+LMON            global enqueue service monitor
+LMD0            global enqueue service daemon 0
+LMS0            global cache service process 0
+LMS1            global cache service process 1
+LMS2            global cache service process 2
+LMS3            global cache service process 3
+LMS4            global cache service process 4
+LMS5            global cache service process 5
+LMS6            global cache service process 6
+LMS7            global cache service process 7
+LMS8            global cache service process 8
+LMS9            global cache service process 9
+LMSa            global cache service process 10
+LMSb            global cache service process 11
+LMSc            global cache service process 12
+LMSd            global cache service process 13
+LMSe            global cache service process 14
+LMSf            global cache service process 15
+LMSg            global cache service process 16
+LMSh            global cache service process 17
+LMSi            global cache service process 18
+LMSj            global cache service process 19
+LMSk            global cache service process 20
+LMSl            global cache service process 21
+LMSm            global cache service process 22
+
+NAME            DESCRIPTION
+--------------- --------------------------------------------------
+LMSn            global cache service process 23
+LMSo            global cache service process 24
+LMSp            global cache service process 25
+LMSq            global cache service process 26
+LMSr            global cache service process 27
+LMSs            global cache service process 28
+LMSt            global cache service process 29
+LMSu            global cache service process 30
+LMSv            global cache service process 31
+LMSw            global cache service process 32
+LMSx            global cache service process 33
+LMSy            global cache service process 34
+RMS0            rac management server
+LMHB            lm heartbeat monitor
+MMAN            Memory Manager
+DBW0            db writer process 0
+DBW1            db writer process 1
+DBW2            db writer process 2
+DBW3            db writer process 3
+DBW4            db writer process 4
+DBW5            db writer process 5
+DBW6            db writer process 6
+DBW7            db writer process 7
+DBW8            db writer process 8
+DBW9            db writer process 9
+DBWa            db writer process 10 (a)
+DBWb            db writer process 11 (b)
+DBWc            db writer process 12 (c)
+DBWd            db writer process 13 (d)
+DBWe            db writer process 14 (e)
+DBWf            db writer process 15 (f)
+DBWg            db writer process 16 (g)
+DBWh            db writer process 17 (h)
+DBWi            db writer process 18 (i)
+DBWj            db writer process 19 (j)
+DBWk            db writer process 20 (k)
+DBWl            db writer process 21 (l)
+DBWm            db writer process 22 (m)
+DBWn            db writer process 23 (n)
+DBWo            db writer process 24 (o)
+DBWp            db writer process 25 (p)
+DBWq            db writer process 26 (q)
+DBWr            db writer process 27 (r)
+DBWs            db writer process 28 (s)
+DBWt            db writer process 29 (t)
+DBWu            db writer process 30 (u)
+DBWv            db writer process 31 (v)
+
+NAME            DESCRIPTION
+--------------- --------------------------------------------------
+DBWw            db writer process 32 (s)
+DBWx            db writer process 33 (t)
+DBWy            db writer process 34 (u)
+DBWz            db writer process 35 (v)
+MRP0            Managed Standby Recovery
+ARC0            Archival Process 0
+ARC1            Archival Process 1
+ARC2            Archival Process 2
+ARC3            Archival Process 3
+ARC4            Archival Process 4
+ARC5            Archival Process 5
+ARC6            Archival Process 6
+ARC7            Archival Process 7
+ARC8            Archival Process 8
+ARC9            Archival Process 9
+ARCa            Archival Process 10
+ARCb            Archival Process 11
+ARCc            Archival Process 12
+ARCd            Archival Process 13
+ARCe            Archival Process 14
+ARCf            Archival Process 15
+ARCg            Archival Process 16
+ARCh            Archival Process 17
+ARCi            Archival Process 18
+ARCj            Archival Process 19
+ARCk            Archival Process 20
+ARCl            Archival Process 21
+ARCm            Archival Process 22
+ARCn            Archival Process 23
+ARCo            Archival Process 24
+ARCp            Archival Process 25
+ARCq            Archival Process 26
+ARCr            Archival Process 27
+ARCs            Archival Process 28
+ARCt            Archival Process 29
+NSA1            Redo transport NSA1
+NSS1            Redo transport NSS1
+NSA2            Redo transport NSA2
+NSS2            Redo transport NSS2
+NSA3            Redo transport NSA3
+NSS3            Redo transport NSS3
+NSA4            Redo transport NSA4
+NSS4            Redo transport NSS4
+NSA5            Redo transport NSA5
+NSS5            Redo transport NSS5
+NSA6            Redo transport NSA6
+NSS6            Redo transport NSS6
+
+NAME            DESCRIPTION
+--------------- --------------------------------------------------
+NSA7            Redo transport NSA7
+NSS7            Redo transport NSS7
+NSA8            Redo transport NSA8
+NSS8            Redo transport NSS8
+NSA9            Redo transport NSA9
+NSS9            Redo transport NSS9
+NSAA            Redo transport NSAA
+NSSA            Redo transport NSSA
+NSAB            Redo transport NSAB
+NSSB            Redo transport NSSB
+NSAC            Redo transport NSAC
+NSSC            Redo transport NSSC
+NSAD            Redo transport NSAD
+NSSD            Redo transport NSSD
+NSAE            Redo transport NSAE
+NSSE            Redo transport NSSE
+NSAF            Redo transport NSAF
+NSSF            Redo transport NSSF
+NSAG            Redo transport NSAG
+NSSG            Redo transport NSSG
+NSAH            Redo transport NSAH
+NSSH            Redo transport NSSH
+NSAI            Redo transport NSAI
+NSSI            Redo transport NSSI
+NSAJ            Redo transport NSAJ
+NSSJ            Redo transport NSSJ
+NSAK            Redo transport NSAK
+NSSK            Redo transport NSSK
+NSAL            Redo transport NSAL
+NSSL            Redo transport NSSL
+NSAM            Redo transport NSAM
+NSSM            Redo transport NSSM
+NSAN            Redo transport NSAN
+NSSN            Redo transport NSSN
+NSAO            Redo transport NSAO
+NSSO            Redo transport NSSO
+NSAP            Redo transport NSAP
+NSSP            Redo transport NSSP
+NSAQ            Redo transport NSAQ
+NSSQ            Redo transport NSSQ
+NSAR            Redo transport NSAR
+NSSR            Redo transport NSSR
+NSAS            Redo transport NSAS
+NSSS            Redo transport NSSS
+NSAT            Redo transport NSAT
+NSST            Redo transport NSST
+NSAU            Redo transport NSAU
+
+NAME            DESCRIPTION
+--------------- --------------------------------------------------
+NSSU            Redo transport NSSU
+NSAV            Redo transport NSAV
+NSSV            Redo transport NSSV
+LGWR            Redo etc.
+LCK0            Lock Process 0
+CKPT            checkpoint
+ABMR            Auto BMR Background Process
+LSP1            Dictionary build process for Logical Standby
+LSP0            Logical Standby
+LSP2            Set Guard Standby Information for Logical Standby
+CTWR            Change Tracking Writer
+RVWR            Recovery Writer
+FBDA            Flashback Data Archiver Process
+SMON            System Monitor Process
+SMCO            Space Manager Process
+RECO            distributed recovery
+GTX0            Global Txn process 0
+GTX1            Global Txn process 1
+GTX2            Global Txn process 2
+GTX3            Global Txn process 3
+GTX4            Global Txn process 4
+GTX5            Global Txn process 5
+GTX6            Global Txn process 6
+GTX7            Global Txn process 7
+GTX8            Global Txn process 8
+GTX9            Global Txn process 9
+GTXa            Global Txn process 10
+GTXb            Global Txn process 11
+GTXc            Global Txn process 12
+GTXd            Global Txn process 13
+GTXe            Global Txn process 14
+GTXf            Global Txn process 15
+GTXg            Global Txn process 16
+GTXh            Global Txn process 17
+GTXi            Global Txn process 18
+GTXj            Global Txn process 19
+CJQ0            Job Queue Coordinator
+RCBG            Result Cache: Background
+EMNC            EMON Coordinator
+QMNC            AQ Coordinator
+DMON            DG Broker Monitor Process
+RSM0            Data Guard Broker Resource Guard Process 0
+NSV0            Data Guard Broker NetSlave Process 0
+NSV1            Data Guard Broker NetSlave Process 1
+NSV2            Data Guard Broker NetSlave Process 2
+NSV3            Data Guard Broker NetSlave Process 3
+NSV4            Data Guard Broker NetSlave Process 4
+
+NAME            DESCRIPTION
+--------------- --------------------------------------------------
+NSV5            Data Guard Broker NetSlave Process 5
+NSV6            Data Guard Broker NetSlave Process 6
+NSV7            Data Guard Broker NetSlave Process 7
+NSV8            Data Guard Broker NetSlave Process 8
+NSV9            Data Guard Broker NetSlave Process 9
+NSVA            Data Guard Broker NetSlave Process A
+NSVB            Data Guard Broker NetSlave Process B
+NSVC            Data Guard Broker NetSlave Process C
+NSVD            Data Guard Broker NetSlave Process D
+NSVE            Data Guard Broker NetSlave Process E
+NSVF            Data Guard Broker NetSlave Process F
+NSVG            Data Guard Broker NetSlave Process G
+NSVH            Data Guard Broker NetSlave Process H
+NSVI            Data Guard Broker NetSlave Process I
+NSVJ            Data Guard Broker NetSlave Process J
+NSVK            Data Guard Broker NetSlave Process K
+NSVL            Data Guard Broker NetSlave Process L
+NSVM            Data Guard Broker NetSlave Process M
+NSVN            Data Guard Broker NetSlave Process N
+NSVO            Data Guard Broker NetSlave Process O
+NSVP            Data Guard Broker NetSlave Process P
+NSVQ            Data Guard Broker NetSlave Process Q
+NSVR            Data Guard Broker NetSlave Process R
+NSVS            Data Guard Broker NetSlave Process S
+NSVT            Data Guard Broker NetSlave Process T
+NSVU            Data Guard Broker NetSlave Process U
+INSV            Data Guard Broker INstance SlaVe Process
+FSFP            Data Guard Broker FSFO Pinger
+RBAL            ASM Rebalance master
+ARB0            ASM Rebalance 0
+ARB1            ASM Rebalance 1
+ARB2            ASM Rebalance 2
+ARB3            ASM Rebalance 3
+ARB4            ASM Rebalance 4
+ARB5            ASM Rebalance 5
+ARB6            ASM Rebalance 6
+ARB7            ASM Rebalance 7
+ARB8            ASM Rebalance 8
+ARB9            ASM Rebalance 9
+ARBA            ASM Rebalance 10
+ASMB            ASM Background
+MARK            mark AU for resync koordinator
+GMON            diskgroup monitor
+VBG0            Volume BG 0
+VBG1            Volume BG 1
+VBG2            Volume BG 2
+VBG3            Volume BG 3
+
+NAME            DESCRIPTION
+--------------- --------------------------------------------------
+VBG4            Volume BG 4
+VBG5            Volume BG 5
+VBG6            Volume BG 6
+VBG7            Volume BG 7
+VBG8            Volume BG 8
+VBG9            Volume BG 9
+VDBG            Volume Driver BG
+VMB0            Volume Membership 0
+ACFS            ACFS CSS
+MMON            Manageability Monitor Process
+MMNL            Manageability Monitor Process 2
+XDMG            cell automation manager
+XDWK            cell automation worker actions
+
+295 rows selected.
+
+
