@@ -1164,4 +1164,411 @@ XDWK            cell automation worker actions
 
 295 rows selected.
 
+++查找表的中间一部分：
+SQL> l  
+  1  select * from (
+  2  select a.*, rownum as rn from dba_segments a
+  3  where rownum < 100
+  4* ) b where b.rn < 50
+++先查找一个表格的一部分，并将表格加上行号的一列
+＋＋并将此列命名成一个新字段，并作为主查询表的子句表
+＋＋外层查询查询另外一部分条件即可
+
+++开启跟踪计划：
+SQL> set autotrace traceonly explain
+
+SQL> select user from dual;
+
+Execution Plan
+----------------------------------------------------------
+Plan hash value: 1388734953
+
+-----------------------------------------------------------------
+| Id  | Operation        | Name | Rows  | Cost (%CPU)| Time     |
+-----------------------------------------------------------------
+|   0 | SELECT STATEMENT |      |     1 |     2   (0)| 00:00:01 |
+|   1 |  FAST DUAL       |      |     1 |     2   (0)| 00:00:01 |
+-----------------------------------------------------------------
+
+SQL> r
+  1  select * from (
+  2  select a.*, rownum as rn from dba_segments a
+  3  where rownum < 100
+  4* ) b where b.rn < 50
+
+Execution Plan
+----------------------------------------------------------
+Plan hash value: 3287195197
+
+------------------------------------------------------------------------------------------------------
+| Id  | Operation                           | Name           | Rows  | Bytes | Cost (%CPU)| Time     |
+------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                    |                |    99 | 33561 |  1453   (1)| 00:00:18 |
+|*  1 |  VIEW                               |                |    99 | 33561 |  1453   (1)| 00:00:18 |
+|*  2 |   COUNT STOPKEY                     |                |       |       |            |          |
+|   3 |    VIEW                             | SYS_DBA_SEGS   |  1449 |   568K|  1453   (1)| 00:00:18 |
+|   4 |     UNION-ALL                       |                |       |       |            |          |
+|   5 |      NESTED LOOPS OUTER             |                |     1 |   183 |  1375   (1)| 00:00:17 |
+|   6 |       NESTED LOOPS                  |                |     1 |   165 |  1374   (1)| 00:00:17 |
+|   7 |        NESTED LOOPS                 |                |     1 |   146 |  1373   (1)| 00:00:17 |
+|   8 |         NESTED LOOPS                |                |     1 |   137 |  1372   (1)| 00:00:17 |
+|*  9 |          HASH JOIN                  |                |     8 |   768 |  1356   (1)| 00:00:17 |
+|  10 |           VIEW                      | SYS_OBJECTS    |  7677 |   247K|  1309   (1)| 00:00:16 |
+|  11 |            UNION-ALL                |                |       |       |            |          |
+|* 12 |             TABLE ACCESS FULL       | TAB$           |  2769 | 63687 |   365   (0)| 00:00:05 |
+|  13 |             TABLE ACCESS FULL       | TABPART$       |   106 |  1696 |     3   (0)| 00:00:01 |
+|  14 |             TABLE ACCESS FULL       | CLU$           |    10 |   140 |   365   (0)| 00:00:05 |
+|* 15 |             TABLE ACCESS FULL       | IND$           |  4663 | 83934 |   365   (0)| 00:00:05 |
+|  16 |             TABLE ACCESS FULL       | INDPART$       |   123 |  1968 |     3   (0)| 00:00:01 |
+|* 17 |             TABLE ACCESS FULL       | LOB$           |     3 |    60 |   201   (0)| 00:00:03 |
+|  18 |             TABLE ACCESS FULL       | TABSUBPART$    |     1 |    52 |     2   (0)| 00:00:01 |
+|  19 |             TABLE ACCESS FULL       | INDSUBPART$    |     1 |    52 |     2   (0)| 00:00:01 |
+|  20 |             TABLE ACCESS FULL       | LOBFRAG$       |     1 |    17 |     2   (0)| 00:00:01 |
+|  21 |           TABLE ACCESS FULL         | SEG$           |  5449 |   335K|    46   (0)| 00:00:01 |
+|  22 |          TABLE ACCESS BY INDEX ROWID| OBJ$           |     1 |    41 |     2   (0)| 00:00:01 |
+|* 23 |           INDEX RANGE SCAN          | I_OBJ1         |     1 |       |     1   (0)| 00:00:01 |
+|  24 |         TABLE ACCESS BY INDEX ROWID | FILE$          |     1 |     9 |     1   (0)| 00:00:01 |
+|* 25 |          INDEX UNIQUE SCAN          | I_FILE2        |     1 |       |     0   (0)| 00:00:01 |
+|  26 |        TABLE ACCESS CLUSTER         | TS$            |     1 |    19 |     1   (0)| 00:00:01 |
+|* 27 |         INDEX UNIQUE SCAN           | I_TS#          |     1 |       |     0   (0)| 00:00:01 |
+|  28 |       TABLE ACCESS CLUSTER          | USER$          |     1 |    18 |     1   (0)| 00:00:01 |
+|* 29 |        INDEX UNIQUE SCAN            | I_USER#        |     1 |       |     0   (0)| 00:00:01 |
+|* 30 |      HASH JOIN OUTER                |                |     7 |  1043 |    23   (9)| 00:00:01 |
+|* 31 |       HASH JOIN                     |                |     7 |   917 |    19   (6)| 00:00:01 |
+|* 32 |        HASH JOIN                    |                |     7 |   784 |    16   (7)| 00:00:01 |
+|  33 |         NESTED LOOPS                |                |     7 |   721 |    13   (0)| 00:00:01 |
+|* 34 |          TABLE ACCESS FULL          | UNDO$          |    11 |   407 |     2   (0)| 00:00:01 |
+|* 35 |          TABLE ACCESS CLUSTER       | SEG$           |     1 |    66 |     1   (0)| 00:00:01 |
+|* 36 |           INDEX UNIQUE SCAN         | I_FILE#_BLOCK# |     1 |       |     0   (0)| 00:00:01 |
+|  37 |         TABLE ACCESS FULL           | FILE$          |     4 |    36 |     2   (0)| 00:00:01 |
+|  38 |        TABLE ACCESS FULL            | TS$            |     5 |    95 |     3   (0)| 00:00:01 |
+|  39 |       TABLE ACCESS FULL             | USER$          |    87 |  1566 |     3   (0)| 00:00:01 |
+|* 40 |      HASH JOIN RIGHT OUTER          |                |  1441 |   160K|    56   (4)| 00:00:01 |
+|  41 |       TABLE ACCESS FULL             | USER$          |    87 |  1566 |     3   (0)| 00:00:01 |
+|* 42 |       HASH JOIN                     |                |  1441 |   135K|    52   (2)| 00:00:01 |
+|  43 |        TABLE ACCESS FULL            | TS$            |     5 |    95 |     3   (0)| 00:00:01 |
+|* 44 |        HASH JOIN                    |                |  1441 |   108K|    49   (3)| 00:00:01 |
+|  45 |         TABLE ACCESS FULL           | FILE$          |     4 |    36 |     2   (0)| 00:00:01 |
+|* 46 |         TABLE ACCESS FULL           | SEG$           |  1441 | 97988 |    46   (0)| 00:00:01 |
+------------------------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - filter("B"."RN"<50)
+   2 - filter(ROWNUM<100)
+   9 - access("S"."FILE#"="SO"."HEADER_FILE" AND "S"."BLOCK#"="SO"."HEADER_BLOCK" AND
+              "S"."TS#"="SO"."TS_NUMBER" AND "S"."TYPE#"="SO"."SEGMENT_TYPE_ID")
+  12 - filter(BITAND("T"."PROPERTY",1024)=0)
+  15 - filter("I"."TYPE#"=1 OR "I"."TYPE#"=2 OR "I"."TYPE#"=3 OR "I"."TYPE#"=4 OR
+              "I"."TYPE#"=6 OR "I"."TYPE#"=7 OR "I"."TYPE#"=8 OR "I"."TYPE#"=9)
+  17 - filter(BITAND("L"."PROPERTY",64)=0 OR BITAND("L"."PROPERTY",128)=128)
+  23 - access("O"."OBJ#"="SO"."OBJECT_ID" AND "O"."TYPE#"="SO"."OBJECT_TYPE_ID")
+       filter("O"."TYPE#"="SO"."OBJECT_TYPE_ID")
+  25 - access("S"."TS#"="F"."TS#" AND "S"."FILE#"="F"."RELFILE#")
+  27 - access("S"."TS#"="TS"."TS#")
+  29 - access("O"."OWNER#"="U"."USER#"(+))
+  30 - access("S"."USER#"="U"."USER#"(+))
+  31 - access("S"."TS#"="TS"."TS#")
+  32 - access("UN"."TS#"="F"."TS#" AND "UN"."FILE#"="F"."RELFILE#")
+  34 - filter("UN"."STATUS$"<>1)
+  35 - filter("S"."TYPE#"=1 OR "S"."TYPE#"=10)
+  36 - access("S"."TS#"="UN"."TS#" AND "S"."FILE#"="UN"."FILE#" AND
+              "S"."BLOCK#"="UN"."BLOCK#")
+  40 - access("S"."USER#"="U"."USER#"(+))
+  42 - access("S"."TS#"="TS"."TS#")
+  44 - access("S"."TS#"="F"."TS#" AND "S"."FILE#"="F"."RELFILE#")
+  46 - filter("S"."TYPE#"<>6 AND "S"."TYPE#"<>5 AND "S"."TYPE#"<>8 AND "S"."TYPE#"<>10 AND
+              "S"."TYPE#"<>1)
+++打开所有跟踪计划：
+SQL> set autotrace on
+49 rows selected.
+
+
+Execution Plan
+----------------------------------------------------------
+Plan hash value: 3287195197
+
+------------------------------------------------------------------------------------------------------
+| Id  | Operation                           | Name           | Rows  | Bytes |
+Cost (%CPU)| Time     |
+------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                    |                |    99 | 33561 |
+1453   (1)| 00:00:18 |
+|*  1 |  VIEW                               |                |    99 | 33561 |
+1453   (1)| 00:00:18 |
+|*  2 |   COUNT STOPKEY                     |                |       |       |
+|          |
+|   3 |    VIEW                             | SYS_DBA_SEGS   |  1449 |   568K|
+1453   (1)| 00:00:18 |
+|   4 |     UNION-ALL                       |                |       |       |
+|          |
+|   5 |      NESTED LOOPS OUTER             |                |     1 |   183 |
+1375   (1)| 00:00:17 |
+|   6 |       NESTED LOOPS                  |                |     1 |   165 |
+1374   (1)| 00:00:17 |
+|   7 |        NESTED LOOPS                 |                |     1 |   146 |
+1373   (1)| 00:00:17 |
+|   8 |         NESTED LOOPS                |                |     1 |   137 |
+1372   (1)| 00:00:17 |
+|*  9 |          HASH JOIN                  |                |     8 |   768 |
+1356   (1)| 00:00:17 |
+|  10 |           VIEW                      | SYS_OBJECTS    |  7677 |   247K|
+1309   (1)| 00:00:16 |
+|  11 |            UNION-ALL                |                |       |       |
+|          |
+|* 12 |             TABLE ACCESS FULL       | TAB$           |  2769 | 63687 |
+365   (0)| 00:00:05 |
+|  13 |             TABLE ACCESS FULL       | TABPART$       |   106 |  1696 |
+3   (0)| 00:00:01 |
+|  14 |             TABLE ACCESS FULL       | CLU$           |    10 |   140 |
+365   (0)| 00:00:05 |
+|* 15 |             TABLE ACCESS FULL       | IND$           |  4663 | 83934 |
+365   (0)| 00:00:05 |
+|  16 |             TABLE ACCESS FULL       | INDPART$       |   123 |  1968 |
+3   (0)| 00:00:01 |
+|* 17 |             TABLE ACCESS FULL       | LOB$           |     3 |    60 |
+201   (0)| 00:00:03 |
+|  18 |             TABLE ACCESS FULL       | TABSUBPART$    |     1 |    52 |
+2   (0)| 00:00:01 |
+|  19 |             TABLE ACCESS FULL       | INDSUBPART$    |     1 |    52 |
+2   (0)| 00:00:01 |
+|  20 |             TABLE ACCESS FULL       | LOBFRAG$       |     1 |    17 |
+2   (0)| 00:00:01 |
+|  21 |           TABLE ACCESS FULL         | SEG$           |  5449 |   335K|
+46   (0)| 00:00:01 |
+|  22 |          TABLE ACCESS BY INDEX ROWID| OBJ$           |     1 |    41 |
+2   (0)| 00:00:01 |
+|* 23 |           INDEX RANGE SCAN          | I_OBJ1         |     1 |       |
+1   (0)| 00:00:01 |
+|  24 |         TABLE ACCESS BY INDEX ROWID | FILE$          |     1 |     9 |
+1   (0)| 00:00:01 |
+|* 25 |          INDEX UNIQUE SCAN          | I_FILE2        |     1 |       |
+0   (0)| 00:00:01 |
+|  26 |        TABLE ACCESS CLUSTER         | TS$            |     1 |    19 |
+1   (0)| 00:00:01 |
+|* 27 |         INDEX UNIQUE SCAN           | I_TS#          |     1 |       |
+0   (0)| 00:00:01 |
+|  28 |       TABLE ACCESS CLUSTER          | USER$          |     1 |    18 |
+1   (0)| 00:00:01 |
+|* 29 |        INDEX UNIQUE SCAN            | I_USER#        |     1 |       |
+0   (0)| 00:00:01 |
+|* 30 |      HASH JOIN OUTER                |                |     7 |  1043 |
+23   (9)| 00:00:01 |
+|* 31 |       HASH JOIN                     |                |     7 |   917 |
+19   (6)| 00:00:01 |
+|* 32 |        HASH JOIN                    |                |     7 |   784 |
+16   (7)| 00:00:01 |
+|  33 |         NESTED LOOPS                |                |     7 |   721 |
+13   (0)| 00:00:01 |
+|* 34 |          TABLE ACCESS FULL          | UNDO$          |    11 |   407 |
+2   (0)| 00:00:01 |
+|* 35 |          TABLE ACCESS CLUSTER       | SEG$           |     1 |    66 |
+1   (0)| 00:00:01 |
+|* 36 |           INDEX UNIQUE SCAN         | I_FILE#_BLOCK# |     1 |       |
+0   (0)| 00:00:01 |
+|  37 |         TABLE ACCESS FULL           | FILE$          |     4 |    36 |
+2   (0)| 00:00:01 |
+|  38 |        TABLE ACCESS FULL            | TS$            |     5 |    95 |
+3   (0)| 00:00:01 |
+|  39 |       TABLE ACCESS FULL             | USER$          |    87 |  1566 |
+3   (0)| 00:00:01 |
+|* 40 |      HASH JOIN RIGHT OUTER          |                |  1441 |   160K|
+56   (4)| 00:00:01 |
+|  41 |       TABLE ACCESS FULL             | USER$          |    87 |  1566 |
+3   (0)| 00:00:01 |
+|* 42 |       HASH JOIN                     |                |  1441 |   135K|
+52   (2)| 00:00:01 |
+|  43 |        TABLE ACCESS FULL            | TS$            |     5 |    95 |
+3   (0)| 00:00:01 |
+|* 44 |        HASH JOIN                    |                |  1441 |   108K|
+49   (3)| 00:00:01 |
+|  45 |         TABLE ACCESS FULL           | FILE$          |     4 |    36 |
+2   (0)| 00:00:01 |
+|* 46 |         TABLE ACCESS FULL           | SEG$           |  1441 | 97988 |
+46   (0)| 00:00:01 |
+------------------------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - filter("B"."RN"<50)
+   2 - filter(ROWNUM<100)
+   9 - access("S"."FILE#"="SO"."HEADER_FILE" AND
+"S"."BLOCK#"="SO"."HEADER_BLOCK" AND
+              "S"."TS#"="SO"."TS_NUMBER" AND
+"S"."TYPE#"="SO"."SEGMENT_TYPE_ID")
+  12 - filter(BITAND("T"."PROPERTY",1024)=0)
+  15 - filter("I"."TYPE#"=1 OR "I"."TYPE#"=2 OR "I"."TYPE#"=3 OR "I"."TYPE#"=4
+OR
+              "I"."TYPE#"=6 OR "I"."TYPE#"=7 OR "I"."TYPE#"=8 OR
+"I"."TYPE#"=9)
+  17 - filter(BITAND("L"."PROPERTY",64)=0 OR BITAND("L"."PROPERTY",128)=128)
+  23 - access("O"."OBJ#"="SO"."OBJECT_ID" AND
+"O"."TYPE#"="SO"."OBJECT_TYPE_ID")
+       filter("O"."TYPE#"="SO"."OBJECT_TYPE_ID")
+  25 - access("S"."TS#"="F"."TS#" AND "S"."FILE#"="F"."RELFILE#")
+  27 - access("S"."TS#"="TS"."TS#")
+  29 - access("O"."OWNER#"="U"."USER#"(+))
+  30 - access("S"."USER#"="U"."USER#"(+))
+  31 - access("S"."TS#"="TS"."TS#")
+  32 - access("UN"."TS#"="F"."TS#" AND "UN"."FILE#"="F"."RELFILE#")
+  34 - filter("UN"."STATUS$"<>1)
+  35 - filter("S"."TYPE#"=1 OR "S"."TYPE#"=10)
+  36 - access("S"."TS#"="UN"."TS#" AND "S"."FILE#"="UN"."FILE#" AND
+              "S"."BLOCK#"="UN"."BLOCK#")
+  40 - access("S"."USER#"="U"."USER#"(+))
+  42 - access("S"."TS#"="TS"."TS#")
+  44 - access("S"."TS#"="F"."TS#" AND "S"."FILE#"="F"."RELFILE#")
+  46 - filter("S"."TYPE#"<>6 AND "S"."TYPE#"<>5 AND "S"."TYPE#"<>8 AND
+"S"."TYPE#"<>10 AND
+              "S"."TYPE#"<>1)
+
+
+Statistics
+----------------------------------------------------------
+          0  recursive calls
+          0  db block gets
+        537  consistent gets
+          0  physical reads
+          0  redo size
+       4629  bytes sent via SQL*Net to client
+        557  bytes received via SQL*Net from client
+          5  SQL*Net roundtrips to/from client
+          0  sorts (memory)
+          0  sorts (disk)
+         49  rows processed
+
+49 rows selected.
+
+
+Execution Plan
+----------------------------------------------------------
+Plan hash value: 3287195197
+
+------------------------------------------------------------------------------------------------------
+| Id  | Operation                           | Name           | Rows  | Bytes | Cost (%CPU)| Time     |
+------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                    |                |    99 | 33561 |  1453   (1)| 00:00:18 |
+|*  1 |  VIEW                               |                |    99 | 33561 |  1453   (1)| 00:00:18 |
+|*  2 |   COUNT STOPKEY                     |                |       |       |            |          |
+|   3 |    VIEW                             | SYS_DBA_SEGS   |  1449 |   568K|  1453   (1)| 00:00:18 |
+|   4 |     UNION-ALL                       |                |       |       |            |          |
+|   5 |      NESTED LOOPS OUTER             |                |     1 |   183 |  1375   (1)| 00:00:17 |
+|   6 |       NESTED LOOPS                  |                |     1 |   165 |  1374   (1)| 00:00:17 |
+|   7 |        NESTED LOOPS                 |                |     1 |   146 |  1373   (1)| 00:00:17 |
+|   8 |         NESTED LOOPS                |                |     1 |   137 |  1372   (1)| 00:00:17 |
+|*  9 |          HASH JOIN                  |                |     8 |   768 |  1356   (1)| 00:00:17 |
+|  10 |           VIEW                      | SYS_OBJECTS    |  7677 |   247K|  1309   (1)| 00:00:16 |
+|  11 |            UNION-ALL                |                |       |       |            |          |
+|* 12 |             TABLE ACCESS FULL       | TAB$           |  2769 | 63687 |   365   (0)| 00:00:05 |
+|  13 |             TABLE ACCESS FULL       | TABPART$       |   106 |  1696 |     3   (0)| 00:00:01 |
+|  14 |             TABLE ACCESS FULL       | CLU$           |    10 |   140 |   365   (0)| 00:00:05 |
+|* 15 |             TABLE ACCESS FULL       | IND$           |  4663 | 83934 |   365   (0)| 00:00:05 |
+|  16 |             TABLE ACCESS FULL       | INDPART$       |   123 |  1968 |     3   (0)| 00:00:01 |
+|* 17 |             TABLE ACCESS FULL       | LOB$           |     3 |    60 |   201   (0)| 00:00:03 |
+|  18 |             TABLE ACCESS FULL       | TABSUBPART$    |     1 |    52 |     2   (0)| 00:00:01 |
+|  19 |             TABLE ACCESS FULL       | INDSUBPART$    |     1 |    52 |     2   (0)| 00:00:01 |
+|  20 |             TABLE ACCESS FULL       | LOBFRAG$       |     1 |    17 |     2   (0)| 00:00:01 |
+|  21 |           TABLE ACCESS FULL         | SEG$           |  5449 |   335K|    46   (0)| 00:00:01 |
+|  22 |          TABLE ACCESS BY INDEX ROWID| OBJ$           |     1 |    41 |     2   (0)| 00:00:01 |
+|* 23 |           INDEX RANGE SCAN          | I_OBJ1         |     1 |       |     1   (0)| 00:00:01 |
+|  24 |         TABLE ACCESS BY INDEX ROWID | FILE$          |     1 |     9 |     1   (0)| 00:00:01 |
+|* 25 |          INDEX UNIQUE SCAN          | I_FILE2        |     1 |       |     0   (0)| 00:00:01 |
+|  26 |        TABLE ACCESS CLUSTER         | TS$            |     1 |    19 |     1   (0)| 00:00:01 |
+|* 27 |         INDEX UNIQUE SCAN           | I_TS#          |     1 |       |     0   (0)| 00:00:01 |
+|  28 |       TABLE ACCESS CLUSTER          | USER$          |     1 |    18 |     1   (0)| 00:00:01 |
+|* 29 |        INDEX UNIQUE SCAN            | I_USER#        |     1 |       |     0   (0)| 00:00:01 |
+|* 30 |      HASH JOIN OUTER                |                |     7 |  1043 |    23   (9)| 00:00:01 |
+|* 31 |       HASH JOIN                     |                |     7 |   917 |    19   (6)| 00:00:01 |
+|* 32 |        HASH JOIN                    |                |     7 |   784 |    16   (7)| 00:00:01 |
+|  33 |         NESTED LOOPS                |                |     7 |   721 |    13   (0)| 00:00:01 |
+|* 34 |          TABLE ACCESS FULL          | UNDO$          |    11 |   407 |     2   (0)| 00:00:01 |
+|* 35 |          TABLE ACCESS CLUSTER       | SEG$           |     1 |    66 |     1   (0)| 00:00:01 |
+|* 36 |           INDEX UNIQUE SCAN         | I_FILE#_BLOCK# |     1 |       |     0   (0)| 00:00:01 |
+|  37 |         TABLE ACCESS FULL           | FILE$          |     4 |    36 |     2   (0)| 00:00:01 |
+|  38 |        TABLE ACCESS FULL            | TS$            |     5 |    95 |     3   (0)| 00:00:01 |
+|  39 |       TABLE ACCESS FULL             | USER$          |    87 |  1566 |     3   (0)| 00:00:01 |
+|* 40 |      HASH JOIN RIGHT OUTER          |                |  1441 |   160K|    56   (4)| 00:00:01 |
+|  41 |       TABLE ACCESS FULL             | USER$          |    87 |  1566 |     3   (0)| 00:00:01 |
+|* 42 |       HASH JOIN                     |                |  1441 |   135K|    52   (2)| 00:00:01 |
+|  43 |        TABLE ACCESS FULL            | TS$            |     5 |    95 |     3   (0)| 00:00:01 |
+|* 44 |        HASH JOIN                    |                |  1441 |   108K|    49   (3)| 00:00:01 |
+|  45 |         TABLE ACCESS FULL           | FILE$          |     4 |    36 |     2   (0)| 00:00:01 |
+|* 46 |         TABLE ACCESS FULL           | SEG$           |  1441 | 97988 |    46   (0)| 00:00:01 |
+------------------------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - filter("B"."RN"<50)
+   2 - filter(ROWNUM<100)
+   9 - access("S"."FILE#"="SO"."HEADER_FILE" AND "S"."BLOCK#"="SO"."HEADER_BLOCK" AND
+              "S"."TS#"="SO"."TS_NUMBER" AND "S"."TYPE#"="SO"."SEGMENT_TYPE_ID")
+  12 - filter(BITAND("T"."PROPERTY",1024)=0)
+  15 - filter("I"."TYPE#"=1 OR "I"."TYPE#"=2 OR "I"."TYPE#"=3 OR "I"."TYPE#"=4 OR
+              "I"."TYPE#"=6 OR "I"."TYPE#"=7 OR "I"."TYPE#"=8 OR "I"."TYPE#"=9)
+  17 - filter(BITAND("L"."PROPERTY",64)=0 OR BITAND("L"."PROPERTY",128)=128)
+  23 - access("O"."OBJ#"="SO"."OBJECT_ID" AND "O"."TYPE#"="SO"."OBJECT_TYPE_ID")
+       filter("O"."TYPE#"="SO"."OBJECT_TYPE_ID")
+  25 - access("S"."TS#"="F"."TS#" AND "S"."FILE#"="F"."RELFILE#")
+  27 - access("S"."TS#"="TS"."TS#")
+  29 - access("O"."OWNER#"="U"."USER#"(+))
+  30 - access("S"."USER#"="U"."USER#"(+))
+  31 - access("S"."TS#"="TS"."TS#")
+  32 - access("UN"."TS#"="F"."TS#" AND "UN"."FILE#"="F"."RELFILE#")
+  34 - filter("UN"."STATUS$"<>1)
+  35 - filter("S"."TYPE#"=1 OR "S"."TYPE#"=10)
+  36 - access("S"."TS#"="UN"."TS#" AND "S"."FILE#"="UN"."FILE#" AND
+              "S"."BLOCK#"="UN"."BLOCK#")
+  40 - access("S"."USER#"="U"."USER#"(+))
+  42 - access("S"."TS#"="TS"."TS#")
+  44 - access("S"."TS#"="F"."TS#" AND "S"."FILE#"="F"."RELFILE#")
+  46 - filter("S"."TYPE#"<>6 AND "S"."TYPE#"<>5 AND "S"."TYPE#"<>8 AND "S"."TYPE#"<>10 AND
+              "S"."TYPE#"<>1)
+
+
+Statistics
+----------------------------------------------------------
+          0  recursive calls
+          0  db block gets
+        537  consistent gets
+          0  physical reads
+          0  redo size
+       4629  bytes sent via SQL*Net to client
+        557  bytes received via SQL*Net from client
+          5  SQL*Net roundtrips to/from client
+          0  sorts (memory)
+          0  sorts (disk)
+         49  rows processed
+
+++关闭执行计划：
+SQL> set autotrace off
+
+++添加表描述：
+SQL> comment on table student is '学生表';
+
+Comment created.
+
+++查看表描述：
+SQL> select * from user_tab_comments where table_name = 'STUDENT';
+
+TABLE_NAME           TABLE_TYPE                        COMMENTS
+-------------------- --------------------------------- --------------------
+STUDENT              TABLE                             学生表
+
+++添加表列描述及其查看方法：
+SQL> comment on column student.sname is '名字'; 
+
+Comment created.
+
+SQL> select * from user_col_comments where table_name = 'STUDENT';
+
+TABLE_NAME           COLUMN_NAME          COMMENTS
+-------------------- -------------------- --------------------
+STUDENT              SNO
+STUDENT              SNAME                名字
+STUDENT              SAGE
+STUDENT              SSEX
+
 
