@@ -1,0 +1,468 @@
+=============
+++设置sqlplus环境：
+++set time
+++设置命令提示行是否显示时间
+SQL> show linesize  
+linesize 80
+SQL> set time on
+10:09:56 SQL> set time off
+SQL> 
+++set pagesize
+++设置每页行数：
+SQL> set pagesize 10
+SQL> r   
+  1  select user_id, username, account_status
+  2* from dba_users
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+         74 MGMT_VIEW            OPEN
+          0 SYS                  OPEN
+          5 SYSTEM               OPEN
+         30 DBSNMP               OPEN
+         72 SYSMAN               OPEN
+          9 OUTLN                EXPIRED & LOCKED
+         75 FLOWS_FILES          EXPIRED & LOCKED
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+         57 MDSYS                EXPIRED & LOCKED
+         53 ORDSYS               EXPIRED & LOCKED
+         42 EXFSYS               EXPIRED & LOCKED
+         32 WMSYS                EXPIRED & LOCKED
+         31 APPQOSSYS            EXPIRED & LOCKED
+         78 APEX_030200          EXPIRED & LOCKED
+         83 OWBSYS_AUDIT         EXPIRED & LOCKED
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+         54 ORDDATA              EXPIRED & LOCKED
+         43 CTXSYS               EXPIRED & LOCKED
+         46 ANONYMOUS            EXPIRED & LOCKED
+         45 XDB                  EXPIRED & LOCKED
+         55 ORDPLUGINS           EXPIRED & LOCKED
+         79 OWBSYS               EXPIRED & LOCKED
+         56 SI_INFORMTN_SCHEMA   EXPIRED & LOCKED
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+         61 OLAPSYS              EXPIRED & LOCKED
+         84 SCOTT                EXPIRED & LOCKED
+         21 ORACLE_OCM           EXPIRED & LOCKED
+ 2147483638 XS$NULL              EXPIRED & LOCKED
+         65 MDDATA               EXPIRED & LOCKED
+         14 DIP                  EXPIRED & LOCKED
+         76 APEX_PUBLIC_USER     EXPIRED & LOCKED
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+         70 SPATIAL_CSW_ADMIN_US EXPIRED & LOCKED
+            R
+
+         67 SPATIAL_WFS_ADMIN_US EXPIRED & LOCKED
+            R
+
+
+30 rows selected.
+
+++set newpage
+++设置每一页空行的数量：
+SQL> set newpage 4
+SQL> show newpage
+newpage 4
+SQL> r  
+  1  select user_id, username, account_status
+  2* from dba_users
+
+
+
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+         74 MGMT_VIEW            OPEN
+          0 SYS                  OPEN
+          5 SYSTEM               OPEN
+         30 DBSNMP               OPEN
+
+
+
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+         72 SYSMAN               OPEN
+          9 OUTLN                EXPIRED & LOCKED
+         75 FLOWS_FILES          EXPIRED & LOCKED
+         57 MDSYS                EXPIRED & LOCKED
+
+
+
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+         53 ORDSYS               EXPIRED & LOCKED
+         42 EXFSYS               EXPIRED & LOCKED
+         32 WMSYS                EXPIRED & LOCKED
+         31 APPQOSSYS            EXPIRED & LOCKED
+
+
+
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+         78 APEX_030200          EXPIRED & LOCKED
+         83 OWBSYS_AUDIT         EXPIRED & LOCKED
+         54 ORDDATA              EXPIRED & LOCKED
+         43 CTXSYS               EXPIRED & LOCKED
+
+
+
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+         46 ANONYMOUS            EXPIRED & LOCKED
+         45 XDB                  EXPIRED & LOCKED
+         55 ORDPLUGINS           EXPIRED & LOCKED
+         79 OWBSYS               EXPIRED & LOCKED
+
+
+
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+         56 SI_INFORMTN_SCHEMA   EXPIRED & LOCKED
+         61 OLAPSYS              EXPIRED & LOCKED
+         84 SCOTT                EXPIRED & LOCKED
+         21 ORACLE_OCM           EXPIRED & LOCKED
+
+
+
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+ 2147483638 XS$NULL              EXPIRED & LOCKED
+         65 MDDATA               EXPIRED & LOCKED
+         14 DIP                  EXPIRED & LOCKED
+         76 APEX_PUBLIC_USER     EXPIRED & LOCKED
+
+
+
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+         70 SPATIAL_CSW_ADMIN_US EXPIRED & LOCKED
+            R
+
+         67 SPATIAL_WFS_ADMIN_US EXPIRED & LOCKED
+
+
+
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+            R
+
+
+30 rows selected.
+
+++set pause
+++设置每一页显示是否停顿，停顿则每次回车继续
+＋＋不停顿则直接显示完
+++以下是设置停顿，并且每页显示结束后提示按enter继续
+SQL> set pause "press enter continue"
+SQL> set pause on
+SQL> r  
+  1  select user_id, username, account_status
+  2* from dba_users
+press enter continue
+
+
+
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+         74 MGMT_VIEW            OPEN
+          0 SYS                  OPEN
+          5 SYSTEM               OPEN
+         30 DBSNMP               OPEN
+press enter continue
+
+
+
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+         72 SYSMAN               OPEN
+          9 OUTLN                EXPIRED & LOCKED
+         75 FLOWS_FILES          EXPIRED & LOCKED
+         57 MDSYS                EXPIRED & LOCKED
+press enter continue
+
+
+
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+         53 ORDSYS               EXPIRED & LOCKED
+         42 EXFSYS               EXPIRED & LOCKED
+         32 WMSYS                EXPIRED & LOCKED
+         31 APPQOSSYS            EXPIRED & LOCKED
+press enter continue
+
+
+
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+         78 APEX_030200          EXPIRED & LOCKED
+         83 OWBSYS_AUDIT         EXPIRED & LOCKED
+         54 ORDDATA              EXPIRED & LOCKED
+         43 CTXSYS               EXPIRED & LOCKED
+press enter continue
+
+
+
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+         46 ANONYMOUS            EXPIRED & LOCKED
+         45 XDB                  EXPIRED & LOCKED
+         55 ORDPLUGINS           EXPIRED & LOCKED
+         79 OWBSYS               EXPIRED & LOCKED
+press enter continue
+
+
+
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+         56 SI_INFORMTN_SCHEMA   EXPIRED & LOCKED
+         61 OLAPSYS              EXPIRED & LOCKED
+         84 SCOTT                EXPIRED & LOCKED
+         21 ORACLE_OCM           EXPIRED & LOCKED
+press enter continue
+
+
+
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+ 2147483638 XS$NULL              EXPIRED & LOCKED
+         65 MDDATA               EXPIRED & LOCKED
+         14 DIP                  EXPIRED & LOCKED
+         76 APEX_PUBLIC_USER     EXPIRED & LOCKED
+press enter continue
+
+
+
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+         70 SPATIAL_CSW_ADMIN_US EXPIRED & LOCKED
+            R
+
+         67 SPATIAL_WFS_ADMIN_US EXPIRED & LOCKED
+press enter continue
+
+
+
+
+    USER_ID USERNAME             ACCOUNT_STATUS
+----------- -------------------- --------------------
+            R
+
+
+30 rows selected.
+
+++set numformat
+＋＋设置数字显示格式
+SQL> set numformat $999,999.00
+SQL> r  
+  1* select * from student
+
+
+
+
+SNO                  SNAME                        SAGE SSEX
+-------------------- -------------------- ------------ --------------------
+s001                 张三                       $23.00 男
+s002                 李四                       $23.00 男
+s003                 吴鹏                       $25.00 男
+s004                 琴沁                       $20.00 女
+
+
+
+
+SNO                  SNAME                        SAGE SSEX
+-------------------- -------------------- ------------ --------------------
+s005                 王丽                       $20.00 女
+s006                 李波                       $21.00 男
+s007                 刘玉                       $21.00 男
+s008                 萧蓉                       $21.00 女
+
+
+
+
+SNO                  SNAME                        SAGE SSEX
+-------------------- -------------------- ------------ --------------------
+s009                 陈萧晓                     $23.00 女
+s010                 陈美                       $22.00 女
+
+10 rows selected.
+
+++常用sqlplus命令：
+++help命令，查看sqlplus命令的用法：
+SQL> help startup
+
+ STARTUP
+ -------
+
+ Starts an Oracle instance with several options, including mounting,
+ and opening a database.
+
+ STARTUP options | upgrade_options
+
+ where options has the following syntax:
+    [FORCE] [RESTRICT] [PFILE=filename] [QUIET] [ MOUNT [dbname] |
+    [ OPEN [open_options] [dbname] ] |
+    NOMOUNT ]
+
+ where open_options has the following syntax:
+    READ {ONLY | WRITE [RECOVER]} | RECOVER
+
+ and where upgrade_options has the following syntax:
+    [PFILE=filename] {UPGRADE | DOWNGRADE} [QUIET]
+
+
+++help index
+++查看sqlplus命令清单：
+Enter Help [topic] for help.
+
+ @             COPY         PAUSE                    SHUTDOWN
+ @@            DEFINE       PRINT                    SPOOL
+ /             DEL          PROMPT                   SQLPLUS
+ ACCEPT        DESCRIBE     QUIT                     START
+ APPEND        DISCONNECT   RECOVER                  STARTUP
+ ARCHIVE LOG   EDIT         REMARK                   STORE
+ ATTRIBUTE     EXECUTE      REPFOOTER                TIMING
+ BREAK         EXIT         REPHEADER                TTITLE
+ BTITLE        GET          RESERVED WORDS (SQL)     UNDEFINE
+ CHANGE        HELP         RESERVED WORDS (PL/SQL)  VARIABLE
+ CLEAR         HOST         RUN                      WHENEVER OSERROR
+ COLUMN        INPUT        SAVE                     WHENEVER SQLERROR
+ COMPUTE       LIST         SET                      XQUERY
+ CONNECT       PASSWORD     SHOW
+
+++describe 命令
+＋＋查看表结构：
+SQL> describe student;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ SNO                                       NOT NULL VARCHAR2(10)
+ SNAME                                              VARCHAR2(20)
+ SAGE                                               NUMBER(2)
+ SSEX                                               VARCHAR2(5)
+
+++describe命令在其他语句执行过程当中，临时调用的方法：
+SQL> select     
+  2  #describe student
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ SNO                                       NOT NULL VARCHAR2(10)
+ SNAME                                              VARCHAR2(20)
+ SAGE                                               NUMBER(2)
+ SSEX                                               VARCHAR2(5)
+
+  2  sno, sname, sage, ssex
+  3  from student;
+
+SNO                  SNAME                        SAGE SSEX
+-------------------- -------------------- ------------ --------------------
+s001                 张三                       $23.00 男
+s002                 李四                       $23.00 男
+s003                 吴鹏                       $25.00 男
+s004                 琴沁                       $20.00 女
+s005                 王丽                       $20.00 女
+s006                 李波                       $21.00 男
+s007                 刘玉                       $21.00 男
+s008                 萧蓉                       $21.00 女
+s009                 陈萧晓                     $23.00 女
+s010                 陈美                       $22.00 女
+
+10 rows selected.
+
+++define variable_name="value"
+＋＋定义一个字符串：
+++以下为定义和查看内容
+SQL> define tmp_value="this is tmp value"
+SQL> define tmp_value
+DEFINE TMP_VALUE       = "this is tmp value" (CHAR)
+
+++编辑器设定：
+++查看编辑器变量设置
+SQL> define _editor   
+DEFINE _EDITOR         = "ed" (CHAR)
+SQL> define _editor=/usr/bin/vim
+SQL> edit
+++以下为在vim中编辑的内容
+select * from student
+/
+++修改为：
+select sno from student
+＋＋:w保存退出
+++用vim的模行模式结束编辑，退出编辑
+Wrote file afiedt.buf
+
+  1* select sno from student
+＋＋执行缓冲区的命令如下：
+SQL> r
+  1* select sno from student
+
+SNO
+------------------------------
+s001
+s002
+s003
+s004
+s005
+s006
+s007
+s008
+s009
+s010
+
+10 rows selected.
+
+++get获得文件的内容到缓存区：
+++nolist不显示加载的内容，list显示加载的内容
+SQL> get tmp nolist
+SQL> get tmp list
+  1  select * from (
+  2  select a.*, rownum as rn from dba_segments a
+  3  where rownum < 100
+  4* ) b where b.rn < 50
+++设置字段的列标题
+++column heading
+SQL> column sno heading 学号
+SQL> select * from student;
+
+学号                 SNAME                        SAGE SSEX
+-------------------- -------------------- ------------ --------------------
+s001                 张三                       $23.00 男
+s002                 李四                       $23.00 男
+s003                 吴鹏                       $25.00 男
+s004                 琴沁                       $20.00 女
+s005                 王丽                       $20.00 女
+s006                 李波                       $21.00 男
+s007                 刘玉                       $21.00 男
+s008                 萧蓉                       $21.00 女
+s009                 陈萧晓                     $23.00 女
+s010                 陈美                       $22.00 女
+
+10 rows selected.
+
+++查看列的信息，包括列标题
+SQL> column sno
+COLUMN   sno ON
+HEADING  '学号'
+FORMAT   a20
+
