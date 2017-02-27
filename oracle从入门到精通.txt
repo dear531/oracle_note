@@ -466,3 +466,204 @@ COLUMN   sno ON
 HEADING  '学号'
 FORMAT   a20
 
+++空行值显示设置：
+++column column_name null '显示内容'
+SQL> column score null '空'
+SQL> select * from sc where score is null;
+
+SNO                  CNO                       SCORE
+-------------------- -------------------- ----------
+tmp001               tmp001               空
+
+++列属性的显示与关闭：
+SQL> column score on
+SQL> select * from sc where score is null;
+
+SNO                  CNO                        成绩
+-------------------- -------------------- ----------
+tmp001               tmp001               空
+
+++关闭属性显示，查看表，已经不存在属性显示
+++查看属性，还是在的
+SQL> column score off 
+SQL> select * from sc where score is null;
+
+SNO                  CNO                       SCORE
+-------------------- -------------------- ----------
+tmp001               tmp001
+
+SQL> column score
+COLUMN   score OFF
+HEADING  '成绩'
+NULL     '空'
+
+++设置字段文字折行：
+++默认的折行规则和wrapped是一致的
+SQL> select * from sc;
+
+SNO  CNO                       SCORE
+---- -------------------- ----------
+aaaa
+a bb
+
+s003 c001                       81.9
+s004 c001                       60.9
+s001 c002                       82.9
+s002 c002                       72.9
+s003 c002                       81.9
+s001 c003                         59
+s001 c004                         58
+s005 c001                       81.9
+
+9 rows selected.
+
+SQL> column sno  
+COLUMN   sno ON
+FORMAT   a4
+SQL> column sno wrapped
+SQL> column sno
+COLUMN   sno ON
+FORMAT   a4
+wrap 
+SQL> select * from sc;
+
+SNO  CNO                       SCORE
+---- -------------------- ----------
+aaaa
+a bb
+
+s003 c001                       81.9
+s004 c001                       60.9
+s001 c002                       82.9
+s002 c002                       72.9
+s003 c002                       81.9
+s001 c003                         59
+s001 c004                         58
+s005 c001                       81.9
+
+9 rows selected.
+
+++设置字段按单词文字折行
+++折行规则是先满足一行能放下最多的字符的前提
+＋＋当一行放不下一个整个单词，就只好强行折行
+
+SQL> column sno word_wrapped
+SQL> column sno
+COLUMN   sno ON
+FORMAT   a4
+word_wrap 
+SQL> select * from sc;
+
+SNO  CNO                       SCORE
+---- -------------------- ----------
+aaaa
+a bb
+
+s003 c001                       81.9
+s004 c001                       60.9
+s001 c002                       82.9
+s002 c002                       72.9
+s003 c002                       81.9
+s001 c003                         59
+s001 c004                         58
+s005 c001                       81.9
+
+9 rows selected.
+
+++而如果一行有放一个而放不下两行时，此时单词按单词折行就发挥条件了，此时单词被分别放在两行
+SQL> column sno format a7
+SQL> select * from sc;
+
+SNO     CNO                       SCORE
+------- -------------------- ----------
+aaaaa
+bb
+
+s003    c001                       81.9
+s004    c001                       60.9
+s001    c002                       82.9
+s002    c002                       72.9
+s003    c002                       81.9
+s001    c003                         59
+s001    c004                         58
+s005    c001                       81.9
+
+9 rows selected.
+
+＋＋分页效果：
+SQL> select * from student;
+
+学生表
+SNO        SNAME                      SAGE SSEX
+---------- -------------------- ---------- ----------
+s001       张三                         23 男
+s002       李四                         23 男
+s003       吴鹏                         25 男
+s004       琴沁                         20 女
+s005       王丽                         20 女
+s006       李波                         21 男
+s007       刘玉                         21 男
+s008       萧蓉                         21 女
+s009       陈萧晓                       23 女
+打印日期：2017.2.27 打印人：张赢
+
+学生表
+SNO        SNAME                      SAGE SSEX
+---------- -------------------- ---------- ----------
+s010       陈美                         22 女
+
+
+
+
+
+
+
+
+打印日期：2017.2.27 打印人：张赢
+
+10 rows selected.
+
+＋＋表头和表弟命令对所有表都起一样的作用
+
+++使用变量设置表头和表底
+SQL> define varT='学生表'
+SQL> define varB='打印日期：2017.2.27 打印人：张赢'
+SQL> ttitle left varT
+SQL> btitle left varB
+SQL> select * from sc;
+
+学生表
+SNO        CNO                       SCORE
+---------- -------------------- ----------
+s003       c001                       81.9
+s004       c001                       60.9
+s001       c002                       82.9
+s002       c002                       72.9
+s003       c002                       81.9
+s001       c003                         59
+s001       c004                         58
+s005       c001                       81.9
+
+打印日期：2017.2.27 打印人：张赢
+
+8 rows selected.
+
+++关闭表头和表底：
+SQL> ttitle off
+SQL> btitle off
+SQL> select * from sc;
+
+SNO        CNO                       SCORE
+---------- -------------------- ----------
+s003       c001                       81.9
+s004       c001                       60.9
+s001       c002                       82.9
+s002       c002                       72.9
+s003       c002                       81.9
+s001       c003                         59
+s001       c004                         58
+s005       c001                       81.9
+
+8 rows selected.
+
+
