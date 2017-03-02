@@ -6167,4 +6167,27 @@ s001       c004               58
 
 8 rows selected.
 
+++等于号连接单行比较：
+SQL> r
+  1  select * from sc
+  2  where (sno, cno) = (
+  3     select sno, cno from sc where score = 81.9
+  4* and rownum = 1)
+
+SNO                            CNO                  SCORE
+------------------------------ ------------------------------ ----------
+s003                           c001                  81.9
+
+++in 操作连接多行比较：
+＋＋以下为多行多列实例：
+SQL> r
+  1  select * from sc
+  2  where (sno, cno) in (
+  3     select sno, cno from sc where score = 81.9
+  4* )
+
+SNO                            CNO                  SCORE
+------------------------------ ------------------------------ ----------
+s003                           c001                  81.9
+s003                           c002                  81.9
 
