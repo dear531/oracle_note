@@ -6190,4 +6190,39 @@ SNO                            CNO                  SCORE
 ------------------------------ ------------------------------ ----------
 s003                           c001                  81.9
 s003                           c002                  81.9
+++自然连接，以两个表的同名字段进行连接，oracle自动完成：
+++natural join
+SQL> r
+  1  select emp.empno, emp.ename, dept.dname
+  2  from emp natural join dept
+  3*
+
+     EMPNO ENAME DNAME
+---------- ----- --------------------
+      7782 CLARK ACCOUNTING
+      7839 KING  ACCOUNTING
+      7934 MILLE ACCOUNTING
+           R
+
+      7566 JONES RESEARCH
+      7902 FORD  RESEARCH
+      7876 ADAMS RESEARCH
+      7369 SMITH RESEARCH
+      7788 SCOTT RESEARCH
+      7521 WARD  SALES
+
+     EMPNO ENAME DNAME
+---------- ----- --------------------
+      7844 TURNE SALES
+           R
+
+      7499 ALLEN SALES
+      7900 JAMES SALES
+      7698 BLAKE SALES
+      7654 MARTI SALES
+           N
+
+
+14 rows selected.
+
 
