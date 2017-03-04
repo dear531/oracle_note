@@ -2240,4 +2240,55 @@ s005       c001                       81.9
 
 8 rows selected.
 
+++ascii函数以及chr函数，分别是将字符转成ascii码和ascii码转字符：
+SQL> select ascii('z'), chr(ascii('z') - 1) from dual;
+
+ASCII('Z') CHR
+---------- ---
+       122 y
+++连接字符串函数：哪个不为空返回哪个，都为空则返回空：
+SQL> select concat('Hello ', 'World!') information
+  2  from dual;
+
+INFORMATION
+------------------------------------
+Hello World!
+
+++将所有单词首字母大写函数：
+SQL> select initcap('oh my god!') information
+  2  from dual;
+
+INFORMATION
+------------------------------
+Oh My God!
+
+++搜索字串所在位置函数：
+++搜索'1'这个字串，在'oracle 11g'的第3个位置开始，第2次出现的位置：
+SQL> select instr('oracle 11g', '1', 3, 2) position
+  2  from dual;
+
+  POSITION
+----------
+         9
+++求字符串长度函数：
+++找到emp表中，ename列长度超过5的记录：
+SQL> select ename from emp where length(ename) > 5;
+
+ENAME
+----------
+MARTIN
+TURNER
+MILLER
+
+++去除字符函数：
+++第二个参数要传入，则去掉指定字符，不指定就默认去处空格
+SQL> r 
+  1  select ltrim('##east##', '#'), rtrim('##east##', '#'), trim(' east '), '
+east '
+  2* from dual
+
+LTRIM('##EAST##',' RTRIM('##EAST##',' TRIM('EAST') 'EAST'
+------------------ ------------------ ------------ ------------------
+east##             ##east             east          east
+
 
