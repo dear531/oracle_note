@@ -2330,4 +2330,27 @@ POWER(2,-3)
 -----------
        .125
 
+++日期函数：
+++返回系统日期函数：
+SQL> select sysdate from dual;
+
+SYSDATE
+---------------
+05-MAR-17
+
+++月份计算：
+＋＋将日期加上几个月之后得到的日期：
+SQL> select sysdate, add_months(sysdate, 6) from dual;
+
+SYSDATE         ADD_MONTHS(SYSD
+--------------- ---------------
+05-MAR-17       05-SEP-17
+
+++支持负数，表示减去几个月的意思：
+SQL> select sysdate, add_months(sysdate, -1) from dual;
+
+SYSDATE         ADD_MONTHS(SYSD
+--------------- ---------------
+05-MAR-17       05-FEB-17
+
 
