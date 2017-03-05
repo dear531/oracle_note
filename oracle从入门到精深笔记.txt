@@ -2291,4 +2291,43 @@ LTRIM('##EAST##',' RTRIM('##EAST##',' TRIM('EAST') 'EAST'
 ------------------ ------------------ ------------ ------------------
 east##             ##east             east          east
 
+++替换函数：
+++如果地三个参数不填，则默认将查找第二个字符替换为空：
+SQL> select replace('bad luck bad girl', 'bad', 'good')
+  2  from dual;
+
+REPLACE('BADLUCKBADGIRL','BAD','GOOD')
+---------------------------------------------------------
+good luck good girl
+
+++字符串截取函数：
+＋＋如果第三个参数省略，则默认取到字符串的结尾：
+SQL> select substr('12345678', 2, 3) from dual;
+
+SUBSTR('1
+---------
+234
+
+++返回大于或等于n的最小整数：
+SQL> select ceil(7.3), ceil(-7.3), ceil(7) from dual
+  2  ;
+
+ CEIL(7.3) CEIL(-7.3)    CEIL(7)
+---------- ---------- ----------
+         8         -7          7
+
+++四舍五入函数：
+SQL> select round(3.1415926,2) from dual;
+
+ROUND(3.1415926,2)
+------------------
+              3.14
+
+++乘方（幂）函数：
+SQL> select power(2, -3) from dual;
+
+POWER(2,-3)
+-----------
+       .125
+
 
