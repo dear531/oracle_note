@@ -2354,3 +2354,21 @@ SYSDATE         ADD_MONTHS(SYSD
 05-MAR-17       05-FEB-17
 
 
+++按表达式转成字符串：
+SQL> select sysdate as 默认格式日期,
+  2  to_char(sysdate, 'YYYY-MM-DD')
+  3  from dual;
+
+A格式日期       TO_CHAR(SYSDATE,'YYYY-MM-DD')
+--------------- ------------------------------
+09-MAR-17       2017-03-09
+
+++数字转换函数
+＋＋将ff的按两位16进制转成10进制数：
+SQL> select to_number('ff', 'xx') from dual;
+
+TO_NUMBER('FF','XX')
+--------------------
+                 255
+
+
