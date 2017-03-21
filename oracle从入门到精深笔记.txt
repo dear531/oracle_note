@@ -2389,3 +2389,90 @@ SQL> select empno, ename, sal
 6 rows selected.
 
 
+++保存点用法：
+++插入一条数据并设置保存点sp1
+SQL> insert into t1 (id, name, score)
+  2  values ('01', 't01', 99);
+
+1 row created.
+
+SQL> savepoint sp1;
+
+Savepoint created.
+
+＋＋查看本连接数据库状态，已经变化
+SQL> select * from t1;
+
+ID         NAME            SCORE
+---------- ---------- ----------
+01         t01                99
+           好
+++打开个新的数据库会话连接，并查询结果，数据库没有变化：
+SQL> select * from t1;
+
+ID         NAME            SCORE
+---------- ---------- ----------
+           好
+
+++说明事物未被提交，保存点只影响当前会话
+
+++再插入一条数据，并设置保存点
+SQL> insert into t1 (id, name, score)
+  2  values ('02', 't02', 98);
+
+1 row created.
+
+SQL> savepoint sp2;
+
+Savepoint created.
+
+SQL> select * from t1;
+
+ID         NAME            SCORE
+---------- ---------- ----------
+01         t01                99
+02         t02                98
+           好
+
+++会滚到前一个保存点sp1
+SQL> rollback to savepoint sp1;
+
+Rollback complete.
+
+＋＋查看回滚后的结果可以看出，内容变成了前一个保存点的内容：
+SQL> select * from t1;
+
+ID         NAME            SCORE
+---------- ---------- ----------
+01         t01                99
+           好
+
+++在另外一个回话中查询数据库结果，回滚到保存点不影响提交
+SQL> select * from t1;
+
+ID         NAME            SCORE
+---------- ---------- ----------
+           好
+
+++执行提交
+SQL> commit;
+
+Commit complete.
+
+++在当前连接中查询结果：
+SQL> select * from t1;
+
+ID         NAME            SCORE
+---------- ---------- ----------
+01         t01                99
+           好
+
+++在另外的回话中查询结果：
+SQL> select * from t1;
+
+ID         NAME            SCORE
+---------- ---------- ----------
+01         t01                99
+           好
+
+＋＋最终保存点的内容被最终提交到数据库了。
