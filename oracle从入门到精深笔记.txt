@@ -2371,4 +2371,21 @@ TO_NUMBER('FF','XX')
 --------------------
                  255
 
+++关联子查询，内层查询依赖外层查询提供的变量等：
+SQL> select empno, ename, sal
+  2  from emp f
+  3  where sal > (select avg(sal) from emp where job = f.job)
+  4  order by job;
+
+     EMPNO ENAME             SAL
+---------- ---------- ----------
+      7876 ADAMS            1100
+      7934 MILLER           1300
+      7566 JONES            2975
+      7698 BLAKE            2850
+      7499 ALLEN            1600
+      7844 TURNER           1500
+
+6 rows selected.
+
 
