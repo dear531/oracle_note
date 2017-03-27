@@ -2240,4 +2240,239 @@ s005       c001                       81.9
 
 8 rows selected.
 
+++ascii函数以及chr函数，分别是将字符转成ascii码和ascii码转字符：
+SQL> select ascii('z'), chr(ascii('z') - 1) from dual;
 
+ASCII('Z') CHR
+---------- ---
+       122 y
+++连接字符串函数：哪个不为空返回哪个，都为空则返回空：
+SQL> select concat('Hello ', 'World!') information
+  2  from dual;
+
+INFORMATION
+------------------------------------
+Hello World!
+
+++将所有单词首字母大写函数：
+SQL> select initcap('oh my god!') information
+  2  from dual;
+
+INFORMATION
+------------------------------
+Oh My God!
+
+++搜索字串所在位置函数：
+++搜索'1'这个字串，在'oracle 11g'的第3个位置开始，第2次出现的位置：
+SQL> select instr('oracle 11g', '1', 3, 2) position
+  2  from dual;
+
+  POSITION
+----------
+         9
+++求字符串长度函数：
+++找到emp表中，ename列长度超过5的记录：
+SQL> select ename from emp where length(ename) > 5;
+
+ENAME
+----------
+MARTIN
+TURNER
+MILLER
+
+++去除字符函数：
+++第二个参数要传入，则去掉指定字符，不指定就默认去处空格
+SQL> r 
+  1  select ltrim('##east##', '#'), rtrim('##east##', '#'), trim(' east '), '
+east '
+  2* from dual
+
+LTRIM('##EAST##',' RTRIM('##EAST##',' TRIM('EAST') 'EAST'
+------------------ ------------------ ------------ ------------------
+east##             ##east             east          east
+
+++替换函数：
+++如果地三个参数不填，则默认将查找第二个字符替换为空：
+SQL> select replace('bad luck bad girl', 'bad', 'good')
+  2  from dual;
+
+REPLACE('BADLUCKBADGIRL','BAD','GOOD')
+---------------------------------------------------------
+good luck good girl
+
+++字符串截取函数：
+＋＋如果第三个参数省略，则默认取到字符串的结尾：
+SQL> select substr('12345678', 2, 3) from dual;
+
+SUBSTR('1
+---------
+234
+
+++返回大于或等于n的最小整数：
+SQL> select ceil(7.3), ceil(-7.3), ceil(7) from dual
+  2  ;
+
+ CEIL(7.3) CEIL(-7.3)    CEIL(7)
+---------- ---------- ----------
+         8         -7          7
+
+++四舍五入函数：
+SQL> select round(3.1415926,2) from dual;
+
+ROUND(3.1415926,2)
+------------------
+              3.14
+
+++乘方（幂）函数：
+SQL> select power(2, -3) from dual;
+
+POWER(2,-3)
+-----------
+       .125
+
+++日期函数：
+++返回系统日期函数：
+SQL> select sysdate from dual;
+
+SYSDATE
+---------------
+05-MAR-17
+
+++月份计算：
+＋＋将日期加上几个月之后得到的日期：
+SQL> select sysdate, add_months(sysdate, 6) from dual;
+
+SYSDATE         ADD_MONTHS(SYSD
+--------------- ---------------
+05-MAR-17       05-SEP-17
+
+++支持负数，表示减去几个月的意思：
+SQL> select sysdate, add_months(sysdate, -1) from dual;
+
+SYSDATE         ADD_MONTHS(SYSD
+--------------- ---------------
+05-MAR-17       05-FEB-17
+
+
+++按表达式转成字符串：
+SQL> select sysdate as 默认格式日期,
+  2  to_char(sysdate, 'YYYY-MM-DD')
+  3  from dual;
+
+A格式日期       TO_CHAR(SYSDATE,'YYYY-MM-DD')
+--------------- ------------------------------
+09-MAR-17       2017-03-09
+
+++数字转换函数
+＋＋将ff的按两位16进制转成10进制数：
+SQL> select to_number('ff', 'xx') from dual;
+
+TO_NUMBER('FF','XX')
+--------------------
+                 255
+
+++关联子查询，内层查询依赖外层查询提供的变量等：
+SQL> select empno, ename, sal
+  2  from emp f
+  3  where sal > (select avg(sal) from emp where job = f.job)
+  4  order by job;
+
+     EMPNO ENAME             SAL
+---------- ---------- ----------
+      7876 ADAMS            1100
+      7934 MILLER           1300
+      7566 JONES            2975
+      7698 BLAKE            2850
+      7499 ALLEN            1600
+      7844 TURNER           1500
+
+6 rows selected.
+
+
+++保存点用法：
+++插入一条数据并设置保存点sp1
+SQL> insert into t1 (id, name, score)
+  2  values ('01', 't01', 99);
+
+1 row created.
+
+SQL> savepoint sp1;
+
+Savepoint created.
+
+＋＋查看本连接数据库状态，已经变化
+SQL> select * from t1;
+
+ID         NAME            SCORE
+---------- ---------- ----------
+01         t01                99
+           好
+++打开个新的数据库会话连接，并查询结果，数据库没有变化：
+SQL> select * from t1;
+
+ID         NAME            SCORE
+---------- ---------- ----------
+           好
+
+++说明事物未被提交，保存点只影响当前会话
+
+++再插入一条数据，并设置保存点
+SQL> insert into t1 (id, name, score)
+  2  values ('02', 't02', 98);
+
+1 row created.
+
+SQL> savepoint sp2;
+
+Savepoint created.
+
+SQL> select * from t1;
+
+ID         NAME            SCORE
+---------- ---------- ----------
+01         t01                99
+02         t02                98
+           好
+
+++会滚到前一个保存点sp1
+SQL> rollback to savepoint sp1;
+
+Rollback complete.
+
+＋＋查看回滚后的结果可以看出，内容变成了前一个保存点的内容：
+SQL> select * from t1;
+
+ID         NAME            SCORE
+---------- ---------- ----------
+01         t01                99
+           好
+
+++在另外一个回话中查询数据库结果，回滚到保存点不影响提交
+SQL> select * from t1;
+
+ID         NAME            SCORE
+---------- ---------- ----------
+           好
+
+++执行提交
+SQL> commit;
+
+Commit complete.
+
+++在当前连接中查询结果：
+SQL> select * from t1;
+
+ID         NAME            SCORE
+---------- ---------- ----------
+01         t01                99
+           好
+
+++在另外的回话中查询结果：
+SQL> select * from t1;
+
+ID         NAME            SCORE
+---------- ---------- ----------
+01         t01                99
+           好
+
+＋＋最终保存点的内容被最终提交到数据库了。
