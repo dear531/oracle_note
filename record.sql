@@ -1,9 +1,9 @@
 declare
 	type emp_type is record
 	(
-		var_ename varchar2(20),
-		var_job varchar2(20),
-		var_sal number
+		var_ename emp.ename%type,
+		var_job emp.job%type,
+		var_sal emp.sal%type
 	);
 	empinfo emp_type;
 begin
