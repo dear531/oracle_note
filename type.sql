@@ -1,3 +1,4 @@
+/* scott用户模式 */
 declare
 	var_ename emp.ename%type;
 	var_job emp.job%type;

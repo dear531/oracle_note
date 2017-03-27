@@ -1,3 +1,4 @@
+/* scott用户模式 */
 declare
 	rowVar_emp emp%rowtype;
 begin

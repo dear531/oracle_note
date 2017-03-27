@@ -1,3 +1,4 @@
+/* scott用户模式 */
 declare
 	type emp_type is record
 	(
