@@ -12,7 +12,7 @@ declare
 	);
 	emp_row record_emp;
 begin
-	open cur_emp('MANAGER');
+	open cur_emp();
 	fetch cur_emp into emp_row;
 	while cur_emp%found loop
 		dbms_output.put_line(emp_row.var_ename||'的编号是'||emp_row.var_empno||'，工资是'||emp_row.var_sal);
