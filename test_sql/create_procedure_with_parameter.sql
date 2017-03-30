@@ -35,3 +35,35 @@ PROCEDURE insert_dept
  VAR_LOC                        VARCHAR2                IN
 
 */
+
+/*
+通过execute命令执行及其所需变量的定义方法：
+
+SQL> variable var_dname varchar2(50);
+SQL> variable var_loc varchar2(50);
+SQL> execute select_dept(81, :var_dname, :var_loc);
+
+PL/SQL procedure successfully completed.
+
+SQL> print var_dname var_loc;
+
+VAR_DNAME
+--------------------------------------------------------------------------------
+81name
+
+
+VAR_LOC
+--------------------------------------------------------------------------------
+81loc
+
+SQL> select :var_dname, :var_loc 
+  2  from dual;
+
+:VAR_DNAME
+--------------------------------------------------------------------------------
+:VAR_LOC
+--------------------------------------------------------------------------------
+81name
+81loc
+
+*/
