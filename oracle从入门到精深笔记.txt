@@ -2476,3 +2476,87 @@ ID         NAME            SCORE
            好
 
 ＋＋最终保存点的内容被最终提交到数据库了。
+
+++查看控制文件参数值：
+SQL> show parameter control_files;
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+control_files                        string
+/home/oracle/app/oradata/orcl/
+control01.ctl, /home/oracle/ap
+p/recovery_area/orcl/control02
+.ctl
+
+++修改控制文件参数：
+SQL> l  
+  1  alter system set control_files=
+  2  '/home/oracle/app/oradata/orcl/control01.ctl',
+  3  '/home/oracle/app/recovery_area/orcl/control02.ctl',
+  4  '/home/oracle/tmp/oraclefiles/controlfiles/control03.ctl'
+  5* scope=spfile
+SQL> /
+
+System altered.
+
+SQL> show  parameter control_files;
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+control_files                        string
+/home/oracle/app/oradata/orcl/
+control01.ctl, /home/oracle/ap
+p/recovery_area/orcl/control02
+.ctl
+
+++并没有发生什么改变，现在停止数据库复制文件再重启：
+
+++停止数据库
+SQL> shutdown immediate
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+
+++复制文件
+[oracle@ctos oracle]$ cp /home/oracle/app/oradata/orcl/control01.ctl /home/oracle/tmp/oraclefiles/controlfiles/control03.ctl
+
+
+SQL> startup 
+ORACLE instance started.
+
+Total System Global Area  839282688 bytes
+Fixed Size                  2217992 bytes
+Variable Size             650119160 bytes
+Database Buffers          180355072 bytes
+Redo Buffers                6590464 bytes
+Database mounted.
+Database opened.
+
+++查询结果:
+SQL> select name from v$controlfile; 
+
+NAME
+--------------------------------------------------------------------------------
+/home/oracle/app/oradata/orcl/control01.ctl
+/home/oracle/app/recovery_area/orcl/control02.ctl
+/home/oracle/tmp/oraclefiles/controlfiles/control03.ctl
+
+++参数也相应的变过来了：
+SQL> show  parameter control_files;
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+control_files                        string
+/home/oracle/app/oradata/orcl/
+control01.ctl, /home/oracle/ap
+p/recovery_area/orcl/control02
+.ctl, /home/oracle/tmp/oraclef
+iles/controlfiles/control03.ct
+l
+
