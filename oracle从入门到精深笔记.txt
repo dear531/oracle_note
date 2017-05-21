@@ -2817,3 +2817,19 @@ SQL> r
 Control file created.
 
 --以上代码，database关键字后面的数据库名字要求于spfile文件中的db_name参数值一致，noresetlogs选项表示仍然使用原有重做日志文件，如果不希望使用原有日志文件与控制文件一起丢失，则可指定resetlogs，logfile选项用于指定数据库原有重做日志的组号、大小以及对应的日志成员，dataffile用于指定数据库原有的数据文件。
+
+++通过编辑spfile文件这个哦你的初始化参数control_files，使其指向新的控制文件：
+SQL> alter system set control_files=
+  2  '/home/oracle/app/oradata/orcl/control01.ctl',
+  3  '/home/oracle/app/recovery_area/orcl/control02.ctl',
+  4  '/home/oracle/tmp/oraclefiles/controlfiles/control03.ctl'
+  5  scope=spfile;
+
+System altered.
+
+++打开数据库：
+SQL> alter database open;
+
+Database altered.
+
+
