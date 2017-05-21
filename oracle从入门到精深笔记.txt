@@ -2560,3 +2560,260 @@ p/recovery_area/orcl/control02
 iles/controlfiles/control03.ct
 l
 
+++直接创建数据库日志文件：
+++查看日志文件列表视图：
+
+SQL> select member from v$logfile;
+
+MEMBER
+--------------------------------------------------------------------------------
+/home/oracle/app/oradata/orcl/redo03.log
+/home/oracle/app/oradata/orcl/redo02.log
+/home/oracle/app/oradata/orcl/redo01.log
+
+++查看数据文件：
+
+SQL> select name from v$datafile;
+
+NAME
+--------------------------------------------------------------------------------
+/home/oracle/app/oradata/orcl/system01.dbf
+/home/oracle/app/oradata/orcl/sysaux01.dbf
+/home/oracle/app/oradata/orcl/undotbs01.dbf
+/home/oracle/app/oradata/orcl/users01.dbf
+
+
+++查看数据库文件字段信息：
+
+SQL> select * from v$controlfile_record_section;
+
+TYPE
+--------------------------------------------------------------------------------
+RECORD_SIZE RECORDS_TOTAL RECORDS_USED FIRST_INDEX LAST_INDEX LAST_RECID
+----------- ------------- ------------ ----------- ---------- ----------
+DATABASE
+        316             1            1           0          0          0
+
+CKPT PROGRESS
+       8180            11            0           0          0          0
+
+REDO THREAD
+        256             8            1           0          0          0
+
+
+TYPE
+--------------------------------------------------------------------------------
+RECORD_SIZE RECORDS_TOTAL RECORDS_USED FIRST_INDEX LAST_INDEX LAST_RECID
+----------- ------------- ------------ ----------- ---------- ----------
+REDO LOG
+         72            16            3           0          0          3
+
+DATAFILE
+        520           100            4           0          0         39
+
+FILENAME
+        524          2298            8           0          0          0
+
+
+TYPE
+--------------------------------------------------------------------------------
+RECORD_SIZE RECORDS_TOTAL RECORDS_USED FIRST_INDEX LAST_INDEX LAST_RECID
+----------- ------------- ------------ ----------- ---------- ----------
+TABLESPACE
+         68           100            5           0          0          1
+
+TEMPORARY FILENAME
+         56           100            1           0          0          1
+
+RMAN CONFIGURATION
+       1108            50            0           0          0          0
+
+
+TYPE
+--------------------------------------------------------------------------------
+RECORD_SIZE RECORDS_TOTAL RECORDS_USED FIRST_INDEX LAST_INDEX LAST_RECID
+----------- ------------- ------------ ----------- ---------- ----------
+LOG HISTORY
+         56           292           51           1         51         51
+
+OFFLINE RANGE
+        200           163            0           0          0          0
+
+ARCHIVED LOG
+        584            28            0           0          0          0
+
+
+TYPE
+--------------------------------------------------------------------------------
+RECORD_SIZE RECORDS_TOTAL RECORDS_USED FIRST_INDEX LAST_INDEX LAST_RECID
+----------- ------------- ------------ ----------- ---------- ----------
+BACKUP SET
+         40           409           31           1         31         31
+
+BACKUP PIECE
+        736           200           31           1         31         31
+
+BACKUP DATAFILE
+        200           245           76           1         76         76
+
+
+TYPE
+--------------------------------------------------------------------------------
+RECORD_SIZE RECORDS_TOTAL RECORDS_USED FIRST_INDEX LAST_INDEX LAST_RECID
+----------- ------------- ------------ ----------- ---------- ----------
+BACKUP REDOLOG
+         76           215            0           0          0          0
+
+DATAFILE COPY
+        736           200           60           1         60         60
+
+BACKUP CORRUPTION
+         44           371            0           0          0          0
+
+
+TYPE
+--------------------------------------------------------------------------------
+RECORD_SIZE RECORDS_TOTAL RECORDS_USED FIRST_INDEX LAST_INDEX LAST_RECID
+----------- ------------- ------------ ----------- ---------- ----------
+COPY CORRUPTION
+         40           409            0           0          0          0
+
+DELETED OBJECT
+         20           818           56           1         56         56
+
+PROXY COPY
+        928           246            0           0          0          0
+
+
+TYPE
+--------------------------------------------------------------------------------
+RECORD_SIZE RECORDS_TOTAL RECORDS_USED FIRST_INDEX LAST_INDEX LAST_RECID
+----------- ------------- ------------ ----------- ---------- ----------
+BACKUP SPFILE
+        124           131           16           1         16         16
+
+DATABASE INCARNATION
+         56           292            2           1          2          2
+
+FLASHBACK LOG
+         84          2048            0           0          0          0
+
+
+TYPE
+--------------------------------------------------------------------------------
+RECORD_SIZE RECORDS_TOTAL RECORDS_USED FIRST_INDEX LAST_INDEX LAST_RECID
+----------- ------------- ------------ ----------- ---------- ----------
+RECOVERY DESTINATION
+        180             1            1           0          0          0
+
+INSTANCE SPACE RESERVATION
+         28          1055            1           0          0          0
+
+REMOVABLE RECOVERY FILES
+         32          1000           29           0          0          0
+
+
+TYPE
+--------------------------------------------------------------------------------
+RECORD_SIZE RECORDS_TOTAL RECORDS_USED FIRST_INDEX LAST_INDEX LAST_RECID
+----------- ------------- ------------ ----------- ---------- ----------
+RMAN STATUS
+        116           141           76           1         76         76
+
+THREAD INSTANCE NAME MAPPING
+         80             8            8           0          0          0
+
+MTTR
+        100             8            0           0          0          0
+
+
+TYPE
+--------------------------------------------------------------------------------
+RECORD_SIZE RECORDS_TOTAL RECORDS_USED FIRST_INDEX LAST_INDEX LAST_RECID
+----------- ------------- ------------ ----------- ---------- ----------
+DATAFILE HISTORY
+        568            57            0           0          0          0
+
+STANDBY DATABASE MATRIX
+        400            31           31           0          0          0
+
+GUARANTEED RESTORE POINT
+        212          2048            0           0          0          0
+
+
+TYPE
+--------------------------------------------------------------------------------
+RECORD_SIZE RECORDS_TOTAL RECORDS_USED FIRST_INDEX LAST_INDEX LAST_RECID
+----------- ------------- ------------ ----------- ---------- ----------
+RESTORE POINT
+        212          2083            0           0          0          0
+
+DATABASE BLOCK CORRUPTION
+         80          8384            0           0          0          0
+
+ACM OPERATION
+        104            64            6           0          0          0
+
+
+TYPE
+--------------------------------------------------------------------------------
+RECORD_SIZE RECORDS_TOTAL RECORDS_USED FIRST_INDEX LAST_INDEX LAST_RECID
+----------- ------------- ------------ ----------- ---------- ----------
+FOREIGN ARCHIVED LOG
+        604          1002            0           0          0          0
+
+
+37 rows selected.
+
+
+
+++查看控制文件数据字典视图：
+
+SQL> select name from v$controlfile;
+
+NAME
+--------------------------------------------------------------------------------
+/home/oracle/app/oradata/orcl/control01.ctl
+/home/oracle/app/recovery_area/orcl/control02.ctl
+/home/oracle/tmp/oraclefiles/controlfiles/control03.ctl
+
+++关闭数据库：
+SQL> shutdown immediate
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+
+++启动实例不启动数据库：启动数据库，数据库就会操作日志文件，所有不启动数据库：
+
+SQL> startup nomount
+ORACLE instance started.
+
+Total System Global Area  839282688 bytes
+Fixed Size                  2217992 bytes
+Variable Size             650119160 bytes
+Database Buffers          180355072 bytes
+Redo Buffers                6590464 bytes
+
+++重建控制文件，使用原有文件:
+SQL> r 
+  1  create controlfile
+  2  reuse database "orcl"
+  3  logfile
+  4  group 1 '/home/oracle/app/oradata/orcl/redo01.log',
+  5  group 2 '/home/oracle/app/oradata/orcl/redo02.log',
+  6  group 3 '/home/oracle/app/oradata/orcl/redo03.log'
+  7  datafile
+  8  '/home/oracle/app/oradata/orcl/system01.dbf',
+  9  '/home/oracle/app/oradata/orcl/sysaux01.dbf',
+ 10  '/home/oracle/app/oradata/orcl/undotbs01.dbf',
+ 11  '/home/oracle/app/oradata/orcl/users01.dbf'
+ 12  maxlogfiles 50
+ 13  maxlogmembers 3
+ 14  maxinstances 6
+ 15  maxdatafiles 200
+ 16  noresetlogs
+ 17* noarchivelog
+
+Control file created.
+
+--以上代码，database关键字后面的数据库名字要求于spfile文件中的db_name参数值一致，noresetlogs选项表示仍然使用原有重做日志文件，如果不希望使用原有日志文件与控制文件一起丢失，则可指定resetlogs，logfile选项用于指定数据库原有重做日志的组号、大小以及对应的日志成员，dataffile用于指定数据库原有的数据文件。
