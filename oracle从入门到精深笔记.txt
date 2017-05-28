@@ -3043,3 +3043,53 @@ control01.ctl, /home/oracle/ap
 p/recovery_area/orcl/control02
 .ctl
 
+++控制文件常用数据字典：
+++查看控制文件的名字和大小
+SQL> select * from v$controlfile;
+
+STATUS                NAME                 IS_RECOVE BLOCK_SIZE FILE_SIZE_BLKS
+--------------------- -------------------- --------- ---------- --------------
+                      /home/oracle/app/ora NO             16384            736
+                      data/orcl/control01.
+                      ctl
+
+                      /home/oracle/app/rec NO             16384            736
+                      overy_area/orcl/cont
+                      rol02.ctl
+++包含控制文件各个记录文档段的信息：
+SQL> describe v$controlfile_record_section;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ TYPE                                               VARCHAR2(28)
+ RECORD_SIZE                                        NUMBER
+ RECORDS_TOTAL                                      NUMBER
+ RECORDS_USED                                       NUMBER
+ FIRST_INDEX                                        NUMBER
+ LAST_INDEX                                         NUMBER
+ LAST_RECID                                         NUMBER
+
+SQL> select type, record_size, records_total  
+  2  , records_used from v$controlfile_record_section;
+
+TYPE
+--------------------------------------------------------------------------------
+RECORD_SIZE RECORDS_TOTAL RECORDS_USED
+----------- ------------- ------------
+DATABASE
+        316             1            1
+++以上为数据库总数1个，使用一个，大小为316
+
+++v$parameter视图包含了控制文件参数名字和值
+SQL> select name, value from v$parameter where name = 'control_files';
+
+NAME
+--------------------
+VALUE
+--------------------------------------------------------------------------------
+control_files
+/home/oracle/app/oradata/orcl/control01.ctl,
+/home/oracle/app/recovery_area/orcl
+/control02.ctl
+
+
