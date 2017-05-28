@@ -2832,4 +2832,214 @@ SQL> alter database open;
 
 Database altered.
 
+++备份数据库：
+＋＋(1)备份数据库成为二进制文件备份：
+SQL> alter database backup controlfile
+  2  to '/home/oracle/tmp/oraclefiles/controlfiles/control.ctl.backup';
+
+Database altered.
+
+＋＋原控制文件和备份的二进制控制文件的对比：
+++文件大小一样大：
+[oracle@ctos oracle]$ ls
+/home/oracle/tmp/oraclefiles/controlfiles/control03.ctl
+/home/oracle/tmp/oraclefiles/controlfiles/control.ctl.backup -l
+-rw-r----- 1 oracle oracle 12075008 05-28 09:36
+/home/oracle/tmp/oraclefiles/controlfiles/control03.ctl
+-rw-rw---- 1 oracle oracle 12075008 05-28 09:33
+/home/oracle/tmp/oraclefiles/controlfiles/control.ctl.backup
+
+++md5sum校验和不同
+[oracle@ctos oracle]$ md5sum
+/home/oracle/tmp/oraclefiles/controlfiles/control03.ctl
+/home/oracle/tmp/oraclefiles/controlfiles/control.ctl.backup
+6591569419150de635a5e2a088cb265b
+/home/oracle/tmp/oraclefiles/controlfiles/control03.ctl
+f97ba2de20e85a004e5145aa7482daf2
+/home/oracle/tmp/oraclefiles/controlfiles/control.ctl.backup
+[oracle@ctos oracle]$ 
+
+
+++(2) 备份成为控制脚本文件：
+
+++创建备份脚本控制文件：
+SQL> alter database backup controlfile to trace;
+
+Database altered.
+
+++查看备份控制脚本文件所在位置
+SQL> show parameter user_dump_dest;  
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+user_dump_dest                       string
+/home/oracle/app/diag/rdbms/or
+cl/orcl/trace
+SQL>    
+
+++事实上这是个拥有很多脚本的目录文件：
+[oracle@ctos trace]$ pwd
+/home/oracle/app/diag/rdbms/orcl/orcl/trace
+
+
+++发生控制文件损坏的，进行文件恢复：
+
+++现关闭数据库，修改下现有控制文件的文件名，模仿控制文件损坏：
+
+++关闭数据库：
+SQL> shutdown immediate
+ORA-01109: database not open
+
+
+Database dismounted.
+ORACLE instance shut down.
+
+++通过系统视图查看都有哪些控制文件：
+SQL> select name from v$controlfile;
+
+NAME
+--------------------------------------------------------------------------------
+/home/oracle/app/oradata/orcl/control01.ctl
+/home/oracle/app/recovery_area/orcl/control02.ctl
+/home/oracle/tmp/oraclefiles/controlfiles/control03.ctl
+
+++修改数据库控制文件名称：
+mv /home/oracle/tmp/oraclefiles/controlfiles/control03.ctl
+/home/oracle/tmp/oraclefiles/controlfiles/control03.ctl.tmp
+
+＋＋启动数据库， 会提示数据库控制文件有错误
+SQL> startup
+ORACLE instance started.
+
+Total System Global Area  839282688 bytes
+Fixed Size                  2217992 bytes
+Variable Size             650119160 bytes
+Database Buffers          180355072 bytes
+Redo Buffers                6590464 bytes
+ORA-00205: error in identifying control file, check alert log for more info
+
+
+SQL> startup
+ 
+++查看数据库状态：
+
+++实例已经开启：
+SQL> select status from v$instance;
+
+STATUS
+------------------------------------
+STARTED
+
+++但数据库并没有加载：
+SQL> select open_mode from v$database;
+select open_mode from v$database
+                      *
+ERROR at line 1:
+ORA-01507: database not mounted
+
+++将控制文件文件名恢复为原有的名字：
+[oracle@ctos trace]$ mv
+/home/oracle/tmp/oraclefiles/controlfiles/control03.ctl.tmp
+/home/oracle/tmp/oraclefiles/controlfiles/control03.ctl
+
+++可以正确打开了：
+SQL> alter database mount;
+
+Database altered.
+
+SQL> alter database open;
+
+Database altered.
+
+＋＋验证查询状态：
+SQL> select status from v$instance;
+
+STATUS
+------------------------------------
+OPEN
+
+
+SQL> select open_mode from v$database;
+
+OPEN_MODE
+------------------------------------------------------------
+READ WRITE
+
+++实例和数据库状态查看：
+
+++由打开状态变为关闭状态：
+SQL> select open_mode from v$database;
+
+OPEN_MODE
+------------------------------------------------------------
+READ WRITE
+
+SQL> alter database close;
+
+
+Database altered.
+
+SQL> select open_mode from v$database;
+
+OPEN_MODE
+------------------------------------------------------------
+MOUNTED
+
+SQL> select status from v$instance;
+
+STATUS
+------------------------------------
+MOUNTED
+
+＋＋删除控制文件：
+
+＋＋先在只启动实例的情况修改control_files系统参数：
+
+SQL> select status from v$instance;
+
+STATUS
+------------------------------------
+STARTED
+
+
+SQL> r
+  1  alter system set control_files=
+  2  '/home/oracle/app/oradata/orcl/control01.ctl',
+  3  '/home/oracle/app/recovery_area/orcl/control02.ctl'
+  4* scope=spfile
+
+System altered.
+
+＋＋重启数据库：
+
+SQL> shutdown immediate;
+ORA-01507: database not mounted
+
+
+ORACLE instance shut down.
+SQL> startup    
+ORACLE instance started.
+
+Total System Global Area  839282688 bytes
+Fixed Size                  2217992 bytes
+Variable Size             650119160 bytes
+Database Buffers          180355072 bytes
+Redo Buffers                6590464 bytes
+Database mounted.
+intDatabase opened.
+
+++查看控制文件参数，已经被更改了，oracle已经从逻辑上删除了该控制文件
+SQL> show parameter control_files;
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+control_files                        string
+/home/oracle/app/oradata/orcl/
+control01.ctl, /home/oracle/ap
+p/recovery_area/orcl/control02
+.ctl
 
