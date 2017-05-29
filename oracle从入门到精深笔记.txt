@@ -3093,3 +3093,218 @@ control_files
 /control02.ctl
 
 
+++重做日志文件：
+
+＋＋查看重做日志文件视图：
+SQL> describe v$logfile;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ GROUP#                                             NUMBER
+ STATUS                                             VARCHAR2(7)
+ TYPE                                               VARCHAR2(7)
+ MEMBER                                             VARCHAR2(513)
+ IS_RECOVERY_DEST_FILE                              VARCHAR2(3)
+
+SQL> select * from v$logfile;
+
+    GROUP# STATUS                TYPE
+---------- --------------------- ---------------------
+MEMBER
+--------------------------------------------------------------------------------
+IS_RECOVE
+---------
+         1 STALE                 ONLINE
+/home/oracle/app/oradata/orcl/redo01.log
+NO
+
+         3 STALE                 ONLINE
+/home/oracle/app/oradata/orcl/redo03.log
+NO
+
+    GROUP# STATUS                TYPE
+---------- --------------------- ---------------------
+MEMBER
+--------------------------------------------------------------------------------
+IS_RECOVE
+---------
+
+         2                       ONLINE
+/home/oracle/app/oradata/orcl/redo02.log
+NO
+
+＋＋添加重做日志文件组：
+SQL> alter database add logfile
+  2  ('/home/oracle/app/oradata/orcl/redo04_a.log',
+  3  '/home/oracle/app/oradata/orcl/redo04_b.log')
+  4  size 20m;
+
+Database altered.
+
+++查看重做日志成员所在的视图，结果已经被添加上：
+SQL> select member from v$logfile;
+
+MEMBER
+--------------------------------------------------------------------------------
+/home/oracle/app/oradata/orcl/redo01.log
+/home/oracle/app/oradata/orcl/redo03.log
+/home/oracle/app/oradata/orcl/redo02.log
+/home/oracle/app/oradata/orcl/redo04_a.log
+/home/oracle/app/oradata/orcl/redo04_b.log
+
+++指定新的重做日志文件组，组编号指定为5，不指定系统自动递增
+＋＋指定时一定要连续组编号，否则消耗控制文件空间
+
+SQL> alter database add logfile group 5
+  2  ('/home/oracle/app/oradata/orcl/redo05_a.log',
+  3  '/home/oracle/app/oradata/orcl/redo05_b.log')
+  4  size 20m;
+
+Database altered.
+
+++指定重做日志组及相应组号成功：
+SQL> r
+  1* select group#, member from v$logfile
+
+    GROUP# MEMBER
+---------- --------------------------------------------------
+         1 /home/oracle/app/oradata/orcl/redo01.log
+         3 /home/oracle/app/oradata/orcl/redo03.log
+         2 /home/oracle/app/oradata/orcl/redo02.log
+         4 /home/oracle/app/oradata/orcl/redo04_a.log
+         4 /home/oracle/app/oradata/orcl/redo04_b.log
+         5 /home/oracle/app/oradata/orcl/redo05_a.log
+         5 /home/oracle/app/oradata/orcl/redo05_b.log
+
+7 rows selected.
+
+++添加重做日志文件：
+SQL> alter database add logfile
+  2  '/home/oracle/app/oradata/orcl/redo06.log'
+  3  size 30m;
+
+Database altered.
+
+++删除重做日志文件：
+SQL> alter database drop logfile    
+  2  '/home/oracle/app/oradata/orcl/redo06.log';
+
+Database altered.
+
+++重用重做日志文件：
+SQL> alter database add logfile
+  2  '/home/oracle/app/oradata/orcl/redo06.log'
+  3  reuse;
+
+Database altered.
+
+++向已有的重做日志文件组中添加新的重做日志文件：
+SQL> alter database add logfile member   
+  2  '/home/oracle/app/oradata/orcl/redo04_c.log'   
+  3  to group 4;
+
+Database altered.
+
+SQL> select group#, member from v$logfile;
+
+    GROUP# MEMBER
+---------- --------------------------------------------------
+         1 /home/oracle/app/oradata/orcl/redo01.log
+         3 /home/oracle/app/oradata/orcl/redo03.log
+         2 /home/oracle/app/oradata/orcl/redo02.log
+         4 /home/oracle/app/oradata/orcl/redo04_a.log
+         4 /home/oracle/app/oradata/orcl/redo04_b.log
+         5 /home/oracle/app/oradata/orcl/redo05_a.log
+         5 /home/oracle/app/oradata/orcl/redo05_b.log
+         6 /home/oracle/app/oradata/orcl/redo06.log
+         4 /home/oracle/app/oradata/orcl/redo04_c.log
+
+9 rows selected.
+
+++根据原有重做日志文件名字，向其所在的重做日志文件组增加成员：
+SQL> alter database add logfile member
+  2  '/home/oracle/app/oradata/orcl/redo02_new.log'
+  3  to ('/home/oracle/app/oradata/orcl/redo02.log');
+
+Database altered.
+
+SQL> select status, member from v$logfile;
+
+STATUS                MEMBER
+--------------------- --------------------------------------------------
+STALE                 /home/oracle/app/oradata/orcl/redo01.log
+STALE                 /home/oracle/app/oradata/orcl/redo03.log
+                      /home/oracle/app/oradata/orcl/redo02.log
+                      /home/oracle/app/oradata/orcl/redo04_a.log
+                      /home/oracle/app/oradata/orcl/redo04_b.log
+                      /home/oracle/app/oradata/orcl/redo05_a.log
+                      /home/oracle/app/oradata/orcl/redo05_b.log
+                      /home/oracle/app/oradata/orcl/redo06.log
+INVALID               /home/oracle/app/oradata/orcl/redo04_c.log
+INVALID               /home/oracle/app/oradata/orcl/redo02_new.log
+
+10 rows selected.
+
+++删除重做日志文件：
+
+SQL> alter database drop logfile member
+  2  '/home/oracle/app/oradata/orcl/redo04_c.log';
+
+Database altered.
+
+SQL> select member from v$logfile;
+
+MEMBER
+--------------------------------------------------
+/home/oracle/app/oradata/orcl/redo01.log
+/home/oracle/app/oradata/orcl/redo03.log
+/home/oracle/app/oradata/orcl/redo02.log
+/home/oracle/app/oradata/orcl/redo04_a.log
+/home/oracle/app/oradata/orcl/redo04_b.log
+/home/oracle/app/oradata/orcl/redo05_a.log
+/home/oracle/app/oradata/orcl/redo05_b.log
+/home/oracle/app/oradata/orcl/redo06.log
+/home/oracle/app/oradata/orcl/redo02_new.log
+
+9 rows selected.
+
+++删除重做文件组：
+
+＋＋删除重做文件组的前后的对比：
+
+SQL> select group#, member from v$logfile;
+
+    GROUP# MEMBER
+---------- --------------------------------------------------
+         1 /home/oracle/app/oradata/orcl/redo01.log
+         3 /home/oracle/app/oradata/orcl/redo03.log
+         2 /home/oracle/app/oradata/orcl/redo02.log
+         4 /home/oracle/app/oradata/orcl/redo04_a.log
+         4 /home/oracle/app/oradata/orcl/redo04_b.log
+         5 /home/oracle/app/oradata/orcl/redo05_a.log
+         5 /home/oracle/app/oradata/orcl/redo05_b.log
+         6 /home/oracle/app/oradata/orcl/redo06.log
+         2 /home/oracle/app/oradata/orcl/redo02_new.log
+
+9 rows selected.
+
+SQL> alter database drop logfile group 6;
+
+Database altered.
+
+SQL> select group#, member from v$logfile;
+
+    GROUP# MEMBER
+---------- --------------------------------------------------
+         1 /home/oracle/app/oradata/orcl/redo01.log
+         3 /home/oracle/app/oradata/orcl/redo03.log
+         2 /home/oracle/app/oradata/orcl/redo02.log
+         4 /home/oracle/app/oradata/orcl/redo04_a.log
+         4 /home/oracle/app/oradata/orcl/redo04_b.log
+         5 /home/oracle/app/oradata/orcl/redo05_a.log
+         5 /home/oracle/app/oradata/orcl/redo05_b.log
+         2 /home/oracle/app/oradata/orcl/redo02_new.log
+
+8 rows selected.
+
+
