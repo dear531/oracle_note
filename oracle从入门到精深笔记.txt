@@ -3307,4 +3307,431 @@ SQL> select group#, member from v$logfile;
 
 8 rows selected.
 
+++清空归档日志：
+SQL> alter database clear logfile group 4;
+
+Database altered.
+
+++清空没有归档的重做日志：
+
+SQL> alter database clear unarchived logfile group 4;
+
+Database altered.
+
+++日志文件的修改：
+
+++打开数据库：
+SQL> startup mount;
+ORACLE instance started.
+
+Total System Global Area  839282688 bytes
+Fixed Size                  2217992 bytes
+Variable Size             650119160 bytes
+Database Buffers          180355072 bytes
+Redo Buffers                6590464 bytes
+Database mounted.
+
+++复制重做日志文件：
+[oracle@ctos trace]$ cp /home/oracle/app/oradata/orcl/redo04_a.log
+/home/oracle/app/oradata/orcl/redo04_c.log
+[oracle@ctos trace]$ cp /home/oracle/app/oradata/orcl/redo04_b.log
+/home/oracle/app/oradata/orcl/redo04_d.log
+
+++修改重做日志文件：
+SQL> alter database rename file
+  2  '/home/oracle/app/oradata/orcl/redo04_a.log',
+  3  '/home/oracle/app/oradata/orcl/redo04_b.log'
+  4  to  
+  5  '/home/oracle/app/oradata/orcl/redo04_c.log',
+  6  '/home/oracle/app/oradata/orcl/redo04_d.log';
+
+Database altered.
+
+++查看修改结果：
+SQL> select group#, member from v$logfile;
+
+    GROUP# MEMBER
+---------- --------------------------------------------------
+         1 /home/oracle/app/oradata/orcl/redo01.log
+         3 /home/oracle/app/oradata/orcl/redo03.log
+         2 /home/oracle/app/oradata/orcl/redo02.log
+         4 /home/oracle/app/oradata/orcl/redo04_c.log
+         4 /home/oracle/app/oradata/orcl/redo04_d.log
+         5 /home/oracle/app/oradata/orcl/redo05_a.log
+         5 /home/oracle/app/oradata/orcl/redo05_b.log
+         2 /home/oracle/app/oradata/orcl/redo02_new.log
+
+8 rows selected.
+
+++显示控制文件中的日志文件信息：
+SQL> describe v$log;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ GROUP#                                             NUMBER
+ THREAD#                                            NUMBER
+ SEQUENCE#                                          NUMBER
+ BYTES                                              NUMBER
+ BLOCKSIZE                                          NUMBER
+ MEMBERS                                            NUMBER
+ ARCHIVED                                           VARCHAR2(3)
+ STATUS                                             VARCHAR2(16)
+ FIRST_CHANGE#                                      NUMBER
+ FIRST_TIME                                         DATE
+ NEXT_CHANGE#                                       NUMBER
+ NEXT_TIME                                          DATE
+
+group#:日志文件组编号
+sequece#:日志序列号：
+status:日志组的状态，包括current,inactive,active
+first_change#重做日志组上一次写入时的变更码（scn）
+
+++日志组和日志成员信息视图：
+SQL> select member from v$logfile;
+
+MEMBER
+--------------------------------------------------
+/home/oracle/app/oradata/orcl/redo01.log
+/home/oracle/app/oradata/orcl/redo03.log
+/home/oracle/app/oradata/orcl/redo02.log
+/home/oracle/app/oradata/orcl/redo04_c.log
+/home/oracle/app/oradata/orcl/redo04_d.log
+/home/oracle/app/oradata/orcl/redo05_a.log
+/home/oracle/app/oradata/orcl/redo05_b.log
+/home/oracle/app/oradata/orcl/redo02_new.log
+
+8 rows selected.
+
+++日志历史信息：
+SQL> select * from v$log_history;
+
+     RECID      STAMP    THREAD#  SEQUENCE# FIRST_CHANGE# FIRST_TIME
+---------- ---------- ---------- ---------- ------------- ---------------
+NEXT_CHANGE# RESETLOGS_CHANGE# RESETLOGS_TIME
+------------ ----------------- ---------------
+         1  944604805          1         52       2382374 10-MAY-17
+     2397107            945184 06-JAN-17
+
+
+++管理归档日志文件：
+++查询数据归档状态：
+SQL> select log_mode from v$database;
+
+LOG_MODE
+------------------------------------
+NOARCHIVELOG
+
+++查询数据库状态，使其处于mount状态：
+SQL> select status from v$instance;
+
+STATUS
+------------------------------------
+MOUNTED
+
+SQL> select open_mode from v$database;
+
+OPEN_MODE
+------------------------------------------------------------
+MOUNTED
+
+SQL> select open_mode from v$database;
+
+OPEN_MODE
+------------------------------------------------------------
+MOUNTED
+
+++注意，如果数据库是关闭重启之后mount状态的，在关闭时不能使用shutdown abort
+
+++切换日志归档模式：
+SQL> alter database archivelog;
+
+Database altered.
+
+++打开数据库：
+SQL> alter database open;
+
+Database altered.
+
+++查看数据归档状态：
+++处于归档状态：
+SQL> archive log list;
+Database log mode              Archive Mode
+Automatic archival             Enabled
+Archive destination            USE_DB_RECOVERY_FILE_DEST
+Oldest online log sequence     51
+Next log sequence to archive   53
+Current log sequence           53
+
+++处于非归档状态：
+SQL> archive log list;      
+Database log mode              No Archive Mode
+Automatic archival             Disabled
+Archive destination            USE_DB_RECOVERY_FILE_DEST
+Oldest online log sequence     51
+Current log sequence           53
+
+++配置归档进程：
+SQL> alter system set log_archive_max_processes=3;
+
+System altered.
+++不修改，缺省设置为两个。
+
+++设置归档目标，即归档文件所在的位置：
+SQL> alter system set log_archive_dest_1='location=/home/oracle/tmp/archive1';
+
+System altered.
+
+++optional:无论归档是否成功，都可以覆盖重做文件：
+SQL> alter system set log_archive_dest_1='location=/home/oracle/tmp/archive1
+optional';
+
+System altered.
+
+++mandatory:只有归档成功之后，重做日志才能够被覆盖：
+SQL> alter system set log_archive_dest_1='location=/home/oracle/tmp/archive1
+mandatory';
+
+System altered.
+
+++reopen 设置重新归档时间间隔为400秒，reopen要紧跟在mandatory之后。
+SQL> alter system set log_archive_dest_1='location=/home/oracle/tmp/archive1
+mandatory reopen=400';
+
+System altered.
+
+++设置本地成功归档文件的最小个数
+SQL> alter system set log_archive_min_succeed_dest=3;
+
+System altered.
+
+++如果成功生成归档日志文件少于3个，重做日志将不被覆盖。
+
+++设置归档目标是否可用：
+
+SQL> alter system set log_archive_dest_2='location=/home/oracle/tmp/archive2
+mandatory';
+
+System altered.
+
+SQL> alter system set log_archive_dest_state_2 = defer;
+
+System altered.
+
+++查看归档日志信息：
+++查询数据库是否归档
+SQL> describe v$database;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ DBID                                               NUMBER
+ NAME                                               VARCHAR2(9)
+ CREATED                                            DATE
+ RESETLOGS_CHANGE#                                  NUMBER
+ RESETLOGS_TIME                                     DATE
+ PRIOR_RESETLOGS_CHANGE#                            NUMBER
+ PRIOR_RESETLOGS_TIME                               DATE
+ LOG_MODE                                           VARCHAR2(12)
+ CHECKPOINT_CHANGE#                                 NUMBER
+ ARCHIVE_CHANGE#                                    NUMBER
+ CONTROLFILE_TYPE                                   VARCHAR2(7)
+ CONTROLFILE_CREATED                                DATE
+ CONTROLFILE_SEQUENCE#                              NUMBER
+ CONTROLFILE_CHANGE#                                NUMBER
+ CONTROLFILE_TIME                                   DATE
+ OPEN_RESETLOGS                                     VARCHAR2(11)
+ VERSION_TIME                                       DATE
+ OPEN_MODE                                          VARCHAR2(20)
+ PROTECTION_MODE                                    VARCHAR2(20)
+ PROTECTION_LEVEL                                   VARCHAR2(20)
+ REMOTE_ARCHIVE                                     VARCHAR2(8)
+ ACTIVATION#                                        NUMBER
+ SWITCHOVER#                                        NUMBER
+ DATABASE_ROLE                                      VARCHAR2(16)
+ ARCHIVELOG_CHANGE#                                 NUMBER
+ ARCHIVELOG_COMPRESSION                             VARCHAR2(8)
+ SWITCHOVER_STATUS                                  VARCHAR2(20)
+ DATAGUARD_BROKER                                   VARCHAR2(8)
+ GUARD_STATUS                                       VARCHAR2(7)
+ SUPPLEMENTAL_LOG_DATA_MIN                          VARCHAR2(8)
+ SUPPLEMENTAL_LOG_DATA_PK                           VARCHAR2(3)
+ SUPPLEMENTAL_LOG_DATA_UI                           VARCHAR2(3)
+ FORCE_LOGGING                                      VARCHAR2(3)
+ PLATFORM_ID                                        NUMBER
+ PLATFORM_NAME                                      VARCHAR2(101)
+ RECOVERY_TARGET_INCARNATION#                       NUMBER
+ LAST_OPEN_INCARNATION#                             NUMBER
+ CURRENT_SCN                                        NUMBER
+ FLASHBACK_ON                                       VARCHAR2(18)
+ SUPPLEMENTAL_LOG_DATA_FK                           VARCHAR2(3)
+ SUPPLEMENTAL_LOG_DATA_ALL                          VARCHAR2(3)
+ DB_UNIQUE_NAME                                     VARCHAR2(30)
+ STANDBY_BECAME_PRIMARY_SCN                         NUMBER
+ FS_FAILOVER_STATUS                                 VARCHAR2(22)
+ FS_FAILOVER_CURRENT_TARGET                         VARCHAR2(30)
+ FS_FAILOVER_THRESHOLD                              NUMBER
+ FS_FAILOVER_OBSERVER_PRESENT                       VARCHAR2(7)
+ FS_FAILOVER_OBSERVER_HOST                          VARCHAR2(512)
+ CONTROLFILE_CONVERTED                              VARCHAR2(3)
+ PRIMARY_DB_UNIQUE_NAME                             VARCHAR2(30)
+ SUPPLEMENTAL_LOG_DATA_PL                           VARCHAR2(3)
+ MIN_REQUIRED_CAPTURE_CHANGE#                       NUMBER
+
+++控制文件所有归档信息：
+
+SQL> describe v$archived_log;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ RECID                                              NUMBER
+ STAMP                                              NUMBER
+ NAME                                               VARCHAR2(513)
+ DEST_ID                                            NUMBER
+ THREAD#                                            NUMBER
+ SEQUENCE#                                          NUMBER
+ RESETLOGS_CHANGE#                                  NUMBER
+ RESETLOGS_TIME                                     DATE
+ RESETLOGS_ID                                       NUMBER
+ FIRST_CHANGE#                                      NUMBER
+ FIRST_TIME                                         DATE
+ NEXT_CHANGE#                                       NUMBER
+ NEXT_TIME                                          DATE
+ BLOCKS                                             NUMBER
+ BLOCK_SIZE                                         NUMBER
+ CREATOR                                            VARCHAR2(7)
+ REGISTRAR                                          VARCHAR2(7)
+ STANDBY_DEST                                       VARCHAR2(3)
+ ARCHIVED                                           VARCHAR2(3)
+ APPLIED                                            VARCHAR2(9)
+ DELETED                                            VARCHAR2(3)
+ STATUS                                             VARCHAR2(1)
+ COMPLETION_TIME                                    DATE
+ DICTIONARY_BEGIN                                   VARCHAR2(3)
+ DICTIONARY_END                                     VARCHAR2(3)
+ END_OF_REDO                                        VARCHAR2(3)
+ BACKUP_COUNT                                       NUMBER
+ ARCHIVAL_THREAD#                                   NUMBER
+ ACTIVATION#                                        NUMBER
+ IS_RECOVERY_DEST_FILE                              VARCHAR2(3)
+ COMPRESSED                                         VARCHAR2(3)
+ FAL                                                VARCHAR2(3)
+ END_OF_REDO_TYPE                                   VARCHAR2(10)
+ BACKED_BY_VSS                                      VARCHAR2(3)
+
+++归档目标信息：
+
+SQL> describe v$archive_dest;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ DEST_ID                                            NUMBER
+ DEST_NAME                                          VARCHAR2(256)
+ STATUS                                             VARCHAR2(9)
+ BINDING                                            VARCHAR2(9)
+ NAME_SPACE                                         VARCHAR2(7)
+ TARGET                                             VARCHAR2(7)
+ ARCHIVER                                           VARCHAR2(10)
+ SCHEDULE                                           VARCHAR2(8)
+ DESTINATION                                        VARCHAR2(256)
+ LOG_SEQUENCE                                       NUMBER
+ REOPEN_SECS                                        NUMBER
+ DELAY_MINS                                         NUMBER
+ MAX_CONNECTIONS                                    NUMBER
+ NET_TIMEOUT                                        NUMBER
+ PROCESS                                            VARCHAR2(10)
+ REGISTER                                           VARCHAR2(3)
+ FAIL_DATE                                          DATE
+ FAIL_SEQUENCE                                      NUMBER
+ FAIL_BLOCK                                         NUMBER
+ FAILURE_COUNT                                      NUMBER
+ MAX_FAILURE                                        NUMBER
+ ERROR                                              VARCHAR2(256)
+ ALTERNATE                                          VARCHAR2(256)
+ DEPENDENCY                                         VARCHAR2(256)
+ REMOTE_TEMPLATE                                    VARCHAR2(256)
+ QUOTA_SIZE                                         NUMBER
+ QUOTA_USED                                         NUMBER
+ MOUNTID                                            NUMBER
+ TRANSMIT_MODE                                      VARCHAR2(12)
+ ASYNC_BLOCKS                                       NUMBER
+ AFFIRM                                             VARCHAR2(3)
+ TYPE                                               VARCHAR2(7)
+ VALID_NOW                                          VARCHAR2(16)
+ VALID_TYPE                                         VARCHAR2(15)
+ VALID_ROLE                                         VARCHAR2(12)
+ DB_UNIQUE_NAME                                     VARCHAR2(30)
+ VERIFY                                             VARCHAR2(3)
+ COMPRESSION                                        VARCHAR2(7)
+
+++包含已启动的arcn进程信息：
+SQL> describe v$archive_processes;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ PROCESS                                            NUMBER
+ STATUS                                             VARCHAR2(10)
+ LOG_SEQUENCE                                       NUMBER
+ STATE                                              VARCHAR2(4)
+
+++包含已经备份的归档日志信息：
+SQL> describe v$archive_processes;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ PROCESS                                            NUMBER
+ STATUS                                             VARCHAR2(10)
+ LOG_SEQUENCE                                       NUMBER
+ STATE                                              VARCHAR2(4)
+
+++显示所有的归档目标参数名称：
+SQL> select dest_name from v$archive_dest;
+
+DEST_NAME
+--------------------------------------------------------------------------------
+LOG_ARCHIVE_DEST_1
+LOG_ARCHIVE_DEST_2
+LOG_ARCHIVE_DEST_3
+LOG_ARCHIVE_DEST_4
+LOG_ARCHIVE_DEST_5
+LOG_ARCHIVE_DEST_6
+LOG_ARCHIVE_DEST_7
+LOG_ARCHIVE_DEST_8
+LOG_ARCHIVE_DEST_9
+LOG_ARCHIVE_DEST_10
+LOG_ARCHIVE_DEST_11
+
+DEST_NAME
+--------------------------------------------------------------------------------
+LOG_ARCHIVE_DEST_12
+LOG_ARCHIVE_DEST_13
+LOG_ARCHIVE_DEST_14
+LOG_ARCHIVE_DEST_15
+LOG_ARCHIVE_DEST_16
+LOG_ARCHIVE_DEST_17
+LOG_ARCHIVE_DEST_18
+LOG_ARCHIVE_DEST_19
+LOG_ARCHIVE_DEST_20
+LOG_ARCHIVE_DEST_21
+LOG_ARCHIVE_DEST_22
+
+DEST_NAME
+--------------------------------------------------------------------------------
+LOG_ARCHIVE_DEST_23
+LOG_ARCHIVE_DEST_24
+LOG_ARCHIVE_DEST_25
+LOG_ARCHIVE_DEST_26
+LOG_ARCHIVE_DEST_27
+LOG_ARCHIVE_DEST_28
+LOG_ARCHIVE_DEST_29
+LOG_ARCHIVE_DEST_30
+LOG_ARCHIVE_DEST_31
+
+31 rows selected.
+
+＋＋显示数据库的归档信息：
+SQL> archive log list;
+Database log mode              No Archive Mode
+Automatic archival             Disabled
+Archive destination            /home/oracle/tmp/archive2
+Oldest online log sequence     51
+Current log sequence           53
 
