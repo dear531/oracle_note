@@ -3735,3 +3735,100 @@ Archive destination            /home/oracle/tmp/archive2
 Oldest online log sequence     51
 Current log sequence           53
 
+++表空间对应数据文件关系：
+SQL> column tablespace_name for a10
+SQL> column file_name for a50
+SQL> column bytes for 999,999,999
+SQL> r
+  1  select tablespace_name, file_name,
+  2  bytes from dba_data_files
+  3  order by tablespace_name
+  4*
+
+TABLESPACE FILE_NAME                                                 BYTES
+---------- -------------------------------------------------- ------------
+SYSAUX     /home/oracle/app/oradata/orcl/sysaux01.dbf          566,231,040
+SYSTEM     /home/oracle/app/oradata/orcl/system01.dbf          713,031,680
+UNDOTBS1   /home/oracle/app/oradata/orcl/undotbs01.dbf          99,614,720
+USERS      /home/oracle/app/oradata/orcl/users01.dbf             5,242,880
+
+++users表空间的内容，scott用户的索引和表：
+
+++通过本地化管理方式local创建一个大小为10MB的表空间，其扩展大小为等同的256kb：
+
+SQL> create tablespace tbs_test1 datafile
+'/home/oracle/app/oradata/orcl/datafile1.dbf'
+  2  size 10m           
+  3  extent management local uniform size 256k;
+
+Tablespace created.
+
+
+SQL> select segment_type, segment_name,
+  2  owner from dba_segments
+  3  where tablespace_name = 'USERS';
+
+SEGMENT_TYPE         SEGMENT_NAME                   OWNER
+-------------------- ------------------------------ ----------
+TABLE                DEPT                           SCOTT
+TABLE                EMP                            SCOTT
+TABLE                SALGRADE                       SCOTT
+INDEX                PK_DEPT                        SCOTT
+INDEX                PK_EMP                         SCOTT
+
+＋＋sysaux表空间所存放的用户及这些用户拥有的对象数量
+
+SQL> column 用户 format a30
+SQL> r
+  1  select owner as 用户, count(segment_name) as 对象数量 from dba_segments
+  2* where tablespace_name = 'SYSAUX' group by owner
+
+用户                           对象数量
+------------------------------ --------
+MDSYS                               262
+CTXSYS                               53
+OLAPSYS                              58
+SYSTEM                              149
+EXFSYS                               58
+APEX_030200                         467
+DBSNMP                               23
+ORDSYS                                7
+SYSMAN                              828
+XDB                                 885
+ORDDATA                             148
+
+用户                           对象数量
+------------------------------ --------
+SYS                                 888
+WMSYS                                49
+
+13 rows selected.
+
+++通过本地化管理方式local创建一个大小为10mb的表空间，其扩展大小为等同的256kb
+
+SQL> create tablespace tbs_test1 datafile
+'/home/oracle/app/oradata/orcl/datafile1.dbf'
+  2  size 10m           
+  3  extent management local uniform size 256k;
+
+Tablespace created.
+
+++查看文件，已经被创建
+[oracle@ctos oracle]$ ls -lh /home/oracle/app/oradata/orcl/datafile1.dbf 
+-rw-rw---- 1 oracle oracle 11M 06-03 22:42
+/home/oracle/app/oradata/orcl/datafile1.dbf
+
+++通过本地化管理方式local创建一个大小为10mb的表空间，其扩展大小为自动管理，扩展大小的方式与上条不同
+
+SQL> create tablespace tbs_test2 datafile
+'/home/oracle/app/oradata/orcl/datafile2.dbf'
+  2  size 10m
+  3  extent management local autoallocate;
+
+Tablespace created.
+
+++查看创建的表空间文件：
+[oracle@ctos oracle]$ ls -lh /home/oracle/app/oradata/orcl/datafile2.dbf
+-rw-rw---- 1 oracle oracle 11M 06-03 22:49
+/home/oracle/app/oradata/orcl/datafile2.dbf
+
