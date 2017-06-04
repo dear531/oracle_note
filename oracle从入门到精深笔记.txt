@@ -3907,3 +3907,258 @@ Database altered.
 -rw-rw---- 1 oracle oracle 71M 06-04 11:34
 /home/oracle/app/oradata/orcl/bigfile.dbf
 
+++表空间维护
+
+＋＋查询当前数据库临时表空间的表空间名字以及表文件名对应的是哪一个：
+
+SQL> select tablespace_name,file_name,bytes/1024/1024 file_size,autoextensible
+from dba_temp_files;
+
+TABLESPACE FILE_NAME                                           FILE_SIZE
+---------- -------------------------------------------------- ----------
+AUTOEXTEN
+---------
+TEMP       /home/oracle/app/oradata/orcl/temp01.dbf                   29
+YES
+
+
+++创建临时表空间temp_1，加上重用选项
+SQL> create temporary tablespace temp_1
+  2  tempfile '/home/oracle/app/oradata/orcl/temp_1.dbf'
+  3  size 20m
+  4  reuse
+  5  autoextend on
+  6  next 20m maxsize 20480m
+  7  extent management local;
+
+Tablespace created.
+
+++将临时表空间temp_1设置为默认的临时表空间：
+
+SQL> alter database default temporary tablespace temp_1;
+
+Database altered.
+
+＋＋查看系统用户默认的临时表空间：
+
+SQL> r
+  1  select username,default_tablespace,temporary_tablespace
+  2* from dba_users
+
+USERNAME             DEFAULT_TABLESPACE   TEMPORARY_TABLESPACE
+-------------------- -------------------- --------------------
+MGMT_VIEW            SYSTEM               TEMP_1
+SYS                  SYSTEM               TEMP_1
+SYSTEM               SYSTEM               TEMP_1
+DBSNMP               SYSAUX               TEMP_1
+SYSMAN               SYSAUX               TEMP_1
+SCOTT                USERS                TEMP_1
+OUTLN                SYSTEM               TEMP_1
+FLOWS_FILES          SYSAUX               TEMP_1
+MDSYS                SYSAUX               TEMP_1
+ORDSYS               SYSAUX               TEMP_1
+EXFSYS               SYSAUX               TEMP_1
+
+USERNAME             DEFAULT_TABLESPACE   TEMPORARY_TABLESPACE
+-------------------- -------------------- --------------------
+WMSYS                SYSAUX               TEMP_1
+APPQOSSYS            SYSAUX               TEMP_1
+APEX_030200          SYSAUX               TEMP_1
+OWBSYS_AUDIT         SYSAUX               TEMP_1
+ORDDATA              SYSAUX               TEMP_1
+CTXSYS               SYSAUX               TEMP_1
+ANONYMOUS            SYSAUX               TEMP_1
+XDB                  SYSAUX               TEMP_1
+ORDPLUGINS           SYSAUX               TEMP_1
+OWBSYS               SYSAUX               TEMP_1
+SI_INFORMTN_SCHEMA   SYSAUX               TEMP_1
+
+USERNAME             DEFAULT_TABLESPACE   TEMPORARY_TABLESPACE
+-------------------- -------------------- --------------------
+OLAPSYS              SYSAUX               TEMP_1
+ORACLE_OCM           USERS                TEMP_1
+XS$NULL              USERS                TEMP_1
+MDDATA               USERS                TEMP_1
+DIP                  USERS                TEMP_1
+APEX_PUBLIC_USER     USERS                TEMP_1
+SPATIAL_CSW_ADMIN_US USERS                TEMP_1
+R
+
+SPATIAL_WFS_ADMIN_US USERS                TEMP_1
+R
+
+USERNAME             DEFAULT_TABLESPACE   TEMPORARY_TABLESPACE
+-------------------- -------------------- --------------------
+
+
+30 rows selected.
+
+
+++创建表空间tbs_example
+
+SQL> create tablespace tbs_example   
+  2  datafile '/home/oracle/app/oradata/orcl/tbs_example.dbf'
+  3  size 20m
+  4  extent management local autoallocate
+  5  segment space management auto;
+
+Tablespace created.
+
+++将表空间tbs_example设置为默认的永久表空间：
+
+SQL> alter database default tablespace tbs_example;
+
+Database altered.
+
+
+++查询变更的结果：
+
+SQL> select username,default_tablespace,temporary_tablespace
+  2  from dba_users;
+
+USERNAME             DEFAULT_TABLESPACE   TEMPORARY_TABLESPACE
+-------------------- -------------------- --------------------
+SCOTT                TBS_EXAMPLE          TEMP_1
+ORACLE_OCM           TBS_EXAMPLE          TEMP_1
+XS$NULL              TBS_EXAMPLE          TEMP_1
+MDDATA               TBS_EXAMPLE          TEMP_1
+DIP                  TBS_EXAMPLE          TEMP_1
+APEX_PUBLIC_USER     TBS_EXAMPLE          TEMP_1
+SPATIAL_CSW_ADMIN_US TBS_EXAMPLE          TEMP_1
+R
+
+SPATIAL_WFS_ADMIN_US TBS_EXAMPLE          TEMP_1
+R
+
+USERNAME             DEFAULT_TABLESPACE   TEMPORARY_TABLESPACE
+-------------------- -------------------- --------------------
+
+DBSNMP               SYSAUX               TEMP_1
+SYSMAN               SYSAUX               TEMP_1
+FLOWS_FILES          SYSAUX               TEMP_1
+MDSYS                SYSAUX               TEMP_1
+ORDSYS               SYSAUX               TEMP_1
+EXFSYS               SYSAUX               TEMP_1
+WMSYS                SYSAUX               TEMP_1
+APPQOSSYS            SYSAUX               TEMP_1
+APEX_030200          SYSAUX               TEMP_1
+OWBSYS_AUDIT         SYSAUX               TEMP_1
+
+USERNAME             DEFAULT_TABLESPACE   TEMPORARY_TABLESPACE
+-------------------- -------------------- --------------------
+ORDDATA              SYSAUX               TEMP_1
+CTXSYS               SYSAUX               TEMP_1
+ANONYMOUS            SYSAUX               TEMP_1
+XDB                  SYSAUX               TEMP_1
+ORDPLUGINS           SYSAUX               TEMP_1
+OWBSYS               SYSAUX               TEMP_1
+SI_INFORMTN_SCHEMA   SYSAUX               TEMP_1
+OLAPSYS              SYSAUX               TEMP_1
+MGMT_VIEW            SYSTEM               TEMP_1
+SYS                  SYSTEM               TEMP_1
+SYSTEM               SYSTEM               TEMP_1
+
+USERNAME             DEFAULT_TABLESPACE   TEMPORARY_TABLESPACE
+-------------------- -------------------- --------------------
+OUTLN                SYSTEM               TEMP_1
+
+30 rows selected.
+
+
+++设置表空的状态，读写
+
+SQL> alter tablespace tbs_test1 read only;
+
+Tablespace altered.
+
+++查看设置好的状态：
+SQL> select STATUS from dba_tablespaces where
+  2  tablespace_name = 'TBS_TEST1';
+
+STATUS
+---------------------------
+READ ONLY
+
+＋＋设置成功，已为只读
+
+
+
+++重命名表空间：
+
+＋＋查看表空间名字及状态：
+SQL> r
+  1* select STATUS, tablespace_name from dba_tablespaces
+
+STATUS                      TABLESPACE_NAME
+--------------------------- --------------------
+ONLINE                      SYSTEM
+ONLINE                      SYSAUX
+ONLINE                      UNDOTBS1
+ONLINE                      TEMP
+ONLINE                      USERS
+READ ONLY                   TBS_TEST1
+ONLINE                      TBS_TEST2
+ONLINE                      TBS_TEST3
+ONLINE                      TBS_TEST_4
+ONLINE                      TBS_TEST_5
+ONLINE                      TBS_TEST_BIG
+
+STATUS                      TABLESPACE_NAME
+--------------------------- --------------------
+ONLINE                      TEMP_1
+ONLINE                      TBS_EXAMPLE
+
+13 rows selected.
+
+++修改其中是在线状态的：
+
+SQL> alter tablespace TBS_TEST2 rename to tbs_test2_new;
+
+Tablespace altered.
+
+++修改是只读状态的：
+SQL> alter tablespace TBS_TEST1 rename to tbs_test1_new; 
+
+Tablespace altered.
+
+++修改后查询：
+SQL> select STATUS, tablespace_name from dba_tablespaces
+  2  ;
+
+STATUS                      TABLESPACE_NAME
+--------------------------- --------------------
+ONLINE                      SYSTEM
+ONLINE                      SYSAUX
+ONLINE                      UNDOTBS1
+ONLINE                      TEMP
+ONLINE                      USERS
+READ ONLY                   TBS_TEST1_NEW
+ONLINE                      TBS_TEST2_NEW
+ONLINE                      TBS_TEST3
+ONLINE                      TBS_TEST_4
+ONLINE                      TBS_TEST_5
+ONLINE                      TBS_TEST_BIG
+
+STATUS                      TABLESPACE_NAME
+--------------------------- --------------------
+ONLINE                      TEMP_1
+ONLINE                      TBS_EXAMPLE
+
+13 rows selected.
+
+++删除表空间：
+
+SQL> drop tablespace TBS_TEST_BIG
+  2  including contents
+  3  cascade constraints;
+
+Tablespace dropped.
+
+＋＋including contents删除表空间同时删除表中的数据，不指定而且表中有数据时
+＋＋oralce会提示错误，并且不执行删除表空间
+
+++cascade constraints删除表空间同时删除完整性限制，如果不指定，而且完整性存在
+＋＋oracle提示错误，并且不执行删除表空间
+
+
+
