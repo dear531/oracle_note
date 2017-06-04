@@ -3855,4 +3855,55 @@ SQL> create tablespace tbs_test_4 datafile
 
 Tablespace created.
 
+++创建非标准块表空间：
+
+＋＋创建一个16k的块表空间：
+＋＋设置共享内存为16m
+
+SQL> alter system set db_16k_cache_size = 16m scope=both;
+
+System altered.
+
+++创建非标准块的表空间，块大小为16k，标准块的两倍
+SQL> create tablespace tbs_test_5 datafile
+'/home/oracle/app/oradata/orcl/datafile5.dbf'
+  2  size 64m reuse
+  3  autoextend on next 4m maxsize unlimited
+  4  blocksize 16k
+  5  extent management local autoallocate
+  6  segment space management auto;
+
+Tablespace created.
+
+++创建大文件表空间：
+
+SQL> create bigfile tablespace tbs_test_big datafile
+'/home/oracle/app/oradata/orcl/bigfile.dbf'
+  2  size 500m;
+
+Tablespace created.
+
+++查看表空间文件：
+
+[oracle@ctos oracle]$ ls /home/oracle/app/oradata/orcl/bigfile.dbf -lh
+-rw-rw---- 1 oracle oracle 501M 06-04 10:56
+/home/oracle/app/oradata/orcl/bigfile.dbf
+
+++删除大文件表空间及其所拥有的数据：
+SQL> drop tablespace tbs_test_big including contents and datafiles;
+
+Tablespace dropped.
+
+
+++修改大文件表空间大小：
+
+SQL> alter database datafile '/home/oracle/app/oradata/orcl/bigfile.dbf'
+  2  resize 70m;
+
+Database altered.
+
+＋＋查看文件：
+[oracle@ctos oracle]$ ls -lh /home/oracle/app/oradata/orcl/bigfile.dbf
+-rw-rw---- 1 oracle oracle 71M 06-04 11:34
+/home/oracle/app/oradata/orcl/bigfile.dbf
 
