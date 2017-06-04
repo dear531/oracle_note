@@ -3832,3 +3832,27 @@ Tablespace created.
 -rw-rw---- 1 oracle oracle 11M 06-03 22:49
 /home/oracle/app/oradata/orcl/datafile2.dbf
 
+++通过本地化管理方式local创建一个表空间，其扩展大小为自动管理，其段空间管理方式为手动：
+SQL> create tablespace tbs_test3 datafile
+'/home/oracle/app/oradata/orcl/datafile3.dbf'
+  2  size 20m
+  3  extent management local autoallocate
+  4  segment space management manual;
+
+Tablespace created.
+
+[oracle@ctos oracle]$ ls -lh /home/oracle/app/oradata/orcl/datafile3.dbf
+-rw-rw---- 1 oracle oracle 21M 06-04 09:57
+/home/oracle/app/oradata/orcl/datafile3.dbf
+
+++通过本地化管理方式local创建一个大小为20mb的表空间，其扩展大小为自动管理，其段空间管理方式为自动：
+
+SQL> create tablespace tbs_test_4 datafile
+'/home/oracle/app/oradata/orcl/datafile4.dbf'
+  2  size 20m
+  3  extent management local autoallocate
+  4  segment space management auto;
+
+Tablespace created.
+
+
