@@ -4161,4 +4161,54 @@ Tablespace dropped.
 ＋＋oracle提示错误，并且不执行删除表空间
 
 
+++向表空间添加和删除数据文件：
+++向表空间users添加数据文件
+
+SQL> alter tablespace users    
+  2  add datafile '/home/oracle/app/oradata/orcl/users02.dbf'   
+  3  size 10m autoextend on next 5m maxsize unlimited;
+
+Tablespace altered.
+
+
+++以表空间名为USERS查询oracle系统文件信息:
+
+SQL> r
+  1  select file_name, tablespace_name
+  2  from dba_data_files
+  3* where tablespace_name = 'USERS'
+
+FILE_NAME
+--------------------------------------------------------------------------------
+TABLESPACE_NAME
+--------------------
+/home/oracle/app/oradata/orcl/users01.dbf
+USERS
+
+/home/oracle/app/oradata/orcl/users02.dbf
+USERS
+
+
+++删除表空间中没有数据的文件，有数据的无法删除：
+
+SQL> alter tablespace users drop datafile  
+  2  '/home/oracle/app/oradata/orcl/users02.dbf';
+
+Tablespace altered.
+
+
+++查询oracle系统文件信息表，user02.dbf已经从表空间users中删掉
+
+SQL> r
+  1  select file_name, tablespace_name
+  2  from dba_data_files
+  3* where tablespace_name = 'USERS'
+
+FILE_NAME
+--------------------------------------------------------------------------------
+TABLESPACE_NAME
+--------------------
+/home/oracle/app/oradata/orcl/users01.dbf
+USERS
+
 
