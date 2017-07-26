@@ -4211,4 +4211,235 @@ TABLESPACE_NAME
 /home/oracle/app/oradata/orcl/users01.dbf
 USERS
 
+++查看表空间是否是自动扩展：
+
+SQL> r
+  1  select file_name, autoextensible
+  2* from dba_data_files
+
+FILE_NAME
+--------------------------------------------------------------------------------
+AUTOEXTEN
+---------
+/home/oracle/app/oradata/orcl/users01.dbf
+YES
+
+/home/oracle/app/oradata/orcl/undotbs01.dbf
+YES
+
+/home/oracle/app/oradata/orcl/sysaux01.dbf
+YES
+
+
+FILE_NAME
+--------------------------------------------------------------------------------
+AUTOEXTEN
+---------
+/home/oracle/app/oradata/orcl/system01.dbf
+YES
+
+
+++修改表的自动扩展属性：
+SQL> alter database datafile    
+  2  '/home/oracle/app/oradata/orcl/system01.dbf'
+  3  autoextend on next 10m maxsize unlimited;
+
+Database altered.
+
+++undo表空间参数：
+
+SQL> show parameter undo_tablespace;
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+undo_tablespace                      string
+UNDOTBS1
+SQL> show parameter undo_management;
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+undo_management                      string
+AUTO
+SQL> show parameter undo_retention;
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+undo_retention                       integer
+900
+
+++撤销表空间基本操作：
+＋＋创建undo表：
+
+SQL> create undo tablespace undo_tbs_1
+  2  datafile '/home/oracle/app/oradata/orcl/undotbs1.dbf'
+  3  size 100m;
+
+++给插销表空间增加表空间文件：
+
+SQL> alter tablespace undo_tbs_1
+  2  add datafile '/home/oracle/app/oradata/orcl/undotbs2.dbf'
+  3  size 1g;
+
+Tablespace altered.
+
+++切换ysystem用户默认表空间为刚创建的撤销表空间：
+
+SQL> alter system set undo_tablespace = undo_tbs_1;
+
+System altered.
+
+++查询撤销表空间参数：
+SQL> show parameter undo_tablespace;
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+undo_tablespace                      string
+UNDO_TBS_1
+
+++查询表空间当中的文件：
+SQL> r
+  1  select file_name, tablespace_name
+  2  from dba_data_files
+  3* where tablespace_name = 'UNDO_TBS_1'
+
+FILE_NAME
+--------------------------------------------------------------------------------
+TABLESPACE_NAME
+--------------------------------------------------------------------------------
+/home/oracle/app/oradata/orcl/undotbs1.dbf
+UNDO_TBS_1
+
+/home/oracle/app/oradata/orcl/undotbs2.dbf
+UNDO_TBS_1
+
+++修改undo_tablespace默认表空间的为oracle系统默认的undotbs1
+SQL> alter system set undo_tablespace=undotbs1
+  2  ;
+
+System altered.
+
+++查看参数修改：
+SQL> show parameter undo_tablespace;
+
+NAME                                 TYPE
+------------------------------------ ---------------------------------
+VALUE
+------------------------------
+undo_tablespace                      string
+UNDOTBS1
+
+++查看当前实例拥有的所有undo表空间：
+SQL> select tablespace_name from dba_tablespaces where contents = 'UNDO';
+
+TABLESPACE_NAME
+--------------------------------------------------------------------------------
+UNDOTBS1
+UNDO_TBS_1
+
+++统计undo表空间中"回退块"的生成信息，通过查询v$undostat搜集undo统计信息：
+
+SQL> r  
+  1  select to_char(begin_time, 'hh24:mi:ss') as 开始时间,
+  2  to_char(end_time, 'hh24:mi:ss') as 结束时间,
+  3  undoblks as 回退块数
+  4  from v$undostat
+  5* order by begin_time
+
+开始时间                 结束时间                   回退块数
+------------------------ ------------------------ ----------
+16:42:46                 10:22:46                          0
+10:22:46                 10:32:46                         29
+10:32:46                 10:42:46                        929
+10:42:46                 10:52:46                         12
+10:52:46                 11:02:46                         27
+11:02:46                 11:12:46                         16
+11:12:46                 11:22:46                          7
+11:22:46                 11:32:46                          9
+11:32:46                 11:42:46                          7
+11:42:46                 11:52:46                          6
+11:52:46                 12:02:46                         32
+
+开始时间                 结束时间                   回退块数
+------------------------ ------------------------ ----------
+12:02:46                 12:12:46                          7
+12:12:46                 12:22:46                          7
+12:22:46                 12:32:46                          5
+12:32:46                 12:42:46                          9
+12:42:46                 12:52:46                         11
+12:52:46                 13:02:46                         28
+13:02:46                 13:12:46                          6
+13:12:46                 13:22:46                          9
+13:22:46                 13:32:46                          5
+13:32:46                 13:42:46                         10
+13:42:46                 13:52:46                          9
+
+开始时间                 结束时间                   回退块数
+------------------------ ------------------------ ----------
+13:52:46                 14:02:46                         26
+14:02:46                 14:12:46                          8
+14:12:46                 14:22:46                         10
+14:22:46                 14:32:46                          8
+14:32:46                 14:42:46                          7
+14:42:46                 14:52:46                          6
+14:52:46                 15:02:46                         34
+15:02:46                 15:12:46                          6
+15:12:46                 15:22:46                          7
+15:22:46                 15:32:46                          8
+15:32:46                 15:42:46                          9
+
+开始时间                 结束时间                   回退块数
+------------------------ ------------------------ ----------
+15:42:46                 15:52:46                          5
+15:52:46                 16:02:46                         35
+16:02:46                 16:12:46                          8
+16:12:46                 16:22:46                         12
+16:22:46                 16:32:46                         14
+16:32:46                 16:36:27                          0
+
+39 rows selected.
+++通过以上信息，可以看出，oracle每隔10分钟生成一次统计信息。
+
+++通过联合v$rollname和v$rollstat视图，查询undo段的统计信息
+＋＋name标识undo动态段的名称
+＋＋xacts标识undo段所包含的活动事物个数
+＋＋writes标识undo段上写入的字节数
+＋＋extents标识undo段的个数
+
+
+＋＋动态事务查看：
+＋＋先对t1表插入一条语句，并不提交，产生一个事务：
+SQL> insert into t1 (id, name, score) values ('01', 'name01', 99);
+
+1 row created.
+
+++通过查询动态性能视图v$transaction来显示事务的名称和状态：
+SQL> r  
+  1* select name, status from v$transaction
+
+NAME                 STATUS
+-------------------- ------------------------------------------------
+                     ACTIVE
+
+++提交后查看动态事务状态：
+＋＋提交：
+
+SQL> commit;
+
+Commit complete.
+
+＋＋查看动态事务状态：
+
+SQL> r        
+  1* select name, status from v$transaction
+
+no rows selected
+
 
