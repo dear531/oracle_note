@@ -4408,6 +4408,27 @@ SQL> r
 ++通过以上信息，可以看出，oracle每隔10分钟生成一次统计信息。
 
 ++通过联合v$rollname和v$rollstat视图，查询undo段的统计信息
+SQL> r
+  1  select rn.name, rs.xacts, rs.writes, rs.extents
+  2  from v$rollname rn, v$rollstat rs
+  3* where rn.usn = rs.usn
+
+NAME                                XACTS     WRITES    EXTENTS
+------------------------------ ---------- ---------- ----------
+SYSTEM                                  0      49368          6
+_SYSSMU1_3780397527$                    0    3185600          6
+_SYSSMU2_2232571081$                    0     623916          3
+_SYSSMU3_2097677531$                    0    3745746          3
+_SYSSMU4_1152005954$                    0     438438          3
+_SYSSMU5_1527469038$                    0     601452          3
+_SYSSMU6_2443381498$                    0     621024          3
+_SYSSMU7_3286610060$                    0     497490          3
+_SYSSMU8_2012382730$                    0     466834          3
+_SYSSMU9_1424341975$                    0    1818786          3
+_SYSSMU10_3550978943$                   0     634970          3
+
+11 rows selected.
+
 ＋＋name标识undo动态段的名称
 ＋＋xacts标识undo段所包含的活动事物个数
 ＋＋writes标识undo段上写入的字节数
@@ -4442,4 +4463,282 @@ SQL> r
 
 no rows selected
 
+++查看指定段的详细信息，从dba_undo_exetents
+++从以上的查询undo段的统计信息联合表查询中的name中取得一个字段名:
+SQL> column SEGMENT_NAME format a30
+SQL> r
+  1  select segment_name, extent_id, bytes, status
+  2  from dba_undo_extents
+  3* where segment_name = '_SYSSMU5_1527469038$'
+
+SEGMENT_NAME                    EXTENT_ID      BYTES STATUS
+------------------------------ ---------- ----------
+---------------------------
+_SYSSMU5_1527469038$                    0      65536 EXPIRED
+_SYSSMU5_1527469038$                    1      65536 EXPIRED
+_SYSSMU5_1527469038$                    2    1048576 UNEXPIRED
+
+++segment_name标识指定段的名称
+＋＋extent_id标识区编号
+＋＋bytes标识区迟钝
+＋＋status标识区状态：active表示处于活动，expired表示区未用
+
+++临时表空间：
+
+++创建临时表空间：
+SQL> create temporary tablespace temp_01         
+  2  tempfile '/home/oracle/app/oradata/orcl/temp_01.tpf'     
+  3  size 300m;
+
+Tablespace created.
+
+++将新建的临时表空间，设置为默认的临时表空间：
+SQL> alter database default temporary tablespace temp_01;
+
+Database altered.
+
+++查询临时表空间的信息：
+SQL> r
+  1* select file_name, bytes, tablespace_name from dba_temp_files
+
+FILE_NAME                                               BYTES TABLESPACE
+-------------------------------------------------- ---------- ----------
+/home/oracle/app/oradata/orcl/temp_01.tpf           314572800 TEMP_01
+
+++临时表空间组
+
+＋＋创建临时表空间组：
+SQL> create temporary tablespace tp1             
+  2  tempfile '/home/oracle/app/oradata/orcl/tp1.tpf'    
+  3  size 10m
+  4  tablespace group group1;
+
+Tablespace created.
+
+SQL> r  
+  1  create temporary tablespace tp2
+  2  tempfile '/home/oracle/app/oradata/orcl/tp2.tpf'
+  3  size 20m
+  4* tablespace group group2
+
+Tablespace created.
+
+++转移临时表空间到另外一个组：
+++为转移临时表空间到另外一个组，而创建一个临时表空间文件：
+SQL> r  
+  1  create temporary tablespace tp3
+  2  tempfile '/home/oracle/app/oradata/orcl/tp3.tpf'
+  3  size 10m
+  4* tablespace group group3
+
+Tablespace created.
+
+++转移该文件，将group1中的临时表空间tp1转移到组group3中：
+SQL> alter tablespace tp1 tablespace group group3;
+
+Tablespace altered.
+
+++在数据字典dba_tablespace_groups中查询组group3中所包含的临时表空间：
+SQL> r  
+  1  select * from dba_tablespace_groups
+  2* where group_name = 'GROUP3'
+
+GROUP_NAME           TABLESPACE
+-------------------- ----------
+GROUP3               TP1
+GROUP3               TP3
+
+++查询group1表空间，已经没有了内容：
+SQL> r
+  1  select * from dba_tablespace_groups
+  2* where group_name = 'GROUP1'
+
+no rows selected
+
+++把表空间分配给指定的用户使用：
+SQL> alter user sys temporary tablespace group3;
+
+User altered.
+
+++设置默认的临时表空间组：
+SQL> alter database orcl default             
+  2  temporary tablespace group3;
+
+Database altered.
+
+++切换系统默认临时表空间组group2
+
+SQL> get tmp5
+  1   alter database orcl default
+  2*  temporary tablespace group2
+  3  /  
+
+Database altered.
+
+++删除group3中的tp1临时表空间：
+SQL> drop tablespace  tp1 including contents and datafiles;
+
+Tablespace dropped.
+
+++查询group3中的表空间的情况：
+
+SQL> select * from dba_tablespace_groups where group_name = 'GROUP3';
+
+GROUP_NAME           TABLESPACE
+-------------------- ----------
+GROUP3               TP3
+
+++只剩下tp3临时表空间。
+
+++将group3中的tp3临时表空间删除：
+SQL> drop tablespace tp3 including contents and datafiles;
+
+Tablespace dropped.
+
++查询数据字典dba_tablespace_groups中group3是否存在：
+SQL> select * from dba_tablespace_groups  where group_name = 'GROUP3';
+
+no rows selected
+
+++第九章 数据表对象
+＋＋创建数据表：
+SQL> create table students(  
+  2  stuno number(10) not null,
+  3  stuname varchar2(8),
+  4  sex int,
+  5  departno varchar2(2) not null,
+  6  classno varchar2(4) not null,
+  7  regdate date default sysdate
+  8  );
+
+Table created.
+
+++查看数据表结构：
+
+SQL> describe students;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ STUNO                                     NOT NULL NUMBER(10)
+ STUNAME                                            VARCHAR2(8)
+ SEX                                                NUMBER(38)
+ DEPARTNO                                  NOT NULL VARCHAR2(2)
+ CLASSNO                                   NOT NULL VARCHAR2(4)
+ REGDATE                                            DATE
+
+++根据另外一张表的内容，创建一张表：
+++查看t1的内容：
+SQL> select  * from t1;
+
+ID           NAME                                SCORE
+------------ ------------------------------ ----------
+             好
+                                                   100
+                                                   101
+01           name01                                 99
+
+SQL>   
+
+++根据t1创建tt1表：
+++创建以及查看内容：
+SQL> create table tt1   
+  2  as   
+  3  select * from t1;
+
+Table created.
+
+SQL> select * from tt1;
+
+ID           NAME                                SCORE
+------------ ------------------------------ ----------
+             好
+                                                   100
+                                                   101
+01           name01                                 99
+
+SQL> 
+
+++创建students_3表，分配在users表空间中
+SQL> create table students_3 (
+  2  stuno number(10) not null,
+  3  stuname varchar2(8),
+  4  sex char(2),
+  5  age int,
+  6  departno varchar2(2) not null,
+  7  classno varchar2(4) not null,
+  8  regdate date default sysdate
+  9  ) tablespace users
+ 10  storage (initial 256k);
+
+Table created.
+
+++查看users表空间：
+SQL> r
+  1  select tablespace_name, file_name
+  2  from dba_data_files
+  3* where tablespace_name = 'USERS'
+
+TABLESPACE FILE_NAME
+---------- --------------------------------------------------
+USERS      /home/oracle/app/oradata/orcl/users01.dbf
+
+
+＋＋查看students_3表分配初始化盘区的大小：
+SQL> r  
+  1  select initial_extent
+  2  from user_tables
+  3  where table_name = 'STUDENTS_3'
+  4*
+
+INITIAL_EXTENT
+--------------
+        262144
+
+++设置pctfree和ptcused
+＋＋update多，改变记录大小，尽量保证数据留在原数据块中，推荐pctfree设置20，pctused设置40
+＋＋insert和delete多，update不改变记录大小，保障释放的存储空间尽快可用
+＋＋推荐pctfree为5，pctused为60
+
+++用pctfree和pctused创建表students_4
+SQL> create table students_4 ( 
+  2  stuno number(10) not null,
+  3  stuname varchar2(8),
+  4  sex char(2),
+  5  age int,
+  6  departno varchar2(2) not null,
+  7  classno varchar2(4) not null,
+  8  regdate date default sysdate
+  9  ) tablespace users
+ 10  storage (initial 256k)
+ 11  pctfree 20
+ 12  pctused 40;
+
+Table created.
+
+++通过查询user_tables查询ptcfree和pctused参数的设置情况：
+
+  1  select pct_free,  pct_used, table_name
+  2* from user_tables where table_name = 'STUDENTS_4'
+
+  PCT_FREE   PCT_USED TABLE_NAME
+---------- ---------- --------------------
+        20            STUDENTS_4
+
+++创建数据块头部存放10个事物条目的表students_5:
+
+SQL> create table students_5 ( 
+  2  stuno number(10) not null,
+  3  stuname varchar2(8),
+  4  sex char(2),
+  5  age int,
+  6  departno varchar2(2) not null,
+  7  classno varchar2(4) not null,
+  8  regdate date default sysdate
+  9  ) tablespace users
+ 10  storage (initial 256k)
+ 11  pctfree 20
+ 12  pctused 40
+ 13  initrans 10;
+
+Table created.
 
