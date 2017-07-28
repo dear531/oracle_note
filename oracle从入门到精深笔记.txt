@@ -4742,3 +4742,13 @@ SQL> create table students_5 (
 
 Table created.
 
+++查看students_5表中的initrans和maxtrans参数的设置，通过user_tables表查看：
+SQL> select ini_trans, max_trans    
+  2  from user_tables
+  3  where table_name = 'STUDENTS_5';
+
+ INI_TRANS  MAX_TRANS
+---------- ----------
+        10        255
+
+
