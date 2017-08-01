@@ -4751,4 +4751,180 @@ SQL> select ini_trans, max_trans
 ---------- ----------
         10        255
 
+++创建ddl操作也被记录重做日志的表
+SQL> r
+  1  create table students_6 (
+  2  stuno number(10) not null,
+  3  stuname varchar2(8),
+  4  sex char(2),
+  5  age int,
+  6  departno varchar2(2) not null,
+  7  classno varchar2(4) not null,
+  8  regdate date default sysdate
+  9  ) tablespace users
+ 10  storage(initial 256k)
+ 11  pctfree 20
+ 12  pctused 40
+ 13  initrans 10
+ 14* nologging
+
+Table created.
+
+SQL>    
+
+＋＋在user_tables数据字段字典中查询stundents_6表是否用了缓存功能
+SQL> r
+  1  select table_name, cache
+  2  from user_tables
+  3* where table_name = 'STUDENTS_6'
+
+TABLE_NAME           CACHE
+-------------------- --------------------
+STUDENTS_6               N
+
+++创建带缓存的表，让最近访问数据表进行lru算法缓存，使经常访问的数据表提升效率：
+
+SQL> r  
+  1  create table students_7 (
+  2  stuno number(10) not null,
+  3  stuname varchar2(8),
+  4  sex char(2),
+  5  age int,
+  6  departno varchar2(2) not null,
+  7  classno varchar2(4) not null,
+  8  regdate date default sysdate
+  9  ) tablespace users
+ 10  storage(initial 256k)
+ 11  pctfree 20
+ 12  pctused 40
+ 13  initrans 10
+ 14  nologging
+ 15* cache
+
+Table created.
+
+++查看students_7的缓存设置：
+SQL> select table_name, cache               
+  2  from user_tables
+  3  where table_name = 'STUDENTS_7';
+
+TABLE_NAME           CACHE
+-------------------- --------------------
+STUDENTS_7               Y
+
+
+++查看students_7的缓存设置：
+SQL> select table_name, cache               
+  2  from user_tables
+  3  where table_name = 'STUDENTS_7';
+
+TABLE_NAME           CACHE
+-------------------- --------------------
+STUDENTS_7               Y
+
+＋＋数据表维护：
+＋＋增加列：
+SQL> alter table students_6 add(province varchar2(10));
+
+Table altered.
+
+SQL> describe students_6;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ STUNO                                     NOT NULL NUMBER(10)
+ STUNAME                                            VARCHAR2(8)
+ SEX                                                CHAR(2)
+ AGE                                                NUMBER(38)
+ DEPARTNO                                  NOT NULL VARCHAR2(2)
+ CLASSNO                                   NOT NULL VARCHAR2(4)
+ REGDATE                                            DATE
+ PROVINCE                                           VARCHAR2(10)
+
+++删除表列：
+++新连接用户：
+SQL> connect scott   
+Enter password: 
+Connected.
+
+＋＋创建新表：
+SQL> create table t1(  
+  2  id number(2),
+  3  name varchar2(10)
+  4  );   
+
+Table created.
+
+++查看表结构
+SQL> describe t1;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ ID                                                 NUMBER(2)
+ NAME                                               VARCHAR2(10)
+
+++增加列：
+
+SQL> alter table t1 add (province varchar2(10));
+
+Table altered.
+
+++查看增加列后表结构：
+SQL> describe t1;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ ID                                                 NUMBER(2)
+ NAME                                               VARCHAR2(10)
+ PROVINCE                                           VARCHAR2(10)
+
+++删除单列：
+SQL> alter table t1 drop column province;
+
+Table altered.
+
+++删除后查看表结构：
+SQL> describe t1;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ ID                                                 NUMBER(2)
+ NAME                                               VARCHAR2(10)
+
+++增加多列：
+SQL> alter table t1 add (c1 varchar2(1), c2 varchar2(1));
+
+Table altered.
+
+++增加后查看表结构，已经增加了两列：
+SQL> describe t1;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ ID                                                 NUMBER(2)
+ NAME                                               VARCHAR2(10)
+ C1                                                 VARCHAR2(1)
+ C2                                                 VARCHAR2(1)
+
+++删除多列：
+SQL> alter table t1 drop (c1, c2);
+
+Table altered.
+
+++删除后查看表结构：
+SQL> describe t1;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ ID                                                 NUMBER(2)
+ NAME                                               VARCHAR2(10)
+
+++删除表所有列查看是否成功：
+SQL> alter table t1 drop (id, name);
+alter table t1 drop (id, name)
+*
+ERROR at line 1:
+ORA-12983: cannot drop all columns in a table
+
+++不能删除表的所有列。
 
