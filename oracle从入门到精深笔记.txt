@@ -3756,7 +3756,7 @@ USERS      /home/oracle/app/oradata/orcl/users01.dbf             5,242,880
 
 ++通过本地化管理方式local创建一个大小为10MB的表空间，其扩展大小为等同的256kb：
 
-SQL> create tablespace tbs_test1 datafile
+SQL>create tablespace tbs_test1 datafile
 '/home/oracle/app/oradata/orcl/datafile1.dbf'
   2  size 10m           
   3  extent management local uniform size 256k;
@@ -4927,4 +4927,78 @@ ERROR at line 1:
 ORA-12983: cannot drop all columns in a table
 
 ++不能删除表的所有列。
+
+＋＋增加列：
+SQL> alter table t1 add prvince varchar2(10);
+
+Table altered.
+
+++修改列：
+SQL> alter table t1 modify prvince varchar2(1);
+
+Table altered.
+
+++查看修改：
+
+SQL> describe t1;
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ ID                                                 NUMBER(2)
+ NAME                                               VARCHAR2(10)
+ PRVINCE                                            VARCHAR2(1)
+
+++重命名表：
+SQL> alter table t1 rename to t2;
+
+Table altered.
+
+
+++给表移动一个表空间的准备：
+
+＋＋创建临时表空间：
+SQL> create temporary tablespace temp_dog
+  2  tempfile '/home/oracle/app/oradata/orcl/temp_dog1.dbf'
+  3  size 20m;
+
+Tablespace created.
+
+++建错了没用，删除临时表空间：
+SQL> drop tablespace temp_dog;
+
+Tablespace dropped.
+
+++创建数据表空间：
+SQL> create tablespace file_data_dog
+  2  logging 
+  3  datafile '/home/oracle/app/oradata/orcl/data_dog1.dbf'
+  4  size 20m;
+
+Tablespace created.
+
+++在file_data_dog表空间上创建表：
+SQL> create table t3 (id number(2), name varchar2(2)) tablespace
+file_data_dog;
+
+Table created.
+
+++将创建在file_data_dog表空间上的表，移动到users表空间上，再移动回来：
+SQL> alter table t3 move tablespace users;
+
+Table altered.
+
+SQL> alter table t3 move tablespace file_data_dog;
+
+Table altered.
+
+++查看表和对应表空间：
+SQL> r
+  1  select table_name, tablespace_name
+  2  from user_tables
+  3* where table_name = 'T3'
+
+TABLE_NAME           TABLESPACE_NAME
+-------------------- --------------------
+T3                   FILE_DATA_DOG
+
 
