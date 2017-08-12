@@ -4948,6 +4948,28 @@ SQL> describe t1;
  NAME                                               VARCHAR2(10)
  PRVINCE                                            VARCHAR2(1)
 
+++重命名列名：
+SQL> select * from t1;
+
+ID           NAME                                                  SCORE
+------------ ------------------------------------------------ ----------
+01           t01                                                      99
+             好
+
+SQL> alter table t1 rename column name to name1;
+
+Table altered.
+
+SQL> describe t1
+ Name                                      Null?    Type
+ ----------------------------------------- --------
+----------------------------
+ ID                                                 VARCHAR2(4)
+ NAME1                                              VARCHAR2(16)
+ SCORE                                              NUMBER(3)
+
+
+
 ++重命名表：
 SQL> alter table t1 rename to t2;
 
@@ -5000,5 +5022,267 @@ SQL> r
 TABLE_NAME           TABLESPACE_NAME
 -------------------- --------------------
 T3                   FILE_DATA_DOG
+
+++设置表的存储参数：
+SQL> alter table t3 pctfree 25 pctused 45;
+
+Table altered.
+
+++查看存储参数设置：
+SQL> r
+  1  select pct_free, pct_used, table_name
+  2  from user_tables
+  3* where table_name = 'T3'
+
+PCT_FREE PCT_USED TABLE_NAME
+-------- -------- --------------------
+      25          T3
+
+++根据t3创建t4，再删除t4：
+SQL> create table t4 
+  2  as
+  3  select * from t3;
+
+Table created.
+
+SQL> drop table t4;
+
+Table dropped.
+
+++查看数据库支持的选项：
+SQL> column parameter format a30
+SQL> column value format a20
+SQL> r
+  1* select parameter, value from v$option
+
+PARAMETER                      VALUE
+------------------------------ --------------------
+Partitioning                   FALSE
+Objects                        TRUE
+Real Application Clusters      FALSE
+Advanced replication           FALSE
+Bit-mapped indexes             FALSE
+Connection multiplexing        TRUE
+Connection pooling             TRUE
+Database queuing               TRUE
+Incremental backup and recover TRUE
+y
+
+
+PARAMETER                      VALUE
+------------------------------ --------------------
+Instead-of triggers            TRUE
+Parallel backup and recovery   FALSE
+Parallel execution             FALSE
+Parallel load                  TRUE
+Point-in-time tablespace recov FALSE
+ery
+
+Fine-grained access control    FALSE
+Proxy authentication/authoriza TRUE
+tion
+
+
+PARAMETER                      VALUE
+------------------------------ --------------------
+Change Data Capture            FALSE
+Plan Stability                 TRUE
+Online Index Build             FALSE
+Coalesce Index                 TRUE
+Managed Standby                FALSE
+Materialized view rewrite      FALSE
+Materialized view warehouse re FALSE
+fresh
+
+Database resource manager      FALSE
+Spatial                        FALSE
+
+PARAMETER                      VALUE
+------------------------------ --------------------
+Automatic Storage Management   FALSE
+Export transportable tablespac FALSE
+es
+
+Transparent Application Failov TRUE
+er
+
+Fast-Start Fault Recovery      FALSE
+Sample Scan                    TRUE
+Duplexed backups               FALSE
+Java                           TRUE
+
+PARAMETER                      VALUE
+------------------------------ --------------------
+OLAP Window Functions          TRUE
+Block Media Recovery           FALSE
+Fine-grained Auditing          FALSE
+Application Role               FALSE
+Enterprise User Security       FALSE
+Oracle Data Guard              FALSE
+Oracle Label Security          FALSE
+OLAP                           FALSE
+Basic Compression              FALSE
+Join index                     FALSE
+Trial Recovery                 FALSE
+
+PARAMETER                      VALUE
+------------------------------ --------------------
+Data Mining                    FALSE
+Online Redefinition            FALSE
+Streams Capture                FALSE
+File Mapping                   FALSE
+Block Change Tracking          FALSE
+Flashback Table                FALSE
+Flashback Database             FALSE
+Transparent Data Encryption    FALSE
+Backup Encryption              FALSE
+Unused Block Compression       FALSE
+Oracle Database Vault          FALSE
+
+PARAMETER                      VALUE
+------------------------------ --------------------
+Result Cache                   FALSE
+SQL Plan Management            FALSE
+SecureFiles Encryption         FALSE
+Real Application Testing       FALSE
+Flashback Data Archive         FALSE
+DICOM                          TRUE
+Active Data Guard              FALSE
+Server Flash Cache             FALSE
+Advanced Compression           FALSE
+XStream                        FALSE
+Deferred Segment Creation      FALSE
+
+65 rows selected.
+
+++查看数据库的版本，标准版是不支持闪回技术的：
+SQL> select * from v$version;
+
+BANNER
+--------------------------------------------------------------------------------
+Oracle Database 11g Release 11.2.0.1.0 - 64bit Production
+PL/SQL Release 11.2.0.1.0 - Production
+CORE    11.2.0.1.0      Production
+TNS for Linux: Version 11.2.0.1.0 - Production
+NLSRTL Version 11.2.0.1.0 - Production
+
+＋＋设置表为只读状态：
+++创建表并构建数据
+SQL> create table t3 
+  2  (id number(2), name varchar2(10));
+
+Table created.
+
+SQL> insert into t3    
+  2  (id, name)
+  3  values (1, 'name1');
+
+1 row created.
+
+＋＋修改表为只读状态
+SQL> alter table t3 read only;
+
+Table altered.
+
+++插入数据失败，提示表为只读
+SQL> insert into t3
+  2  (id, name)
+  3  values(2, 'name2');
+insert into t3
+            *
+ERROR at line 1:
+ORA-12081: update operation not allowed on table "SYS"."T3"
+
+
+++查看表的状态：
+
+SQL> select table_name, read_only   
+  2  from user_tables
+  3  where table_name = 'T3';
+
+TABLE_NAME           READ_ONLY
+-------------------- ---------
+T3                   YES
+
+++重新设置表的属性为可读可写
+SQL> alter table t3 read write;
+
+Table altered.
+
+++查询状态变只读标志变成了失效：
+SQL> select table_name, read_only
+  2  from user_tables
+  3  where table_name = 'T3';
+
+TABLE_NAME           READ_ONLY
+-------------------- ---------
+T3                   NO
+
+++非空约束：
+++创建带非空约束的表：
+
+SQL> create table t4  
+  2  (id number(2) not null,   
+  3  name varchar2(10) not null);
+
+Table created.
+
+SQL> select * from t4;
+
+no rows selected
+
+SQL> insert into t4 (name) values('name1');
+insert into t4 (name) values('name1')
+*
+ERROR at line 1:
+ORA-01400: cannot insert NULL into ("SYS"."T4"."ID")
+
+
+SQL> insert into t4 (id) values(1);
+insert into t4 (id) values(1)
+*
+ERROR at line 1:
+ORA-01400: cannot insert NULL into ("SYS"."T4"."NAME")
+
+SQL> insert into t4
+  2  (id, name)
+  3  values(1, 'name1');
+
+1 row created.
+
+++改变表的非空约束：
+SQL> alter table t4 modify id null;
+
+Table altered.
+
+＋＋向表中添加一条值为空的记录
+SQL> insert into t4 (name) values ('name2');
+
+1 row created.
+
+++改变表的约束为非空，提示失败，因为该列的约束上有非空的值
+SQL> alter table t4 modify id not null;
+alter table t4 modify id not null
+*
+ERROR at line 1:
+ORA-02296: cannot enable (SYS.) - null values found
+
+
+SQL> select * from t4;
+
+        ID NAME
+---------- ------------------------------
+         1 name1
+           name2
+
+＋＋删除该空记录：
+SQL> delete t4 where name = 'name2';
+
+1 row deleted.
+
+++再次添加非空约束，则成功
+SQL> alter table t4 modify id not null;
+
+Table altered.
 
 
