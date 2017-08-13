@@ -5285,4 +5285,143 @@ SQL> alter table t4 modify id not null;
 
 Table altered.
 
+++创建表时建立主键：
+SQL> create table t5 
+  2  (id number(2),
+  3  name varchar2(10),
+  4  age number(2),
+  5  constraint t5_id_pk primary key(id)
+  6  );
+
+Table created.
+
+++查询主键：
+SQL> get tmp2
+  1  select owner, constraint_name, constraint_type, table_name
+  2  from user_constraints
+  3* where table_name = 'T5'
+  4  /
+
+OWNER                CONSTRAINT_NAME      CON TABLE_NAME
+-------------------- -------------------- --- --------------------
+SYS                  T5_ID_PK             P   T5
+
+++忽略主键名字在字段上直接建立主键：
+SQL> create table t6
+  2  (id number(2) primary key,  
+  3  name varchar2(10),
+  4  age number(2));
+
+Table created.
+
+++查询主键：
+SQL> r
+  1  select owner, constraint_name, constraint_type, table_name
+  2  from user_constraints
+  3* where table_name = 'T6'
+
+OWNER                CONSTRAINT_NAME      CON TABLE_NAME
+-------------------- -------------------- --- --------------------
+SYS                  SYS_C0010921         P   T6
+
+++查询主键所在的列名及主键的信息：
+SQL> get tmp2
+  1  select a.column_name, b.owner, b.constraint_name, b.constraint_type,
+b.table_name
+  2  from user_cons_columns a, user_constraints b
+  3* where b.table_name = 'T5' and a.constraint_name = b.constraint_name
+SQL> /
+
+COLUMN_NAME          OWNER                CONSTRAINT_NAME      CON
+-------------------- -------------------- -------------------- ---
+TABLE_NAME
+--------------------
+ID                   SYS                  T5_ID_PK             P
+T5
+
+++删除t5表的有名主键：
+SQL> alter table t5   
+  2  drop constraint t5_id_pk;
+
+Table altered.
+
+++删除之后查询主键，已经不存在了
+SQL> get tmp2
+  1  select a.column_name, b.owner, b.constraint_name, b.constraint_type,
+b.table_name
+  2  from user_cons_columns a, user_constraints b
+  3* where b.table_name = 'T5' and a.constraint_name = b.constraint_name
+SQL> /
+
+no rows selected
+
+++用修改表的方法再次增加主键：
+SQL> alter table t5  
+  2  add constraint t5_id_pk primary key(id);
+
+++再次查询主键，主键又有了：
+SQL> r
+  1  select a.column_name, b.owner, b.constraint_name, b.constraint_type,
+b.table_name
+  2  from user_cons_columns a, user_constraints b
+  3* where b.table_name = 'T5' and a.constraint_name = b.constraint_name
+
+COLUMN_NAME          OWNER                CONSTRAINT_NAME      CON
+-------------------- -------------------- -------------------- ---
+TABLE_NAME
+--------------------
+ID                   SYS                  T5_ID_PK             P
+T5
+
+++查询t6表的主键：
+SQL> r
+  1  select a.column_name, b.owner, b.constraint_name, b.constraint_type,
+b.table_name
+  2  from user_cons_columns a, user_constraints b
+  3* where b.table_name = 'T6' and a.constraint_name = b.constraint_name
+
+COLUMN_NAME          OWNER                CONSTRAINT_NAME      CON
+-------------------- -------------------- -------------------- ---
+TABLE_NAME
+--------------------
+ID                   SYS                  SYS_C0010921         P
+T6
+
+＋＋用修改表方法删除t6表的系统默认名字的主键：
+SQL> alter table t6 
+  2  drop constraint SYS_C0010921;
+
+Table altered.
+
+++查看t6表的主键，已经不存在：
+SQL> r
+  1  select a.column_name, b.owner, b.constraint_name, b.constraint_type,
+b.table_name
+  2  from user_cons_columns a, user_constraints b
+  3* where b.table_name = 'T6' and a.constraint_name = b.constraint_name
+
+no rows selected
+
+++用修改表的方法，增加t6表的主键：
+SQL> alter table t6
+  2  add primary key(id)
+  3  ;
+
+Table altered.
+
+++查询表t6的主键：
+SQL> r
+  1  select a.column_name, b.owner, b.constraint_name, b.constraint_type,
+b.table_name
+  2  from user_cons_columns a, user_constraints b
+  3* where b.table_name = 'T6' and a.constraint_name = b.constraint_name
+
+COLUMN_NAME          OWNER                CONSTRAINT_NAME      CON
+-------------------- -------------------- -------------------- ---
+TABLE_NAME
+--------------------
+ID                   SYS                  SYS_C0010929         P
+T6
+
+
 
