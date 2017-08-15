@@ -5423,5 +5423,57 @@ TABLE_NAME
 ID                   SYS                  SYS_C0010929         P
 T6
 
+++联合主键：
+++创建数据表:
+SQL> create table t7 
+  2  (id number(2),   
+  3  name varchar2(2),
+  4  age number(2)
+  5  );
+
+Table created.
+
+＋＋增加新创建表的id和name列为联合主键：
+SQL> alter table t7 
+  2  add primary key(id, name);
+
+Table altered.
+
+++查看t7表的主键，两个列共用了同一个主键名
+SQL> get tmp2
+  1  select a.column_name, b.owner, b.constraint_name, b.constraint_type,
+b.table_name
+  2  from user_cons_columns a, user_constraints b
+  3* where b.table_name = 'T7' and a.constraint_name = b.constraint_name
+SQL> r
+  1  select a.column_name, b.owner, b.constraint_name, b.constraint_type,
+b.table_name
+  2  from user_cons_columns a, user_constraints b
+  3* where b.table_name = 'T7' and a.constraint_name = b.constraint_name
+
+COLUMN_NAME          OWNER                CONSTRAINT_NAME      CON
+-------------------- -------------------- -------------------- ---
+TABLE_NAME
+--------------------
+ID                   SYS                  SYS_C0010936         P
+T7
+
+NAME                 SYS                  SYS_C0010936         P
+T7
+
+++删除t7表的主键：
+SQL> alter table t7
+  2  drop constraint SYS_C0010936;
+
+Table altered.
+
+++查询表t7的主键已经不存在了：
+SQL> r
+  1  select a.column_name, b.owner, b.constraint_name, b.constraint_type,
+b.table_name
+  2  from user_cons_columns a, user_constraints b
+  3* where b.table_name = 'T7' and a.constraint_name = b.constraint_name
+
+no rows selected
 
 
