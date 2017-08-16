@@ -5461,6 +5461,30 @@ T7
 NAME                 SYS                  SYS_C0010936         P
 T7
 
+++插入记录：
+SQL> insert into t7
+  2  (id, name) 
+  3  values (1, 'name01');
+
+1 row created.
+
+++插入联合主键两列当中一列重复，但主键不重复的记录，可以插入
+SQL> insert into t7
+  2  (id, name)
+  3  values (1, 'name02');
+
+1 row created.
+
+++插入联合主键重复的记录，不允许插入
+SQL> insert into t7   
+  2  (id, name)
+  3  values (1, 'name01');
+insert into t7
+*
+ERROR at line 1:
+ORA-00001: unique constraint (SYS.SYS_C0010830) violated
+
+
 ++删除t7表的主键：
 SQL> alter table t7
   2  drop constraint SYS_C0010936;
