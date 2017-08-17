@@ -5553,4 +5553,26 @@ MEMNAME    SYS        SYS_C00108 C   MEMBERS
 QQ         SYS        QQ_UK      U   MEMBERS
 EMAIL      SYS        EMAIL_UK   U   MEMBERS
 
+++通过修改表的方式删除唯一约束：
+SQL> alter table members drop constraint email_uk;
+
+Table altered.
+
+++查看表的唯一约束，已经被删掉：
+SQL> r
+  1  select a.column_name, b.owner, b.constraint_name, b.constraint_type,
+b.table_name
+  2  from user_cons_columns a, user_constraints b
+  3* where b.table_name = 'MEMBERS' and a.constraint_name = b.constraint_name
+
+COLUMN_NAM OWNER      CONSTRAINT CON TABLE_NAME
+---------- ---------- ---------- --- ----------
+MEMNO      SYS        SYS_C00108 C   MEMBERS
+                      33
+
+MEMNAME    SYS        SYS_C00108 C   MEMBERS
+                      34
+
+QQ         SYS        QQ_UK      U   MEMBERS
+
 
