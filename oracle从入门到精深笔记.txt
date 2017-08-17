@@ -5500,4 +5500,57 @@ b.table_name
 
 no rows selected
 
+++唯一约束：
+SQL> create table members
+  2  (memno number(4) not null,
+  3  memname varchar2(20) not null,
+  4  email varchar2(30),
+  5  qq varchar2(20) constraint qq_uk unique);
+
+Table created.
+
+SQL> insert into members(memno, memname, email, qq)
+  2  values (1, 'leo', 'dear531@21cn.com', '83513251');
+
+1 row created.
+
+++重复插入第二条数据，显示违反唯一约束：
+SQL> r  
+  1  insert into members(memno, memname, email, qq)
+  2* values (1, 'leo', 'dear531@21cn.com', '83513251')
+insert into members(memno, memname, email, qq)
+*
+ERROR at line 1:
+ORA-00001: unique constraint (SYS.QQ_UK) violated
+
+++插入qq列是空的记录，成功插入，允许为空：
+SQL> r
+  1  insert into members(memno, memname)
+  2* values(2, 'leo2')
+
+1 row created.
+
+++添加通过修改表结构的方式添加唯一约束：
+SQL> alter table members add constraint email_uk unique(email);
+
+Table altered.
+
+++查看表的唯一约束：
+SQL> r  
+  1  select a.column_name, b.owner, b.constraint_name, b.constraint_type,
+b.table_name
+  2  from user_cons_columns a, user_constraints b
+  3* where b.table_name = 'MEMBERS' and a.constraint_name = b.constraint_name
+
+COLUMN_NAM OWNER      CONSTRAINT CON TABLE_NAME
+---------- ---------- ---------- --- ----------
+MEMNO      SYS        SYS_C00108 C   MEMBERS
+                      33
+
+MEMNAME    SYS        SYS_C00108 C   MEMBERS
+                      34
+
+QQ         SYS        QQ_UK      U   MEMBERS
+EMAIL      SYS        EMAIL_UK   U   MEMBERS
+
 
