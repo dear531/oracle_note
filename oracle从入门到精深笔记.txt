@@ -5575,4 +5575,73 @@ MEMNAME    SYS        SYS_C00108 C   MEMBERS
 
 QQ         SYS        QQ_UK      U   MEMBERS
 
+++外键：
+＋＋创建t7并给t7表的id列设置为主键：
+SQL> create table t7  
+  2  (id number(2),
+  3  name varchar2(10),
+  4  age number(2));
+
+Table created.
+
+SQL> alter table t7
+  2  add constraint t7_id_pk primary key(id);
+
+Table altered.
+
+++查看t7表的约束情况：
+SQL> r  
+  1  select a.column_name, b.owner, b.constraint_name, b.constraint_type,
+b.table_name
+  2  from user_cons_columns a, user_constraints b
+  3* where b.table_name = 'T7' and a.constraint_name = b.constraint_name
+
+COLUMN_NAM OWNER      CONSTRAINT CON TABLE_NAME
+---------- ---------- ---------- --- ----------
+ID         SYS        T7_ID_PK   P   T7
+
+++创建t8表，并设置t8表的id的外键为t7表的id列：
+SQL> create table t8
+  2  (id number(2),   
+  3  address varchar2(10));
+
+Table created.
+
+SQL> alter talbe t8    
+  2  add constraint t8_fk_t7 
+  3  foreign key (id)
+  4  references departments(t7.id);
+
+COLUMN_NAM OWNER      CONSTRAINT CON TABLE_NAME
+---------- ---------- ---------- --- ----------
+ID         SYS        T8_FK_T7   R   T8
+
+++插入两条t7列id列有的值，均能插入，插入一条没有的则违反约束：
+SQL> insert into t8
+  2  (id, address)  
+  3  values(1, 'beijing');
+
+1 row created.
+
+SQL> insert into t8
+  2  (id, address)
+  3  values(1, 'shanghai');
+
+1 row created.
+
+SQL> insert into t8
+  2  (id, address)
+  3  values (2, 'beijing');
+insert into t8
+*
+ERROR at line 1:
+ORA-02291: integrity constraint (SYS.T8_FK_T7) violated - parent key not found
+
+++当插入外键列为空值时，允许插入：
+SQL> insert into t8
+  2  (address)
+  3  values ('shanghai');
+
+1 row created.
+
 
