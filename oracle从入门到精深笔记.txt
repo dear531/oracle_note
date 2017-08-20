@@ -5645,3 +5645,116 @@ SQL> insert into t8
 1 row created.
 
 
+++外键属性的类型：
+++默认not action类型
+SQL> l  
+  1  create table t8
+  2  (id number(2),
+  3  address varchar2(10),
+  4  constraint t8_fk_t7
+  5  foreign key(id)
+  6  references t7(id)
+  7* )
+
+++t7和t8表数据：
+SQL> select * from t7;
+
+        ID NAME                                  AGE
+---------- ------------------------------ ----------
+         1 name02                                 20
+
+SQL> select * from t8;
+
+        ID ADDRESS
+---------- ------------------------------
+         1 beijing
+
+SQL> delete t7 where id = 1;
+delete t7 where id = 1
+*
+ERROR at line 1:
+ORA-02292: integrity constraint (SYS.T8_FK_T7) violated - child record found
+
+++修改外键只能删除再重新建：
+SQL> alter table t8
+  2  drop constraint t8_fk_t7;
+
+Table altered.
+
+SQL> r
+  1  alter table t8
+  2  add constraint t8_fk_t7
+  3  foreign key(id)
+  4  references t7(id)
+  5* on delete cascade
+
+Table altered.
+
+++设置为级联删除之后，删除t7表中的逐渐，引用了t7表的t8表的级联数据也被删除：
+SQL> select * from t7;
+
+        ID NAME                                  AGE
+---------- ------------------------------ ----------
+         1 name02                                 20
+
+SQL> select * from t8;
+
+        ID ADDRESS
+---------- ------------------------------
+         1 beijing
+
+SQL> delete t7 where id = 1;
+
+1 row deleted.
+
+SQL> select * from t7;
+
+no rows selected
+
+SQL> select * from t8;
+
+no rows selected
+
+++用删除重新建的方法，修改t8外键级联属性：
+SQL> alter table t8
+  2  drop constraint t8_fk_t7;
+
+Table altered.
+SQL> r
+  1  alter table t8
+  2  add constraint t8_fk_t7
+  3  foreign key(id)
+  4  references t7(id)
+  5* on delete set null
+
+Table altered.
+
+++准备t7，t8表数据如下：
+SQL> select * from t7;
+
+        ID NAME                                  AGE
+---------- ------------------------------ ----------
+         1 name1                                  10
+
+SQL> select * from t8;
+
+        ID ADDRESS
+---------- ------------------------------
+         1 beijing
+
+++删除t7表的数据，t8表的数据相关联数据的列被置空：
+SQL> delete t7 where id = 1;
+
+1 row deleted.
+
+SQL> select * from t7;
+
+no rows selected
+
+SQL> select * from t8;
+
+        ID ADDRESS
+---------- ------------------------------
+           beijing
+
+
