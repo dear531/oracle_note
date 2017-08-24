@@ -5757,4 +5757,27 @@ SQL> select * from t8;
 ---------- ------------------------------
            beijing
 
+++约束的开启及禁止：
+++创建时设置关闭：
+SQL> r  
+  1  create table t9
+  2  (id number(2),
+  3  name varchar2(10),
+  4  age int constraint age_check check(age > 0 and age < 120) disable
+  5* )
+
+Table created.
+
+＋＋通过alter修关闭已生效的约束：
+++开启再关闭：
+SQL> alter table t9
+  2  enable constraint age_check;
+
+Table altered.
+
+SQL> alter table t9
+  2  disable constraint age_check;
+
+Table altered.
+
 
