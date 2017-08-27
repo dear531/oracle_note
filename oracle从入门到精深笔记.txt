@@ -5780,4 +5780,290 @@ SQL> alter table t9
 
 Table altered.
 
+++禁用主键的及其级联：
+SQL> r
+  1  alter table t7
+  2  disable constraint T7_ID_PK
+  3* cascade
+
+Table altered.
+
+++查看主键及外键状态：
+SQL> r
+  1  select a.column_name, b.STATUS, b.owner, b.constraint_name,
+b.constraint_type, b.table_name
+  2  from user_cons_columns a, user_constraints b
+  3* where b.table_name in ('T7', 'T8') and a.constraint_name =
+b.constraint_name
+
+COLUMN_NAM STATUS                   OWNER      CONSTRAINT CON TABLE_NAME
+---------- ------------------------ ---------- ---------- --- ----------
+ID         DISABLED                 SYS        T7_ID_PK   P   T7
+ID         DISABLED                 SYS        T8_FK_T7   R   T8
+
+++分别开启主键和外键约束：
+SQL> r
+  1  alter table t7
+  2* enable constraint T7_ID_PK
+
+Table altered.
+
+SQL> alter table t8
+  2  enable constraint T8_FK_T7;
+
+Table altered.
+
+++查看主键和外键状态：
+SQL> r
+  1  select a.column_name, b.STATUS, b.owner, b.constraint_name,
+b.constraint_type, b.table_name
+  2  from user_cons_columns a, user_constraints b
+  3* where b.table_name in ('T7', 'T8') and a.constraint_name =
+b.constraint_name
+
+COLUMN_NAM STATUS                   OWNER      CONSTRAINT CON TABLE_NAME
+---------- ------------------------ ---------- ---------- --- ----------
+ID         ENABLED                  SYS        T7_ID_PK   P   T7
+ID         ENABLED                  SYS        T8_FK_T7   R   T8
+
+++用scott模式给emp的deptno列添加索引：
+++指定空闲表空间比例为25％，指定表空间为users
+SQL> r
+  1  create index emp_deptno_index on emp(deptno)
+  2  pctfree 25
+  3* tablespace users
+
+Index created.
+
+++建立反向键索引：
+SQL> connect scott/tiger
+Connected.
+SQL> create index emp_job_reverse
+  2  on emp(job) reverse
+  3  tablespace users;
+
+Index created.
+
+++重新生成索引为反向键索引：
+SQL> alter index emp_deptno_index
+  2  rebuild reverse;
+
+Index altered.
+
+++将字段值进行函数转化后建立索引，在进行搜索时也要加函数才有效：
+SQL> create index emp_job_fun
+  2  on emp(lower(job));
+
+Index created.
+
+++整理索引，合并空闲索引碎片：
+SQL> alter index emp_deptno_index
+  2  coalesce deallocate unused;
+
+Index altered.
+
+++按原有结构重新建立索引：
+SQL> alter index emp_deptno_index rebuild;
+
+Index altered.
+
+++将索引重新建立，放置在users表空间中：
+SQL> alter index emp_deptno_index rebuild
+  2  tablespace users;
+
+Index altered.
+
+++重新建立索引的过程，是建立新索引之后，删除了原有索引。
+
+++删除索引：
+SQL> drop index emp_job_fun;
+
+Index dropped.
+
+++查询索引：
+SQL> r
+  1  select index_name, index_type
+  2  from dba_indexes
+  3* where owner = 'SCOTT'
+
+INDEX_NAME           INDEX_TYPE
+-------------------- ------------------------------
+PK_DEPT              NORMAL
+PK_EMP               NORMAL
+EMP_JOB_REVERSE      NORMAL/REV
+EMP_DEPTNO_INDEX     NORMAL/REV
+
+++显示索引列：
+++其中有三个表：dba_ind_columns, user_ind_columns,all_ind_columns
+++都能进行索引列查询：
+SQL> r
+  1  select column_name, column_length
+  2  from dba_ind_columns
+  3* where index_name = 'EMP_DEPTNO_INDEX'
+
+COLUMN_NAME                    COLUMN_LENGTH
+------------------------------ -------------
+DEPTNO                                    22
+
+++查询索引的索引段：
+SQL> connect scott
+Enter password: 
+Connected.
+
+SQL> r
+  1  select tablespace_name, segment_type, bytes
+  2  from user_segments
+  3* where segment_name = upper('emp_deptno_index')
+
+TABLESPACE_NAME
+--------------------------------------------------------------------------------
+SEGMENT_TYPE                                                BYTES
+------------------------------------------------------ ----------
+USERS
+INDEX                                                       65536
+
+
+++查询函数索引：
+SQL> create index emp_job_fun
+  2  on emp(lower(job));
+
+Index created.
+
+SQL> select column_expression
+  2  from user_ind_expressions
+  3  where index_name = 'EMP_JOB_FUN';
+
+COLUMN_EXPRESSION
+--------------------------------------------------------------------------------
+LOWER("JOB")
+
+++视图：
+＋＋建立简单视图：
+++用sys或是system用户给scott用户授权建立视图权限
+SQL> connect / as sysdba
+Connected.
+SQL> grant create view to scott;
+
+Grant succeeded.
+
+SQL> connect scott
+Enter password: 
+Connected.
+SQL> create or replace view emp_view as
+  2  select empno, ename, job, deptno
+  3  from emp
+  4  where deptno = 20;
+
+View created.
+
+SQL> select * from emp_view;
+
+     EMPNO ENAME                          JOB
+DEPTNO
+---------- ------------------------------ ---------------------------
+----------
+      7369 SMITH                          CLERK
+20
+      7566 JONES                          MANAGER
+20
+      7788 SCOTT                          ANALYST
+20
+      7876 ADAMS                          CLERK
+20
+      7902 FORD                           ANALYST
+20
+
+++对视图进行数据操作：
+SQL> insert into emp_view
+  2  values(9527, '东方', 'manager', 20);
+
+1 row created.
+
+SQL> update emp_view
+  2  set ename = '西方'
+  3  where empno = 9527;
+
+1 row updated.
+
+SQL> select * from emp_view;
+
+     EMPNO ENAME                          JOB
+DEPTNO
+---------- ------------------------------ ---------------------------
+----------
+      7369 SMITH                          CLERK
+20
+      7566 JONES                          MANAGER
+20
+      7788 SCOTT                          ANALYST
+20
+      7876 ADAMS                          CLERK
+20
+      7902 FORD                           ANALYST
+20
+      9527 西方                           manager
+20
+
+6 rows selected.
+
+SQL> delete emp_view where empno = 9527;
+
+1 row deleted.
+
+SQL> commit;
+
+Commit complete.
+
+++只读视图：
+SQL> create or replace view emp_view_readonly as
+  2  select * from dept
+  3  where deptno != 88
+  4  with read only;
+
+View created.
+
+++试图修改只读视图上的数据，会提示是只读的，失败：
+SQL> update emp_view_readonly set LOC = '1';   
+update emp_view_readonly set LOC = '1'
+                             *
+ERROR at line 1:
+ORA-42399: cannot perform a DML operation on a read-only view
+
+++复杂视图：
+SQL> r
+  1  create or replace view emp_view_complex as
+  2  select deptno 部门编号, max(sal) 最高工资, min(sal) 工资, avg(sal)
+平均工资
+  3  from emp
+  4* group by deptno
+
+View created.
+
+SQL> select * from emp_view_complex;
+
+  部门编号   最高工资       工资   平均工资
+---------- ---------- ---------- ----------
+        30       2850        950 1566.66667
+        20       3000        800       2175
+        10       5000       1300 2916.66667
+
+++连接视图：
+SQL> create or replace view emp_view_union as
+  2  select d.dname, d.loc, e.empno, e.ename
+  3  from emp e, dept d
+  4  where e.deptno = d.deptno and d.deptno = 20;
+
+View created.
+
+SQL> r
+  1* select * from emp_view_union
+
+DNAME                LOC                       EMPNO ENAME
+-------------------- -------------------- ---------- --------------------
+RESEARCH             DALLAS                     7369 SMITH
+RESEARCH             DALLAS                     7566 JONES
+RESEARCH             DALLAS                     7788 SCOTT
+RESEARCH             DALLAS                     7876 ADAMS
+RESEARCH             DALLAS                     7902 FORD
+
 
