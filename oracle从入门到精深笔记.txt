@@ -6066,4 +6066,19 @@ RESEARCH             DALLAS                     7788 SCOTT
 RESEARCH             DALLAS                     7876 ADAMS
 RESEARCH             DALLAS                     7902 FORD
 
+++视图的定义：
+SQL> select text from user_views 
+  2  where view_name = upper('emp_view_union');
+
+TEXT
+--------------------------------------------------------------------------------
+select d.dname, d.loc, e.empno, e.ename
+from emp e, dept d
+where e.deptno = d.de
+
+++重新编译视图，当视图引用的表结构发生变化时，需要视图重新编译：
+SQL> alter view emp_view_union compile;
+
+View altered.
+
 
