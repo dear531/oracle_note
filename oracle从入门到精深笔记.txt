@@ -6081,4 +6081,111 @@ SQL> alter view emp_view_union compile;
 
 View altered.
 
+++同义词：
+++创建公有同义词：
+SQL> connect / as sysdba
+Connected.
+
+SQL> create public synonym public_dept for scott.dept;
+
+Synonym created.
+
+++通过定义的同义词，查询对应定义的表：
+SQL> r
+  1* select * from public_dept
+
+    DEPTNO DNAME                LOC
+---------- -------------------- --------------------
+        10 ACCOUNTING           NEW YORK
+        20 RESEARCH             DALLAS
+        30 SALES                CHICAGO
+        40 OPERATIONS           BOSTON
+        77 拓展部               JILN
+        78 1                    2
+        79 79                   79
+        15 采购部               程度
+        81 81name               81loc
+        17                      北京
+        57                      北京
+
+    DEPTNO DNAME                LOC
+---------- -------------------- --------------------
+        58 12                   北京
+        59 12                   北京
+        60 12                   北京
+
+14 rows selected.
+
+++建立私有同义词：
+++连接scott用户创建私有同义词：
+SQL> connect scott     
+Enter password: 
+ERROR:
+ORA-28002: the password will expire within 7 days
+
+
+Connected.
+＋＋因没有权限失败
+SQL> create synonym private_dept for dept;
+create synonym private_dept for dept
+*
+ERROR at line 1:
+ORA-01031: insufficient privileges
+
+++连接系统用户，为其授权建立私有同义词权限
+SQL> connect / as sysdba
+Connected.
+SQL> grant create synonym to scott;
+
+Grant succeeded.
+
+++重新连接scott用户，创建成功
+SQL> connect scott
+Enter password: 
+ERROR:
+ORA-28002: the password will expire within 7 days
+
+
+Connected.
+SQL> create synonym private_dept for dept;
+
+Synonym created.
+
+++通过私有同义词定义的表，查询该表的数据：
+SQL> select * from private_dept;
+
+    DEPTNO DNAME                LOC
+---------- -------------------- --------------------
+        10 ACCOUNTING           NEW YORK
+        20 RESEARCH             DALLAS
+        30 SALES                CHICAGO
+        40 OPERATIONS           BOSTON
+        77 拓展部               JILN
+        78 1                    2
+        79 79                   79
+        15 采购部               程度
+        81 81name               81loc
+        17                      北京
+        57                      北京
+
+    DEPTNO DNAME                LOC
+---------- -------------------- --------------------
+        58 12                   北京
+        59 12                   北京
+        60 12                   北京
+
+14 rows selected.
+
+++删除私有同义词，要有drop synonym权限：
+SQL> drop synonym private_dept;
+
+Synonym dropped.
+
+++删除公有同义词，要有删除公有同义词权限：
+SQL> connect / as sysdba
+Connected.
+SQL> drop public synonym public_dept;
+
+Synonym dropped.
+
 
