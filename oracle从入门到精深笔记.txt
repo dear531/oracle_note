@@ -6188,4 +6188,58 @@ SQL> drop public synonym public_dept;
 
 Synonym dropped.
 
+++序列对象：
+++创建序列对象：
+SQL> connect scott  
+Enter password: 
+Connected.
+SQL> create sequence empno_seq
+  2  maxvalue 99999 
+  3  start with 9000
+  4  increment by 100
+  5  cache 50;
+
+Sequence created.
+
+++使用序列号对emp表进行插入操作：
+SQL> insert into emp(empno, ename, deptno)
+  2  values(empno_seq.nextval, '东方', 20);
+
+1 row created.
+
+SQL> select * from emp where ename = '东方' and deptno = 20;
+
+     EMPNO ENAME                JOB                                MGR
+---------- -------------------- --------------------------- ----------
+HIREDATE               SAL       COMM     DEPTNO
+--------------- ---------- ---------- ----------
+      9000 东方
+                                              20
+
+
+SQL>    
+
+++连续生成序列号的下一个值，得到的结果：
+SQL> select empno_seq.nextval from dual;
+
+   NEXTVAL
+----------
+      9100
+
+SQL> r
+  1* select empno_seq.nextval from dual
+
+   NEXTVAL
+----------
+      9200
+
+SQL> r
+  1* select empno_seq.nextval from dual
+
+   NEXTVAL
+----------
+      9300
+
+SQL>    
+
 
