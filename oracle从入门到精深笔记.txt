@@ -6277,3 +6277,111 @@ SQL> drop sequence empno_seq;
 Sequence dropped.
 
 
+++分区：
+++创建分区：
+SQL> create tablespace tbsp_1    
+  2  datafile '/home/oracle/app/oracle/oradata/orcl/tbsp_1.dbf'
+  3  size 200m    
+  4  autoextend on next 200m maxsize 1g;
+
+Tablespace created.
+
+SQL> r  
+  1  create tablespace tbsp_2
+  2  datafile '/home/oracle/app/oracle/oradata/orcl/tbsp_2.dbf'
+  3  size 200m
+  4* autoextend on next 200m maxsize 1g
+
+Tablespace created.
+
+SQL> r  
+  1   create table ware_retail_part
+  2   (id integer primary key,
+  3   retail_date date,
+  4   ware_name varchar2(50)
+  5   )
+  6   partition by range(retail_date)
+  7   (
+  8   partition par_01 values less than(to_date('2011-04-01','yyyy-mm-dd')) tablespace tbsp_1,
+  9   partition par_02 values less than(to_date('2011-07-01','yyyy-mm-dd')) tablespace tbsp_1,
+ 10   partition par_03 values less than(to_date('2011-10-01','yyyy-mm-dd')) tablespace tbsp_2,
+ 11   partition par_04 values less than(to_date('2012-01-01','yyyy-mm-dd')) tablespace tbsp_2
+ 12*  )
+
+Table created.
+
+++插入三条数据:
+SQL> insert into ware_retail_part values(1, to_date('2011-01-20', 'yyyy-mm-dd'), '平板电脑');
+
+1 row created.
+
+SQL> insert into ware_retail_part values(2, to_date('2011-04-15', 'yyyy-mm-dd'),'智能手机');
+
+1 row created.
+
+SQL> insert into ware_retail_part values(3, to_date('2011-07-25', 'yyyy-mm-dd'), 'mp5');
+
+1 row created.
+
+++在ware_retail_part表的第二个分区中，查询数据：
+SQL> insert into ware_retail_part values(3, to_date('2011-07-25', 'yyyy-mm-dd'), 'mp5');
+
+1 row created.
+
+SQL> select * from ware_retail_part partition(par_02);
+
+	ID RETAIL_DATE	      WARE_NAME
+---------- ------------------ --------------------------------------------------
+         2 15-APR-11          智能手机
+
+++按多列分区：
+SQL> r
+  1  create table ware_retail_part2
+  2  (id integer primary key,
+  3  retail_date date,
+  4  ware_name varchar2(50)
+  5  )
+  6  partition by range(id, retail_date)
+  7  (partition par_01 values less than(10000, to_date('2011-12-01', 'yyyy-mm-dd')) tablespace tbsp_1,
+  8  partition par_02 values less than(20000, to_date('2012-12-01', 'yyyy-mm-dd')) tablespace tbsp_1,
+  9* partition par_03 values less than(maxvalue, maxvalue) tablespace tbsp_2 )
+
+Table created.
+
+++哈希分区表：
+++创建哈希分区表：
+SQL> create table ware_retail_part3
+  2  (id integer primary key,
+  3  retail_date date,
+  4  wara_name varchar2(50)
+  5  )
+  6  partition by hash(id)
+  7  (partition par_01 tablespace tbsp_1,
+  8  partition par_02 tablespace tbsp_2
+  9  );
+
+Table created.
+++插入数据：
+SQL> insert into ware_retail_part3 values(99, to_date('2011-11-11', 'yyyy-mm-dd'),'电脑');
+
+1 row created.
+
+SQL> select * from ware_retail_part3 where id = 99;
+
+	ID RETAIL_DATE	      WARA_NAME
+---------- ------------------ --------------------------------------------------
+        99 11-NOV-11          电脑
+
+++为哈希分区自动分配分区名：
+SQL> r
+  1  create table person
+  2  (id number primary key,
+  3  name varchar2(20),
+  4  sex varchar2(2))
+  5  partition by hash(id)
+  6  partitions 2
+  7* store in(tbsp_1, tbsp_2)
+
+Table created.
+
+
