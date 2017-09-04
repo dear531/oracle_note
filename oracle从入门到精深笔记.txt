@@ -6384,4 +6384,67 @@ SQL> r
 
 Table created.
 
+++创建分区初始化分区大小：
+SQL> create table goods
+  2  (
+  3  id number,
+  4  goodname varchar2(50)
+  5  )
+  6  storage(initial 2048k)
+  7  partition by hash(id)
+  8  (
+  9  partition par1 tablespace tbsp_1,
+ 10  partition par2 tablespace tbsp_2
+ 11  );
+
+Table created.
+
+++列表分区，一列的值固定是可以枚举的类型
+SQL> create table clients
+  2  (id integer primary key,
+  3  name varchar2(50)
+  4  ,province varchar2(20) 
+  5  )
+  6  partition by list(province)
+  7  (partition shandong values('山东省'),
+  8  partition guangdong values('广东省'),
+  9  partition yunnan values('云南')
+ 10  );
+
+Table created.
+
+++插入分区：
+SQL> insert into clients values(19, '东方', '云南');
+
+1 row created.
+
+++查询云南分区：
+SQL> column name format a20
+SQL> r
+  1* select * from clients partition(yunnan)
+
+	ID NAME 		PROVINCE
+---------- -------------------- --------------------
+        19 东方                 云南
+
+++组合分区，即分区之后再分区：
+++创建表person2，以id为范围分区分三个分区，再以名字做哈希创建两个子分区，名字自动分配：
+SQL> r
+  1  create table person2
+  2  (
+  3  id number primary key,
+  4  name varchar2(20),
+  5  sex varchar2(2)
+  6  )
+  7  partition by range(id)
+  8  subpartition by hash(name)
+  9  subpartitions 2 store in (tbsp_1, tbsp_2)
+ 10  (
+ 11  partition par1 values less than(5000),
+ 12  partition par2 values less than(10000),
+ 13  partition par3 values less than(maxvalue)
+ 14* )
+
+Table created.
+
 

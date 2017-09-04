@@ -4,3 +4,5 @@
 *.lis
 *.o
 *.sql
+*a.out
+spool.log
