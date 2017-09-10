@@ -6447,4 +6447,46 @@ SQL> r
 
 Table created.
 
+++interval分区：
+++将表saleRecord的分区按saledate列转成年之后进行内部分区：
+SQL> r
+  1  create table saleRecord
+  2  (id number primary key,
+  3  goodsname varchar2(50),
+  4  saledate date,
+  5  quantity number
+  6  )
+  7  partition by range(saledate)
+  8  interval(numtoyminterval(1, 'year'))
+  9  (partition par_fist values less than (to_date('2012-01-01', 'yyyy-mm-dd'))
+ 10* )
+
+Table created.
+
+++分区管理：
+++添加分区：
+SQL> r
+  1  create table clients
+  2  (id integer primary key,
+  3  name varchar2(50),
+  4  province varchar2(30)
+  5  )
+  6  partition by list(province)
+  7  (partition shandong values('山东省'),
+  8  partition guangdong values('广东省'),
+  9  partition yunnan values('云南省')
+ 10* )
+
+Table created.
+
+++增加分区：
+SQL> r
+  1  alter table clients
+  2  add partition hebei values('河北省')
+  3  storage(initial 10k next 20k) tablespace tbsp_1
+  4  nologging
+  5*
+
+Table altered.
+
 
