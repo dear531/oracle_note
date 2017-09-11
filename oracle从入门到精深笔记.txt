@@ -6489,4 +6489,41 @@ SQL> r
 
 Table altered.
 
+++合并分区：
+++准备工作：
+++创建两个表空间：
+SQL> get tmp7
+  1  create tablespace tbsp_1
+  2  datafile '/home/oracle/app/oradata/orcl/tbsp_1.dbf'
+  3  size 200m reuse
+  4* autoextend on next 200m maxsize 1g
+  5  /
+
+Tablespace created.
+
+SQL> r  
+  1  create tablespace tbsp_2
+  2  datafile '/home/oracle/app/oradata/orcl/tbsp_2.dbf'
+  3  size 200m reuse
+  4* autoextend on next 200m maxsize 1g
+
+Tablespace created.
+
+++创建带哈希分区的表，以id为哈希分区，将分区分别存在两个表空间中：
+SQL> get tmp7
+  1  create table person
+  2  (id number primary key,
+  3  name varchar2(20),
+  4  sex varchar2(2))
+  5  partition by hash(id)
+  6  partitions 2
+  7* store in(tbsp_1, tbsp_2)
+  8  /
+
+Table created.
+++合并person表的两个哈希分区：
+SQL> alter table person coalesce partition;
+
+Table altered.
+
 
