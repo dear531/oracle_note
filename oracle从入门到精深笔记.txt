@@ -6526,4 +6526,85 @@ SQL> alter table person coalesce partition;
 
 Table altered.
 
+++合并复合分区：
+SQL> get tmp7
+  1  create table person2
+  2  (
+  3  id number primary key,
+  4  name varchar2(20),
+  5  sex varchar2(2)
+  6  )
+  7  partition by range(id)
+  8  subpartition by hash(name)
+  9  subpartitions 2 store in (tbsp_1, tbsp_2)
+ 10  (
+ 11  partition par1 values less than(5000),
+ 12  partition par2 values less than(10000),
+ 13  partition par3 values less than(maxvalue)
+ 14* )
+ 15  /
+
+Table created.
+
+SQL> alter table person2 modify partition   
+  2  par3 coalesce subpartition;
+
+Table altered.
+
+++删除分区：
+SQL> get tmp7
+  1  create table ware_retail_part
+  2  (id integer primary key,
+  3  retail_date date,
+  4  ware_name varchar2(50)
+  5  )
+  6  partition by range(retail_date)
+  7  (
+  8  partition par_01 values less than(to_date('2011-04-01','yyyy-mm-dd')) tablespace tbsp_1,
+  9  partition par_02 values less than(to_date('2011-07-01','yyyy-mm-dd')) tablespace tbsp_1,
+ 10  partition par_03 values less than(to_date('2011-10-01','yyyy-mm-dd')) tablespace tbsp_2,
+ 11  partition par_04 values less than(to_date('2012-01-01','yyyy-mm-dd')) tablespace tbsp_2
+ 12* )
+ 13  /
+
+Table created.
+
+SQL> alter table ware_retail_part drop partition par_04;
+
+Table altered.
+
+++删除分区后重新分区列所在的索引：
+SQL> drop table ware_retail_part;
+
+Table dropped.
+
+SQL> get tmp7
+  1  create table ware_retail_part
+  2  (id integer primary key,
+  3  retail_date date,
+  4  ware_name varchar2(50)
+  5  )
+  6  partition by range(retail_date)
+  7  (
+  8  partition par_01 values less than(to_date('2011-04-01','yyyy-mm-dd')) tablespace tbsp_1,
+  9  partition par_02 values less than(to_date('2011-07-01','yyyy-mm-dd')) tablespace tbsp_1,
+ 10  partition par_03 values less than(to_date('2011-10-01','yyyy-mm-dd')) tablespace tbsp_2,
+ 11  partition par_04 values less than(to_date('2012-01-01','yyyy-mm-dd')) tablespace tbsp_2
+ 12* )
+ 13  /
+
+Table created.
+
+SQL> create index ware_index on ware_retail_part(retail_date);
+
+Index created.
+
+SQL> alter table ware_retail_part drop partition par_04;
+
+Table altered.
+
+SQL> alter index ware_index rebuild;
+
+Index altered.
+
 
