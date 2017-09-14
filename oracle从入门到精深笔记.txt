@@ -6607,4 +6607,67 @@ SQL> alter index ware_index rebuild;
 
 Index altered.
 
+++创建全局分区索引：
+SQL> get tmp8
+  1  create index index_ware_retail_part
+  2  on ware_retail_part(retail_date)
+  3  global partition by range(retail_date)
+  4  (
+  5  partition par_01 values less than(to_date('2011-04-01','yyyy-mm-dd')) tablespace tbsp_1,
+  6  partition par_02 values less than(to_date('2011-07-01','yyyy-mm-dd')) tablespace tbsp_1,
+  7  partition par_03 values less than(to_date('2011-10-01','yyyy-mm-dd')) tablespace tbsp_2,
+  8  partition par_04 values less than(to_date('2012-01-01','yyyy-mm-dd')) tablespace tbsp_2,
+  9  partition par_max values less than(maxvalue) tablespace tbsp_2
+ 10* )
+ 11  /
+
+Index created.
+
+++删除分区，删除分区先要删掉数据及索引
+++向第四分区中插入索引：
+
+SQL> get tmp8
+  1  insert into ware_retail_part
+  2  (id, retail_date, ware_name)
+  3  values
+  4* (2, to_date('2011-10-02', 'yyyy-mm-dd'), '好2')
+  5  /
+
+1 row created.
+
+++查看第四分区中的内容：
+SQL> r  
+  1* select * from ware_retail_part partition(par_04)
+
+	ID RETAIL_DATE	      WARE_NAME
+---------- ------------------ --------------------------------------------------
+         2 02-OCT-11          好2
+
+++删除分区中的数据：
+SQL> delete from ware_retail_part where retail_date >= to_date('2011-10-01', 'yyyy-mm-dd');
+
+1 row deleted.
+
+++查看删除结果：
+SQL> r  
+  1* select * from ware_retail_part partition(par_04)
+
+no rows selected
+
+++删除分区：
+SQL> alter table ware_retail_part drop partition par_04;
+
+Table altered.
+
+++查询表分区，已经删掉了分区：
+SQL> r
+  1  select partition_name from user_segments
+  2* where segment_name = upper('ware_retail_part')
+
+PARTITION_NAME
+--------------------------------------------------------------------------------
+PAR_01
+PAR_02
+PAR_03
+
 
