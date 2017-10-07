@@ -6670,4 +6670,232 @@ PAR_01
 PAR_02
 PAR_03
 
+++关闭约束再删除分区操作过程：
+++查看ware_retail_part表主键：
+SQL> r
+  1  select cons.CONSTRAINT_NAME,
+  2	    col.COLUMN_NAME,
+  3  cons.table_name,
+  4  cons.CONSTRAINT_TYPE
+  5  from user_constraints cons,
+  6	  user_cons_columns col
+  7  where cons.table_name = upper('ware_retail_part')
+  8* and cons.table_name = col.table_name
+
+CONSTRAINT_NAME
+--------------------------------------------------------------------------------
+COLUMN_NAME
+--------------------------------------------------------------------------------
+TABLE_NAME
+--------------------------------------------------------------------------------
+C
+-
+SYS_C007465
+ID
+WARE_RETAIL_PART
+P
+
+++设置主键状态为disable
+SQL> alter table WARE_RETAIL_PART
+  2  disable constraints SYS_C007465;
+
+Table altered.
+
+++查看约束状态：
+SQL> r  
+  1  select cons.CONSTRAINT_NAME,
+  2	    col.COLUMN_NAME,
+  3  cons.table_name,
+  4  cons.STATUS,
+  5  cons.CONSTRAINT_TYPE
+  6  from user_constraints cons,
+  7	  user_cons_columns col
+  8  where cons.table_name = upper('ware_retail_part')
+  9* and cons.table_name = col.table_name
+
+CONSTRAINT_NAME
+--------------------------------------------------------------------------------
+COLUMN_NAME
+--------------------------------------------------------------------------------
+TABLE_NAME
+--------------------------------------------------------------------------------
+STATUS	 C
+-------- -
+SYS_C007465
+ID
+WARE_RETAIL_PART
+DISABLED P
+
+SQL> alter table WARE_RETAIL_PART
+  2  drop partition PAR_01;
+
+Table altered.
+
+
+SQL> alter table WARE_RETAIL_PART
+  2  disable constraints SYS_C007465;
+
+Table altered.
+
+++并入分区：
+++创建分区表：
+SQL> r
+  1  create table sales
+  2  (
+  3  id number primary key,
+  4  goodsname varchar2(10),
+  5  saledate date
+  6  )
+  7  partition by range(saledate)
+  8  (
+  9  partition part_sea1 values less than (to_date('2011-04-01','yyyy-mm-dd')) tablespace tbsp_1,
+ 10  partition part_sea2 values less than (to_date('2011-07-01','yyyy-mm-dd')) tablespace tbsp_2,
+ 11  partition part_sea3 values less than (to_date('2011-10-01','yyyy-mm-dd')) tablespace tbsp_1,
+ 12  partition part_sea4 values less than (to_date('2012-01-01','yyyy-mm-dd')) tablespace tbsp_2
+ 13* )
+
+Table created.
+
+++创建局部索引：
+SQL> r
+  1  create index index_3_4 on sales(saledate)
+  2  local (
+  3  partition part_sea1 tablespace tbsp_1,
+  4  partition part_sea2 tablespace tbsp_2,
+  5  partition part_sea3 tablespace tbsp_1,
+  6  partition part_sea4 tablespace tbsp_2
+  7* )
+
+Index created.
+
+++合并分区：
+SQL> r
+  1  alter table sales
+  2  merge partitions part_sea3, part_sea4
+  3* into partition part_sea4
+
+Table altered.
+
+++重新建立局部索引：
+SQL> alter table sales          
+  2  modify partition part_sea4 rebuild          
+  3  unusable local indexes;
+
+Table altered.
+
+++创建索引分区：
+++创建本地索引分区：
+++先创建本地表空间：
+SQL> r  
+  1  create tablespace ts_1
+  2  datafile '/home/oracle/app/oradata/orcl/ts1.dbf'
+  3  size 10m
+  4* extent management local autoallocate
+
+Tablespace created.
+
+SQL> r  
+  1  create tablespace ts_2
+  2  datafile '/home/oracle/app/oradata/orcl/ts2.dbf'
+  3  size 10m
+  4* extent management local autoallocate
+
+Tablespace created.
+
+SQL> r
+  1  create tablespace ts_3
+  2  datafile '/home/oracle/app/oradata/orcl/ts3.dbf'
+  3  size 10m
+  4* extent management local autoallocate
+
+Tablespace created.
+
+++创建分区表，有三个分区，分别位于刚创建的三个表空间上：
+SQL> r
+  1  create table studentgrade
+  2  (
+  3  id number primary key,
+  4  name varchar2(10),
+  5  subject varchar2(10),
+  6  grade number
+  7  )
+  8  partition by range(grade)
+  9  (
+ 10  partition par_nopass values less than(60) tablespace ts_1,
+ 11  partition par_pass values less than(70) tablespace ts_2,
+ 12  partition par_good values less than(maxvalue) tablespace ts_3
+ 13* )
+
+Table created.
+
+++根据表分区创建本地索引分区，与表分区一致
+SQL> create index grade_index on studentgrade(grade)
+  2  local
+  3  (
+  4  partition p1 tablespace ts_1,
+  5  partition p2 tablespace ts_2,
+  6  partition p3 tablespace ts_3
+  7  );
+
+Index created.
+
+++查询索引分区信息
+SQL> r
+  1  select partition_name,tablespace_name from dba_ind_partitions
+  2* where index_name = 'GRADE_INDEX'
+
+PARTITION_NAME	     TABLESPACE_NAME
+-------------------- --------------------
+P1		     TS_1
+P2		     TS_2
+P3		     TS_3
+
+++全局分区索引：
+SQL> r
+  1  create table books
+  2* (saleprice integer)
+
+Table created.
+
+++为分区创建全局索引：
+SQL> create index index_saleprice on books(saleprice)
+  2  global partition by range(saleprice)
+  3  (partition p1 values less than(30),
+  4  partition p2 values less than(50),
+  5  partition p3 values less than(maxvalue)
+  6  );
+
+Index created.
+
+++添加列：
+SQL> alter table books
+  2  add (isbn integer);
+
+++添加的列上创建全局哈希分区和索引列：
+SQL> create index index_isbn on books(isbn)
+  2  global partition by hash(isbn);
+
+Index created.
+
+++删除索引分区：
+SQL> alter index index_saleprice drop partition p2;
+
+Index altered.
+
+++重建索引分区：
+++将分区1也删掉，只留分区三
+SQL> alter index index_saleprice drop partition p1;
+
+Index altered.
+
+++重建唯一索引分区：
+SQL> alter index index_saleprice rebuild partition p3;
+
+Index altered.
+
+++重命名索引分区：
+SQL> alter index index_saleprice rename partition p3 to p_new;
+
+Index altered.
+
 

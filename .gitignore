@@ -6,3 +6,4 @@
 *.sql
 *a.out
 spool.log
+history.buf
