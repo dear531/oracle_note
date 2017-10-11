@@ -6898,4 +6898,176 @@ SQL> alter index index_saleprice rename partition p3 to p_new;
 
 Index altered.
 
+++当创建用户提示规则错误时，切换容器方法：
+++查看当前容器：
+SQL> select sys_context ('USERENV', 'CON_NAME') from dual; 
+
+SYS_CONTEXT('USERENV','CON_NAME')
+--------------------------------------------------------------------------------
+CDB$ROOT
+
+
+++查看当前容器权限：
+SQL> r
+  1* select con_id,dbid,NAME,OPEN_MODE from v$pdbs
+
+    CON_ID	 DBID NAME		   OPEN_MODE
+---------- ---------- -------------------- ----------
+	 2 2812538733 PDB$SEED		   READ ONLY
+	 3 1142406014 ORCLPDB		   MOUNTED
+
+++打开数据库：
+SQL> alter pluggable database ORCLPDB open;
+
+Pluggable database altered.
+
+++查看数据库状态：
+SQL> select con_id,dbid,NAME,OPEN_MODE from v$pdbs;
+
+    CON_ID	 DBID NAME		   OPEN_MODE
+---------- ---------- -------------------- ----------
+	 2 2812538733 PDB$SEED		   READ ONLY
+	 3 1142406014 ORCLPDB		   READ WRITE
+
+++切换容器：
+SQL> alter session set container=ORCLPDB
+  2  ;
+
+Session altered.
+
+++查看当前容器
+SQL> select sys_context ('USERENV', 'CON_NAME') from dual; 
+
+SYS_CONTEXT('USERENV','CON_NAME')
+--------------------------------------------------------------------------------
+ORCLPDB
+
+++创建用户名
+SQL> create user informix identified by gmgl;
+
+User created.
+
+++创建用户，默认表空间为users，临时表空间为temp
+SQL> create user mr identified by mrsoft
+  2  default tablespace users
+  3  temporary tablespace temp;
+
+User created.
+
+
+++创建用户名，user默认表空间，temp临时表空间
+++允许在tbsp_1上的最大空间为10m
+++禁止使用某表空间，直接设置为0m
+SQL> r
+  1  create user east identified by mrsoft
+  2  default tablespace users
+  3  temporary tablespace temp
+  4* quota 10 on tbsp_1
+
+User created.
+
+++创建用户df，在默认表空间tbsp_1上的使用没有限制：
+SQL> create user df identified by mrsoft
+  2  default tablespace tbsp_1
+  3  temporary tablespace temp
+  4  quota unlimited on tbsp_1;
+
+User created.
+
+++修改用户：
+++修改east在表空间tbsp_1表空间大小为20m
+SQL> alter user east quota 20m on tbsp_1;
+
+User altered.
+
+++修改用户口令：
+SQL> alter user east identified by 123456;
+
+User altered.
+
+++查看系统表用户状态：
+SQL> r
+  1* select username, account_status from dba_users
+
+USERNAME	     ACCOUNT_STATUS
+-------------------- --------------------------------
+SYS		     OPEN
+SYSTEM		     OPEN
+XS$NULL 	     EXPIRED & LOCKED
+LBACSYS 	     EXPIRED & LOCKED
+OUTLN		     EXPIRED & LOCKED
+DBSNMP		     EXPIRED & LOCKED
+APPQOSSYS	     EXPIRED & LOCKED
+DBSFWUSER	     EXPIRED & LOCKED
+GGSYS		     EXPIRED & LOCKED
+ANONYMOUS	     EXPIRED & LOCKED
+HR		     EXPIRED & LOCKED
+
+USERNAME	     ACCOUNT_STATUS
+-------------------- --------------------------------
+CTXSYS		     EXPIRED & LOCKED
+SI_INFORMTN_SCHEMA   EXPIRED & LOCKED
+DVSYS		     EXPIRED & LOCKED
+DVF		     EXPIRED & LOCKED
+GSMADMIN_INTERNAL    EXPIRED & LOCKED
+ORDPLUGINS	     EXPIRED & LOCKED
+MDSYS		     EXPIRED & LOCKED
+OLAPSYS 	     EXPIRED & LOCKED
+ORDDATA 	     EXPIRED & LOCKED
+XDB		     EXPIRED & LOCKED
+WMSYS		     EXPIRED & LOCKED
+
+USERNAME	     ACCOUNT_STATUS
+-------------------- --------------------------------
+ORDSYS		     EXPIRED & LOCKED
+GSMCATUSER	     EXPIRED & LOCKED
+MDDATA		     EXPIRED & LOCKED
+SYSBACKUP	     EXPIRED & LOCKED
+REMOTE_SCHEDULER_AGE EXPIRED & LOCKED
+NT
+
+PDBADMIN	     OPEN
+EAST		     OPEN
+GSMUSER 	     EXPIRED & LOCKED
+SYSRAC		     EXPIRED & LOCKED
+
+USERNAME	     ACCOUNT_STATUS
+-------------------- --------------------------------
+OJVMSYS 	     EXPIRED & LOCKED
+AUDSYS		     EXPIRED & LOCKED
+DIP		     EXPIRED & LOCKED
+SYSKM		     EXPIRED & LOCKED
+ORACLE_OCM	     EXPIRED & LOCKED
+SYS$UMF 	     EXPIRED & LOCKED
+MR		     OPEN
+SYSDG		     EXPIRED & LOCKED
+SPATIAL_CSW_ADMIN_US EXPIRED & LOCKED
+R
+
+
+USERNAME	     ACCOUNT_STATUS
+-------------------- --------------------------------
+DF		     OPEN
+
+41 rows selected.
+
+++解锁hr用户
+SQL> alter user hr account unlock;
+
+User altered.
+
+++查看hr用户状态：
+SQL> r
+  1  select username, account_status from dba_users
+  2* where username = upper('hr')
+
+USERNAME	     ACCOUNT_STATUS
+-------------------- --------------------------------
+HR		     EXPIRED
+
+++级联删除用户
+SQL> drop user df cascade;
+
+User dropped.
+
 
