@@ -7070,4 +7070,23 @@ SQL> drop user df cascade;
 
 User dropped.
 
+++授权：
+SQL> connect system
+Enter password: 
+Connected.
+SQL> create user c##east identified by 123456;
+
+User created.
+
+SQL> alter user c##east account unlock;
+
+User altered.
+
+SQL> grant create session, connect, resource to c##east;
+
+Grant succeeded.
+
+SQL> connect c##east  
+Enter password: 
+Connected.
 
