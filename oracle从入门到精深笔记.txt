@@ -7090,3 +7090,65 @@ SQL> connect c##east
 Enter password: 
 Connected.
 
+++允许授权权限的用户继续授权选项用法：
+
+++创建dongfang、xifang两个用户
+SQL> create user c##dongfang identified by mrsoft
+  2  default tablespace users
+  3  quota 10m on users;
+
+User created.
+
+SQL> create user c##xifang identified by mrsoft
+  2  default tablespace users
+  3  quota 10m on users;
+
+User created.
+
+++授权给东方用户权限，并且允许东方继续授权该权限
+SQL> grant create session, create table to c##dongfang with admin option;
+
+Grant succeeded.
+
+链接dongfang用户，并且dongfang将权限授权给了xifang用户
+SQL> connect c##dongfang/mrsoft;
+Connected.
+SQL> grant create session,create table to c##xifang;
+
+Grant succeeded.
+
+++链接xifang用户，用得到的创建表格权限，创建了个表
+SQL> connect c##xifang/mrsoft;
+Connected.
+SQL> create table tb_xifang 
+  2  (id number,
+  3  name varchar2(10));
+
+Table created.
+
+SQL>    
+
+++回收权限：
+SQL> connect system
+Enter password: 
+Connected.
+SQL> revoke resource from c##east;
+
+Revoke succeeded.
+
+++查看回收有with admin option的选项被回收时，被间接授权的用户会怎么样：
+SQL> revoke create table from c##dongfang;
+
+Revoke succeeded.
+
+++链接创建表，还是能创建，间接授权的权限没有被回收
+SQL> connect c##xifang/mrsoft;
+Connected.
+
+SQL> create table xifang2
+  2  (id number,
+  3  name varchar2(10));
+
+Table created.
+
+
