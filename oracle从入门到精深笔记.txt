@@ -7151,4 +7151,84 @@ SQL> create table xifang2
 
 Table created.
 
+++对象授权：
+SQL> create user c##nanfang identified by mrsoft;
+
+User created.
+
+SQL> 3 quota 10m on users;
+SQL> r
+  1  alter user c##nanfang
+  2  default tablespace users
+  3* quota 10m on users
+
+User altered.
+
+SQL> grant create table to c##nanfang;
+
+Grant succeeded.
+
+
+++授权建立链接
+SQL> grant create session to c##nanfang;
+
+Grant succeeded.
+
+SQL> connect c##nanfang;
+Enter password: 
+Connected.
+
+SQL> create table nanfangt1 
+  2  (id number,
+  3  name varchar2(10));
+
+Table created.
+
+SQL> insert into nanfangt1 
+  2  (id, name)
+  3  values
+  4  (1, 'name1');
+
+1 row created.
+
+SQL> connect system
+Enter password: 
+Connected.
+
+SQL> grant select, insert, update, delete
+  2  on c##nanfang.nanfangt1
+  3  to c##dongfang
+  4  with grant option;
+
+Grant succeeded.
+
+SQL> connect c##dongfang/mrsoft;
+Connected.
+
+SQL> grant select on c##nanfang.nanfangt1
+  2  to c##xifang;
+
+Grant succeeded.
+
+SQL> connect c##xifang/mrsoft;
+Connected.
+SQL> select * from c##nanfang.nanfangt1;
+
+	ID NAME
+---------- ----------
+	 1 name1
+
+QL> revoke select on c##nanfang.nanfangt1    
+  2  from c##dongfang;
+
+Revoke succeeded.
+
+++当授权的上级用户被回收对象权限时，被间接授予对象权限的用户
+++也失去了对象权限，对原查询没有了权限
+SQL> select * from c##nanfang.nanfangt1;
+select * from c##nanfang.nanfangt1
+                         *
+ERROR at line 1:
+ORA-00942: table or view does not exist
+
 
