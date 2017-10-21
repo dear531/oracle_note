@@ -7231,4 +7231,347 @@ select * from c##nanfang.nanfangt1
 ERROR at line 1:
 ORA-00942: table or view does not exist
 
+++角色
+++查看系统角色定义：
+SQL> r
+  1* select * from dba_roles
+
+ROLE				  ROLE_ID PASSWORD AUTHENTICAT COM O INH IMP
+------------------------------ ---------- -------- ----------- --- - --- ---
+CONNECT 				2 NO	   NONE        YES Y NO  NO
+RESOURCE				3 NO	   NONE        YES Y NO  NO
+DBA					4 NO	   NONE        YES Y NO  NO
+PDB_DBA 				5 NO	   NONE        YES Y NO  NO
+AUDIT_ADMIN				6 NO	   NONE        YES Y NO  NO
+AUDIT_VIEWER				7 NO	   NONE        YES Y NO  NO
+SELECT_CATALOG_ROLE		       10 NO	   NONE        YES Y NO  NO
+EXECUTE_CATALOG_ROLE		       11 NO	   NONE        YES Y NO  NO
+CAPTURE_ADMIN			       12 NO	   NONE        YES Y NO  NO
+EXP_FULL_DATABASE		       14 NO	   NONE        YES Y NO  NO
+IMP_FULL_DATABASE		       15 NO	   NONE        YES Y NO  NO
+CDB_DBA 			       16 NO	   NONE        YES Y NO  NO
+APPLICATION_TRACE_VIEWER	       17 NO	   NONE        YES Y NO  NO
+LOGSTDBY_ADMINISTRATOR		       18 NO	   NONE        YES Y NO  NO
+DBFS_ROLE			       19 NO	   NONE        YES Y NO  NO
+GSMUSER_ROLE			       20 NO	   NONE        YES Y NO  NO
+AQ_ADMINISTRATOR_ROLE		       24 NO	   NONE        YES Y NO  NO
+AQ_USER_ROLE			       25 NO	   NONE        YES Y NO  NO
+DATAPUMP_EXP_FULL_DATABASE	       26 NO	   NONE        YES Y NO  NO
+DATAPUMP_IMP_FULL_DATABASE	       27 NO	   NONE        YES Y NO  NO
+ADM_PARALLEL_EXECUTE_TASK	       28 NO	   NONE        YES Y NO  NO
+PROVISIONER			       29 NO	   NONE        YES Y NO  NO
+XS_SESSION_ADMIN		       30 NO	   NONE        YES Y NO  NO
+XS_NAMESPACE_ADMIN		       31 NO	   NONE        YES Y NO  NO
+XS_CACHE_ADMIN			       32 NO	   NONE        YES Y NO  NO
+XS_CONNECT			       33 NO	   NONE        YES Y NO  NO
+GATHER_SYSTEM_STATISTICS	       36 NO	   NONE        YES Y NO  NO
+GSM_POOLADMIN_ROLE		       57 NO	   NONE        YES Y NO  NO
+OPTIMIZER_PROCESSING_RATE	       37 NO	   NONE        YES Y NO  NO
+DBMS_MDX_INTERNAL		       38 NO	   NONE        YES Y NO  NO
+RECOVERY_CATALOG_OWNER		       40 NO	   NONE        YES Y NO  NO
+RECOVERY_CATALOG_OWNER_VPD	       41 NO	   NONE        YES Y NO  NO
+RECOVERY_CATALOG_USER		       42 NO	   NONE        YES Y NO  NO
+EM_EXPRESS_BASIC		       43 NO	   NONE        YES Y NO  NO
+EM_EXPRESS_ALL			       44 NO	   NONE        YES Y NO  NO
+SYSUMF_ROLE			       45 NO	   NONE        YES Y NO  NO
+SCHEDULER_ADMIN 		       47 NO	   NONE        YES Y NO  NO
+HS_ADMIN_SELECT_ROLE		       48 NO	   NONE        YES Y NO  NO
+HS_ADMIN_EXECUTE_ROLE		       49 NO	   NONE        YES Y NO  NO
+HS_ADMIN_ROLE			       50 NO	   NONE        YES Y NO  NO
+GLOBAL_AQ_USER_ROLE		       51 GLOBAL   GLOBAL      YES Y NO  NO
+OEM_ADVISOR			       52 NO	   NONE        YES Y NO  NO
+OEM_MONITOR			       53 NO	   NONE        YES Y NO  NO
+GSMADMIN_ROLE			       56 NO	   NONE        YES Y NO  NO
+EJBCLIENT			       78 NO	   NONE        YES Y NO  NO
+GDS_CATALOG_SELECT		       58 NO	   NONE        YES Y NO  NO
+GGSYS_ROLE			       61 NO	   NONE        YES Y NO  NO
+
+ROLE				  ROLE_ID PASSWORD AUTHENTICAT COM O INH IMP
+------------------------------ ---------- -------- ----------- --- - --- ---
+XDBADMIN			       64 NO	   NONE        YES Y NO  NO
+XDB_SET_INVOKER 		       65 NO	   NONE        YES Y NO  NO
+AUTHENTICATEDUSER		       66 NO	   NONE        YES Y NO  NO
+XDB_WEBSERVICES 		       67 NO	   NONE        YES Y NO  NO
+XDB_WEBSERVICES_WITH_PUBLIC	       68 NO	   NONE        YES Y NO  NO
+XDB_WEBSERVICES_OVER_HTTP	       69 NO	   NONE        YES Y NO  NO
+SODA_APP			       70 NO	   NONE        YES Y NO  NO
+DATAPATCH_ROLE			       71 NO	   NONE        YES Y NO  NO
+WM_ADMIN_ROLE			       73 NO	   NONE        YES Y NO  NO
+JAVAUSERPRIV			       74 NO	   NONE        YES Y NO  NO
+JAVAIDPRIV			       75 NO	   NONE        YES Y NO  NO
+JAVASYSPRIV			       76 NO	   NONE        YES Y NO  NO
+JAVADEBUGPRIV			       77 NO	   NONE        YES Y NO  NO
+CSW_USR_ROLE			       99 NO	   NONE        YES Y NO  NO
+JMXSERVER			       79 NO	   NONE        YES Y NO  NO
+DBJAVASCRIPT			       80 NO	   NONE        YES Y NO  NO
+JAVA_ADMIN			       82 NO	   NONE        YES Y NO  NO
+JAVA_DEPLOY			       83 NO	   NONE        YES Y NO  NO
+CTXAPP				       85 NO	   NONE        YES Y NO  NO
+ORDADMIN			       91 NO	   NONE        YES Y NO  NO
+OLAP_XS_ADMIN			       92 NO	   NONE        YES Y NO  NO
+OLAP_DBA			       94 NO	   NONE        YES Y NO  NO
+OLAP_USER			       95 NO	   NONE        YES Y NO  NO
+SPATIAL_CSW_ADMIN		       97 NO	   NONE        YES Y NO  NO
+DV_SECANALYST			  1279994 NO	   NONE        YES Y NO  NO
+RDFCTX_ADMIN			      100 NO	   NONE        YES Y NO  NO
+LBAC_DBA			      102 NO	   NONE        YES Y NO  NO
+DV_REALM_OWNER			      105 NO	   NONE        YES Y NO  NO
+DV_MONITOR		       2147483628 NO	   NONE        YES Y NO  NO
+DV_ADMIN			  1279993 NO	   NONE        YES Y NO  NO
+DV_OWNER			  1279992 NO	   NONE        YES Y NO  NO
+DV_ACCTMGR			  1279991 NO	   NONE        YES Y NO  NO
+DV_PUBLIC			  1279995 NO	   NONE        YES Y NO  NO
+DV_PATCH_ADMIN		       2147483627 NO	   NONE        YES Y NO  NO
+DV_STREAMS_ADMIN	       2147483629 NO	   NONE        YES Y NO  NO
+DV_GOLDENGATE_ADMIN	       2147483630 NO	   NONE        YES Y NO  NO
+DV_XSTREAM_ADMIN	       2147483631 NO	   NONE        YES Y NO  NO
+DV_GOLDENGATE_REDO_ACCESS      2147483632 NO	   NONE        YES Y NO  NO
+DV_AUDIT_CLEANUP	       2147483633 NO	   NONE        YES Y NO  NO
+DV_DATAPUMP_NETWORK_LINK       2147483634 NO	   NONE        YES Y NO  NO
+DV_POLICY_OWNER 	       2147483635 NO	   NONE        YES Y NO  NO
+DV_REALM_RESOURCE		      104 NO	   NONE        YES Y NO  NO
+
+89 rows selected.
+
+++创建规则：
+SQL> create role c##designer identified by 123456;
+
+Role created.
+
+++授权给角色：
+SQL> grant create view, create table to c##designer;
+
+Grant succeeded.
+
+++将角色授权给东方用户
+SQL> grant c##designer to c##dongfang;
+
+Grant succeeded.
+
+++查询角色权限：
+SQL> select * from role_sys_privs where role = upper('c##designer');
+
+ROLE			       PRIVILEGE				ADM COM
+------------------------------ ---------------------------------------- --- ---
+INH
+---
+C##DESIGNER		       CREATE VIEW				NO  NO
+NO
+
+C##DESIGNER		       CREATE TABLE				NO  NO
+NO
+
+
+++修改角色密码：
+SQL> alter role c##designer not identified;
+
+Role altered.
+
+SQL> alter role c##designer identified by mrsoft;
+
+Role altered.
+
+++设置角色生效：
+SQL> create role c##quereyer;
+
+Role created.
+
+++设置角色生效
+SQL> set role c##quereyer;
+
+Role set.
+++设置密码生效
+SQL> set role c##designer identified by mrsoft;
+
+Role set.
+
+++删除角色：
+SQL> drop role c##quereyer;
+
+Role dropped.
+
+++产寻当前用户的角色：
+SQL> select * from session_roles;
+
+ROLE
+------------------------------
+C##DESIGNER
+
+++创建profile
+SQL> create profile c##lock_account      
+  2  limit
+  3  failed_login_attempts 5 
+  4  password_lock_time 7;
+
+Profile created.
+
+++将新创建的名为c##lock_account的profile给用户c##dongfang
+SQL> alter user c##dongfang 
+  2  profile c##lock_account;
+
+User altered.
+
+++之后故意输入五次错误，用户再登录之后将提示被锁定：
+SQL> connect c##dongfang 
+Enter password: 
+ERROR:
+ORA-01017: invalid username/password; logon denied
+
+
+Warning: You are no longer connected to ORACLE.
+SQL> connect c##dongfang
+Enter password: 
+ERROR:
+ORA-01017: invalid username/password; logon denied
+
+
+SQL> connect c##dongfang;
+Enter password: 
+ERROR:
+ORA-01017: invalid username/password; logon denied
+
+
+SQL> connect c##dongfang;
+Enter password: 
+ERROR:
+ORA-01017: invalid username/password; logon denied
+
+
+SQL> connect c##dongfang;
+Enter password: 
+ERROR:
+ORA-01017: invalid username/password; logon denied
+
+
+SQL> connect c##dongfang;
+Enter password: 
+ERROR:
+ORA-28000: the account is locked
+
+
+++登录system用户查看c##dongfang的状态：
+SQL> connect system
+Enter password: 
+Connected.
+
+++是被锁定的
+SQL> select username, account_status from dba_users
+  2  where username = upper('c##dongfang');
+
+USERNAME
+--------------------------------------------------------------------------------
+ACCOUNT_STATUS
+--------------------------------
+C##DONGFANG
+LOCKED(TIMED)
+
+++对用户解锁：
+SQL> alter user c##dongfang   
+  2  account unlock;
+
+User altered.
+
+++再用正确密码登录c##dongfang
+SQL> connect c##dongfang/mrsoft;
+Connected.
+++登录成功
+
+++设置一个密码过期时间为30天，宽期时间为3天的profile
+SQL> r
+  1  create profile c##password_life_time limit
+  2  password_life_time 30
+  3* password_grace_time 3
+
+Profile created.
+
+++将profile分配给c##dongfang用户
+SQL> alter user c##dongfang profile c##password_life_time;
+
+User altered.
+
+++30天密码过期，国期之后在三天内修改
+++三天之内不改能登录，三天之后不改登录不了，要求强行修改
+
+++设置历史密码：
+
+++设置重用历史密码最长使用时间
+SQL> create profile c##password_reuse_time   
+  2  limit password_reuse_time 90;
+
+Profile created.
+
+++设置重用历史密码中间改变的次数
+SQL> create profile c##password_reuse_max
+  2  limit password_reuse_max 5;
+
+Profile created.
+
+++将配置分配给c##dongfang用户
+SQL> alter user c##dongfang profile c##password_reuse_time;
+
+User altered.
+
+SQL> alter user c##dongfang profile c##password_reuse_max;
+
+User altered.
+
+++修改profile的资源参数，下次使用该配置文件的用户链接时才生效，已链接的不生效
+SQL> r
+  1  alter profile c##password_life_time limit
+  2  cpu_per_session 20000
+  3  sessions_per_user 10
+  4  cpu_per_call 500
+  5  password_life_time 180
+  6* failed_login_attempts 10
+
+Profile altered.
+
+++删除profile文件：
+SQL> drop profile c##password_life_time cascade;
+
+Profile dropped.
+
+++删除后没有profile配置的文件了，系统就采用默认配置
+
+++查看用户的profile配置：
+SQL> select profile from dba_users 
+  2  where username = upper('c##dongfang');
+
+PROFILE
+--------------------------------------------------------------------------------
+C##PASSWORD_REUSE_MAX
+
+++这是最后一次配置的文件信息，想要想要用户所有的信息都有效，要将配置都配置到一个文件里
+
+++查看profile文件的信息，通过dba_profiles字典，建立profile文件时，oracle会将profile的参数存在字典里
+SQL> r
+  1  select resource_name, resource_type, limit
+  2  from dba_profiles
+  3* where profile = upper('c##password_reuse_time')
+
+RESOURCE_NAME			 RESOURCE LIMIT
+-------------------------------- -------- --------------------
+COMPOSITE_LIMIT 		 KERNEL   DEFAULT
+SESSIONS_PER_USER		 KERNEL   DEFAULT
+CPU_PER_SESSION 		 KERNEL   DEFAULT
+CPU_PER_CALL			 KERNEL   DEFAULT
+LOGICAL_READS_PER_SESSION	 KERNEL   DEFAULT
+LOGICAL_READS_PER_CALL		 KERNEL   DEFAULT
+IDLE_TIME			 KERNEL   DEFAULT
+CONNECT_TIME			 KERNEL   DEFAULT
+PRIVATE_SGA			 KERNEL   DEFAULT
+FAILED_LOGIN_ATTEMPTS		 PASSWORD DEFAULT
+PASSWORD_LIFE_TIME		 PASSWORD DEFAULT
+
+RESOURCE_NAME			 RESOURCE LIMIT
+-------------------------------- -------- --------------------
+PASSWORD_REUSE_TIME		 PASSWORD 90
+PASSWORD_REUSE_MAX		 PASSWORD DEFAULT
+PASSWORD_VERIFY_FUNCTION	 PASSWORD DEFAULT
+PASSWORD_LOCK_TIME		 PASSWORD DEFAULT
+PASSWORD_GRACE_TIME		 PASSWORD DEFAULT
+INACTIVE_ACCOUNT_TIME		 PASSWORD DEFAULT
+
+17 rows selected.
+
 
