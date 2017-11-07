@@ -7574,4 +7574,19 @@ INACTIVE_ACCOUNT_TIME		 PASSWORD DEFAULT
 
 17 rows selected.
 
+++查询当前oracle实例的日志缓冲区大小：
+SQL> select distinct lebsz from x$kccle;
+
+     LEBSZ
+----------
+       512
+
+++通过v$libraracache动态性能视图查询当前实例的库缓存在调用阶段的请求存取数和不命中数：
+SQL> select sum(pins), sum(reloads)
+  2  from v$librarycache;
+
+ SUM(PINS) SUM(RELOADS)
+---------- ------------
+    183942	   4864
+
 
