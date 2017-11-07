@@ -7589,4 +7589,12 @@ SQL> select sum(pins), sum(reloads)
 ---------- ------------
     183942	   4864
 
+++通过v$rowcache动态性能视图查询当前实例的数据库字典高速缓存在调用阶段的请求存取数和不命中数
+SQL> select sum(gets), sum(getmisses)
+  2  from v$rowcache;
+
+ SUM(GETS) SUM(GETMISSES)
+---------- --------------
+    251374	    39751
+
 
