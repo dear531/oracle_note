@@ -7597,4 +7597,113 @@ SQL> select sum(gets), sum(getmisses)
 ---------- --------------
     251374	    39751
 
+++显示当前分配给所有会话的内存数，session uga memory用于显示分配给对话的内存字节数
+SQL> r  
+  1* select sum(value)||'字节' as 当前分配给所有绘画的内存数
+from v$sesstat, v$statname
+where name = 'session uga memory' and v$sesstat.statistic#=v$statname.statistic#
+
+当前分配给所有绘画的内存数
+----------------------------------------------
+24118888字节
+
+++显示曾经分配给所有绘画的最大内存数：
+SQL> r
+  1  select sum(value)||' 字节' as 曾经分配给所有绘画的最大数
+  2  from v$sesstat, v$statname
+  3* where name = 'session uga memory max' and v$sesstat.statistic#=v$statname.statistic#
+
+曾经分配给所有绘画的最大数
+-----------------------------------------------
+49778064 字节
+
+++查询一段时间内v$sysstat表中的统计信息
+++db block gets：数据请求的总和
+++consistent gets：通过对内存缓冲区存取既能满足的请求数
+++physical reads：磁盘文件存取的总数
+SQL> select name, value from v$sysstat  
+  2  where name in ('db block gets', 'consistent gets', 'physical reads');
+
+NAME								      VALUE
+---------------------------------------------------------------- ----------
+db block gets							      72575
+consistent gets 						     943662
+physical reads							      13008
+
+++缓冲区告诉缓存的命中率公式：1-(physical reads/(db block get + consistent gets))
+SQL> get tmp
+  1  select
+  2  (1 -
+  3  	(
+  4  		(select value from v$sysstat where name = 'db block gets')
+  5  	/
+  6  		(
+  7  		 	(select value from v$sysstat where name = 'consistent gets')
+  8  		 +
+  9  			(select value from v$sysstat where name = 'physical reads')
+ 10  		)
+ 11  	)
+ 12  )
+ 13  as 命中百分比
+ 14* from dual
+ 15  /
+
+命中百分比
+----------
+.921467616
+++通过调整db_bock_buffers调整使用高速缓存的大小，命中低往高调，命中高可适当调低
+++使高速缓存有更多空间他用
+
+++排序区参数：
+SQL> show parameter sort_area_size;
+
+NAME				     TYPE	 VALUE
+------------------------------------ ----------- ------------------------------
+sort_area_size			     integer	 65536
+
+SQL> show parameter sort_area_retained_size;
+
+NAME				     TYPE	 VALUE
+------------------------------------ ----------- ------------------------------
+sort_area_retained_size 	     integer	 0
+
+++large pool大小调整
+SQL> show parameter large_pool_size;
+
+NAME				     TYPE	 VALUE
+------------------------------------ ----------- ------------------------------
+large_pool_size 		     big integer 0
+SQL> alter system set large_pool_size=32m; 
+
+System altered.
+
+SQL> show parameter large_pool_size;
+
+NAME				     TYPE	 VALUE
+------------------------------------ ----------- ------------------------------
+large_pool_size 		     big integer 32M
+
+++查看所有服务器进程使用的内存的总量：
+SQL> show parameter pga_aggregate_target;
+
+NAME				     TYPE	 VALUE
+------------------------------------ ----------- ------------------------------
+pga_aggregate_target		     big integer 0
+SQL>    
+
+++查看pga采用的管理方式：
+SQL> show parameter workarea_size_policy;  
+
+NAME				     TYPE	 VALUE
+------------------------------------ ----------- ------------------------------
+workarea_size_policy		     string	 AUTO
+SQL>    
+
+++查看会话信息及堆栈空间的大小：
+SQL> show parameter sort_area_size;
+
+NAME				     TYPE	 VALUE
+------------------------------------ ----------- ------------------------------
+sort_area_size			     integer	 65536
+SQL>    
 
