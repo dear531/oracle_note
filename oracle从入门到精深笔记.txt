@@ -7707,3 +7707,15 @@ NAME				     TYPE	 VALUE
 sort_area_size			     integer	 65536
 SQL>    
 
+++理解好in函数和exists的用法
+++带in的语句，in语句中的语句先执行，而exists语句的，则主句先执行，哪个量小，哪个先执行，速度就快
+SQL> r
+  1* select * from t1 where exists
+(select id from t2 where t1.name = t2.name)
+
+	ID NAME
+---------- ----------
+         1 好
+         2 一般
+         3 还好
+
