@@ -7718,4 +7718,56 @@ SQL> r
          1 好
          2 一般
          3 还好
+++建立t1表建立唯一索引：
+SQL> create unique index t1_id_unique_index on t1(id);   
+
+Index created.
+
+++设子索引监控开始：
+SQL> alter index T1_ID_UNIQUE_INDEX monitoring usage;
+
+Index altered.
+
+++设置显示格式：
+SQL> column index_name format a20
+SQL> column table_name format a20
+SQL> set linesize 100
+SQL> r
+  1* select * from  v$object_usage
+
+INDEX_NAME	     TABLE_NAME 	  MON USE START_MONITORING    END_MONITORING
+-------------------- -------------------- --- --- ------------------- -------------------
+T1_ID_UNIQUE_INDEX   T1 		  YES NO  11/09/2017 10:23:01
+
+++查询与索引列无关的列：
+SQL> select * from t1 where name = '好';
+
+	ID NAME
+---------- ----------
+         1 好
+++查看索引被使用情况，没有被使用
+SQL> r  
+  1* select * from  v$object_usage
+
+INDEX_NAME	     TABLE_NAME 	  MON USE START_MONITORING    END_MONITORING
+-------------------- -------------------- --- --- ------------------- -------------------
+T1_ID_UNIQUE_INDEX   T1 		  YES NO  11/09/2017 10:23:01
+
+++查询与索引相关的列：
+SQL> select * from t1     
+  2  where id = 1;
+
+	ID NAME
+---------- ----------
+         1 好
+
+++索引列有列使用记录：
+SQL> r             
+  1* select * from  v$object_usage
+
+INDEX_NAME	     TABLE_NAME 	  MON USE START_MONITORING    END_MONITORING
+-------------------- -------------------- --- --- ------------------- -------------------
+T1_ID_UNIQUE_INDEX   T1 		  YES YES 11/09/2017 10:23:01
+
+
 
