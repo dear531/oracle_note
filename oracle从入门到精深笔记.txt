@@ -7769,5 +7769,66 @@ INDEX_NAME	     TABLE_NAME 	  MON USE START_MONITORING    END_MONITORING
 -------------------- -------------------- --- --- ------------------- -------------------
 T1_ID_UNIQUE_INDEX   T1 		  YES YES 11/09/2017 10:23:01
 
+++执行计划：
+++开启跟踪：
+SQL> set autotrace on
 
+SQL> r
+  1* select t1.id t1_id
+,t1.name t1_name,
+t2.id t2_id,
+t2.name t2_name
+from t1, t2
+where t1.id = t2.id
+
+     T1_ID T1_NAME	   T2_ID T2_NAME
+---------- ---------- ---------- ----------
+         2 一般                2 一般
+         3 还好                3 还好
+
+
+Execution Plan
+----------------------------------------------------------
+Plan hash value: 1838229974
+
+---------------------------------------------------------------------------
+| Id  | Operation	   | Name | Rows  | Bytes | Cost (%CPU)| Time	  |
+---------------------------------------------------------------------------
+|   0 | SELECT STATEMENT   |	  |	2 |    80 |	4   (0)| 00:00:01 |
+|*  1 |  HASH JOIN	   |	  |	2 |    80 |	4   (0)| 00:00:01 |
+|   2 |   TABLE ACCESS FULL| T1   |	3 |    60 |	2   (0)| 00:00:01 |
+|   3 |   TABLE ACCESS FULL| T2   |	4 |    80 |	2   (0)| 00:00:01 |
+---------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - access("T1"."ID"="T2"."ID")
+
+Note
+-----
+   - dynamic statistics used: dynamic sampling (level=2)
+
+
+Statistics
+----------------------------------------------------------
+	  4  recursive calls
+	  2  db block gets
+	 14  consistent gets
+	  0  physical reads
+	  0  redo size
+	832  bytes sent via SQL*Net to client
+	607  bytes received via SQL*Net from client
+	  2  SQL*Net roundtrips to/from client
+	  0  sorts (memory)
+	  0  sorts (disk)
+	  2  rows processed
+
+
+++执行计划选项：
+SQL>set autotrace on  --显示执行计划和统计信息   
+SQL>set autotrace on explain --只显示执行计划   
+SQL>set autotrace on statistics --只显示统计信息   
+SQL>set autotrace traceonly --同autotrace on，但不显示查询结果   
+SQL>set autotrace off --关闭autotrace
 
