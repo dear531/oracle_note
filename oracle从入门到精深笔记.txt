@@ -7832,3 +7832,313 @@ SQL>set autotrace on statistics --只显示统计信息  
 SQL>set autotrace traceonly --同autotrace on，但不显示查询结果   
 SQL>set autotrace off --关闭autotrace
 
+++以下使like语句和=号查找的对比，等号效率更高
+SQL> select * from TMP_UPSTATE_CASEKEY where TMP_UPSTATE_CASEKEY like '%TMP0000001%';
+
+TMP_UPSTATE_CA TMP_NUM_STATUS_ID UPDATE_DATE
+-------------- ----------------- ------------------
+TMP0000001		       1 09-NOV-17
+
+
+Execution Plan
+----------------------------------------------------------
+Plan hash value: 3379493841
+
+-----------------------------------------------------------------------------------------
+| Id  | Operation	  | Name		| Rows	| Bytes | Cost (%CPU)| Time	|
+-----------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT  |			|   470 | 17860 | 11659   (1)| 00:00:01 |
+|*  1 |  TABLE ACCESS FULL| TMP_UPSTATE_CASEKEY |   470 | 17860 | 11659   (1)| 00:00:01 |
+-----------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - filter("TMP_UPSTATE_CASEKEY" LIKE '%TMP0000001%')
+
+Note
+-----
+   - dynamic statistics used: dynamic sampling (level=2)
+
+
+Statistics
+----------------------------------------------------------
+	  6  recursive calls
+	  0  db block gets
+      42832  consistent gets
+      42738  physical reads
+	  0  redo size
+	728  bytes sent via SQL*Net to client
+	607  bytes received via SQL*Net from client
+	  2  SQL*Net roundtrips to/from client
+	  0  sorts (memory)
+	  0  sorts (disk)
+	  1  rows processed
+
+SQL>               
+SQL> select * from TMP_UPSTATE_CASEKEY where TMP_UPSTATE_CASEKEY like '%TMP0000001%';   
+
+TMP_UPSTATE_CA TMP_NUM_STATUS_ID UPDATE_DATE
+-------------- ----------------- ------------------
+TMP0000001		       1 09-NOV-17
+
+
+Execution Plan
+----------------------------------------------------------
+Plan hash value: 3379493841
+
+-----------------------------------------------------------------------------------------
+| Id  | Operation	  | Name		| Rows	| Bytes | Cost (%CPU)| Time	|
+-----------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT  |			|   470 | 17860 | 11659   (1)| 00:00:01 |
+|*  1 |  TABLE ACCESS FULL| TMP_UPSTATE_CASEKEY |   470 | 17860 | 11659   (1)| 00:00:01 |
+-----------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - filter("TMP_UPSTATE_CASEKEY" LIKE '%TMP0000001%')
+
+Note
+-----
+   - dynamic statistics used: dynamic sampling (level=2)
+
+
+Statistics
+----------------------------------------------------------
+	  0  recursive calls
+	  0  db block gets
+      42744  consistent gets
+      42738  physical reads
+	  0  redo size
+	728  bytes sent via SQL*Net to client
+	607  bytes received via SQL*Net from client
+	  2  SQL*Net roundtrips to/from client
+	  0  sorts (memory)
+	  0  sorts (disk)
+	  1  rows processed
+
+SQL> 
+SQL> 
+SQL> select * from TMP_UPSTATE_CASEKEY where TMP_UPSTATE_CASEKEY = 'TMP0000001';
+
+TMP_UPSTATE_CA TMP_NUM_STATUS_ID UPDATE_DATE
+-------------- ----------------- ------------------
+TMP0000001		       1 09-NOV-17
+
+
+Execution Plan
+----------------------------------------------------------
+Plan hash value: 4208854685
+
+-----------------------------------------------------------------------------------------------------
+| Id  | Operation		    | Name		    | Rows  | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT	    |			    |	  1 |	 38 |	  3   (0)| 00:00:01 |
+|   1 |  TABLE ACCESS BY INDEX ROWID| TMP_UPSTATE_CASEKEY   |	  1 |	 38 |	  3   (0)| 00:00:01 |
+|*  2 |   INDEX UNIQUE SCAN	    | UNIQUE_TMP_CONSTRAINT |	  1 |	    |	  2   (0)| 00:00:01 |
+-----------------------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   2 - access("TMP_UPSTATE_CASEKEY"='TMP0000001')
+
+
+Statistics
+----------------------------------------------------------
+	  0  recursive calls
+	  0  db block gets
+	  4  consistent gets
+	  0  physical reads
+	  0  redo size
+	588  bytes sent via SQL*Net to client
+	596  bytes received via SQL*Net from client
+	  1  SQL*Net roundtrips to/from client
+	  0  sorts (memory)
+	  0  sorts (disk)
+	  1  rows processed
+
+SQL> 
+++通过以下语句的执行计划分析执行过程，我们可以验证，通过查询索引列的关键值查找一条记录
+++过程是通过索引列找到该条记录的物理rowid之后，取出该条记录
+++这个执行过程和通过索引列关键值找到rowid关键字，再查找对应记录的过程是一样的
+SQL> select * from TMP_UPSTATE_CASEKEY where TMP_UPSTATE_CASEKEY = 'TMP0000001';
+
+TMP_UPSTATE_CA TMP_NUM_STATUS_ID UPDATE_DATE
+-------------- ----------------- ------------------
+TMP0000001		       1 09-NOV-17
+
+
+Execution Plan
+----------------------------------------------------------
+Plan hash value: 4208854685
+
+-----------------------------------------------------------------------------------------------------
+| Id  | Operation		    | Name		    | Rows  | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT	    |			    |	  1 |	 38 |	  3   (0)| 00:00:01 |
+|   1 |  TABLE ACCESS BY INDEX ROWID| TMP_UPSTATE_CASEKEY   |	  1 |	 38 |	  3   (0)| 00:00:01 |
+|*  2 |   INDEX UNIQUE SCAN	    | UNIQUE_TMP_CONSTRAINT |	  1 |	    |	  2   (0)| 00:00:01 |
+-----------------------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   2 - access("TMP_UPSTATE_CASEKEY"='TMP0000001')
+
+
+Statistics
+----------------------------------------------------------
+	  0  recursive calls
+	  0  db block gets
+	  4  consistent gets
+	  0  physical reads
+	  0  redo size
+	588  bytes sent via SQL*Net to client
+	596  bytes received via SQL*Net from client
+	  1  SQL*Net roundtrips to/from client
+	  0  sorts (memory)
+	  0  sorts (disk)
+	  1  rows processed
+
+SQL> l
+  1* select * from TMP_UPSTATE_CASEKEY where TMP_UPSTATE_CASEKEY = 'TMP0000001'
+SQL> select TMP_UPSTATE_CASEKEY from TMP_UPSTATE_CASEKEY where TMP_UPSTATE_CASEKEY = 'TMP0000001';
+
+TMP_UPSTATE_CA
+--------------
+TMP0000001
+
+
+Execution Plan
+----------------------------------------------------------
+Plan hash value: 3226494047
+
+-------------------------------------------------------------------------------------------
+| Id  | Operation	  | Name		  | Rows  | Bytes | Cost (%CPU)| Time	  |
+-------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT  |			  |	1 |    16 |	2   (0)| 00:00:01 |
+|*  1 |  INDEX UNIQUE SCAN| UNIQUE_TMP_CONSTRAINT |	1 |    16 |	2   (0)| 00:00:01 |
+-------------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - access("TMP_UPSTATE_CASEKEY"='TMP0000001')
+
+
+Statistics
+----------------------------------------------------------
+	  1  recursive calls
+	  0  db block gets
+	  3  consistent gets
+	  0  physical reads
+	  0  redo size
+	565  bytes sent via SQL*Net to client
+	607  bytes received via SQL*Net from client
+	  2  SQL*Net roundtrips to/from client
+	  0  sorts (memory)
+	  0  sorts (disk)
+	  1  rows processed
+
+SQL> 
+SQL> l                  
+  1* select TMP_UPSTATE_CASEKEY from TMP_UPSTATE_CASEKEY where TMP_UPSTATE_CASEKEY = 'TMP0000001'
+SQL> select * from TMP_UPSTATE_CASEKEY where rowid = (          
+  2  select rowid from TMP_UPSTATE_CASEKEY where TMP_UPSTATE_CASEKEY = 'TMP0000001'
+  3  );
+
+TMP_UPSTATE_CA TMP_NUM_STATUS_ID UPDATE_DATE
+-------------- ----------------- ------------------
+TMP0000001		       1 09-NOV-17
+
+
+Execution Plan
+----------------------------------------------------------
+Plan hash value: 4208854685
+
+-----------------------------------------------------------------------------------------------------
+| Id  | Operation		    | Name		    | Rows  | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT	    |			    |	  1 |	 50 |	  3   (0)| 00:00:01 |
+|   1 |  TABLE ACCESS BY INDEX ROWID| TMP_UPSTATE_CASEKEY   |	  1 |	 50 |	  3   (0)| 00:00:01 |
+|*  2 |   INDEX UNIQUE SCAN	    | UNIQUE_TMP_CONSTRAINT |	  1 |	    |	  2   (0)| 00:00:01 |
+-----------------------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   2 - access("TMP_UPSTATE_CASEKEY"='TMP0000001')
+
+Note
+-----
+   - dynamic statistics used: dynamic sampling (level=2)
+
+
+Statistics
+----------------------------------------------------------
+	 27  recursive calls
+	  0  db block gets
+	285  consistent gets
+	  0  physical reads
+	  0  redo size
+	588  bytes sent via SQL*Net to client
+	596  bytes received via SQL*Net from client
+	  1  SQL*Net roundtrips to/from client
+	  0  sorts (memory)
+	  0  sorts (disk)
+	  1  rows processed
+
+
+SQL> 
+SQL> l                  
+  1* select TMP_UPSTATE_CASEKEY from TMP_UPSTATE_CASEKEY where TMP_UPSTATE_CASEKEY = 'TMP0000001'
+SQL> select * from TMP_UPSTATE_CASEKEY where rowid = (          
+  2  select rowid from TMP_UPSTATE_CASEKEY where TMP_UPSTATE_CASEKEY = 'TMP0000001'
+  3  );
+
+TMP_UPSTATE_CA TMP_NUM_STATUS_ID UPDATE_DATE
+-------------- ----------------- ------------------
+TMP0000001		       1 09-NOV-17
+
+
+Execution Plan
+----------------------------------------------------------
+Plan hash value: 4208854685
+
+-----------------------------------------------------------------------------------------------------
+| Id  | Operation		    | Name		    | Rows  | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT	    |			    |	  1 |	 50 |	  3   (0)| 00:00:01 |
+|   1 |  TABLE ACCESS BY INDEX ROWID| TMP_UPSTATE_CASEKEY   |	  1 |	 50 |	  3   (0)| 00:00:01 |
+|*  2 |   INDEX UNIQUE SCAN	    | UNIQUE_TMP_CONSTRAINT |	  1 |	    |	  2   (0)| 00:00:01 |
+-----------------------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   2 - access("TMP_UPSTATE_CASEKEY"='TMP0000001')
+
+Note
+-----
+   - dynamic statistics used: dynamic sampling (level=2)
+
+
+Statistics
+----------------------------------------------------------
+	 27  recursive calls
+	  0  db block gets
+	285  consistent gets
+	  0  physical reads
+	  0  redo size
+	588  bytes sent via SQL*Net to client
+	596  bytes received via SQL*Net from client
+	  1  SQL*Net roundtrips to/from client
+	  0  sorts (memory)
+	  0  sorts (disk)
+	  1  rows processed
+
+
+
+
