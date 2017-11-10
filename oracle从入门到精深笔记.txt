@@ -8139,6 +8139,127 @@ Statistics
 	  0  sorts (disk)
 	  1  rows processed
 
+++设置归档模式，并进行备份：
+SQL> shutdown immediate;
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+SQL> startup mount;
+ORACLE instance started.
+
+Total System Global Area  784334848 bytes
+Fixed Size		    8797680 bytes
+Variable Size		  603980304 bytes
+Database Buffers	  167772160 bytes
+Redo Buffers		    3784704 bytes
+Database mounted.
+SQL> alter database archivelog;
+
+Database altered.
+
+SQL> archive log list;
+Database log mode	       Archive Mode
+Automatic archival	       Enabled
+Archive destination	       /home/oracle/app/oracle/product/11.2.0/dbhome_1/dbs/arch
+Oldest online log sequence     19
+Next log sequence to archive   21
+Current log sequence	       21
+SQL> 
+
+++备份日志文件：
+[oracle@localhost oracle]$ rman target system/nocatalog
+
+Recovery Manager: Release 12.2.0.1.0 - Production on Fri Nov 10 15:09:41 2017
+
+Copyright (c) 1982, 2017, Oracle and/or its affiliates.  All rights reserved.
+
+connected to target database: ORCL (DBID=1482024998, not open)
+
+RMAN> run {
+2> allocate channel ch_1 device type disk
+3> format = '/home/oracle/tmp/%_c.bak';
+4> backup tablespace USERS, TBSP_1 channel ch_1;
+5> }
+
+using target database control file instead of recovery catalog
+allocated channel: ch_1
+channel ch_1: SID=42 device type=DISK
+
+Starting backup at 10-NOV-17
+channel ch_1: starting full datafile backup set
+channel ch_1: specifying datafile(s) in backup set
+input datafile file number=00015 name=/home/oracle/app/oradata/orcl/tbsp_1.dbf
+input datafile file number=00007 name=/home/oracle/app/oradata/orcl/users01.dbf
+channel ch_1: starting piece 1 at 10-NOV-17
+channel ch_1: finished piece 1 at 10-NOV-17
+piece handle=/home/oracle/tmp/%_c.bak tag=TAG20171110T151043 comment=NONE
+channel ch_1: backup set complete, elapsed time: 00:00:04
+Finished backup at 10-NOV-17
+
+Starting Control File and SPFILE Autobackup at 10-NOV-17
+piece handle=/home/oracle/app/oracle/product/11.2.0/dbhome_1/dbs/c-1482024998-20171110-00 comment=NONE
+Finished Control File and SPFILE Autobackup at 10-NOV-17
+released channel: ch_1
+
+RMAN> 
+
+++查看文件及大小
+[oracle@localhost tmp]$ ls -lh /home/oracle/app/oracle/product/11.2.0/dbhome_1/dbs/c-1482024998-20171110-00
+-rw-rw----. 1 oracle oracle 18M Nov 10 15:10 /home/oracle/app/oracle/product/11.2.0/dbhome_1/dbs/c-1482024998-20171110-00
+
+++自动通道
+
+++执行过程
+RMAN> backup tablespace users;
+
+Starting backup at 10-NOV-17
+allocated channel: ORA_DISK_1
+channel ORA_DISK_1: SID=42 device type=DISK
+channel ORA_DISK_1: starting full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00007 name=/home/oracle/app/oradata/orcl/users01.dbf
+channel ORA_DISK_1: starting piece 1 at 10-NOV-17
+channel ORA_DISK_1: finished piece 1 at 10-NOV-17
+piece handle=/home/oracle/app/oracle/product/11.2.0/dbhome_1/dbs/04sj7n1n_1_1 tag=TAG20171110T152023 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+Finished backup at 10-NOV-17
+
+Starting Control File and SPFILE Autobackup at 10-NOV-17
+piece handle=/home/oracle/app/oracle/product/11.2.0/dbhome_1/dbs/c-1482024998-20171110-01 comment=NONE
+Finished Control File and SPFILE Autobackup at 10-NOV-17
+
+RMAN> 
 
 
+++恢复数据库，见oracle从入门到精神的344页
+++查看数据库备份文件信息：
+RMAN> list backup of tablespace USERS, TBSP_1;
+
+
+List of Backup Sets
+===================
+
+
+BS Key  Type LV Size       Device Type Elapsed Time Completion Time
+------- ---- -- ---------- ----------- ------------ ---------------
+1       Full    2.94M      DISK        00:00:04     10-NOV-17      
+        BP Key: 1   Status: AVAILABLE  Compressed: NO  Tag: TAG20171110T151043
+        Piece Name: /home/oracle/tmp/%_c.bak
+  List of Datafiles in backup set 1
+  File LV Type Ckp SCN    Ckp Time  Abs Fuz SCN Sparse Name
+  ---- -- ---- ---------- --------- ----------- ------ ----
+  7       Full 1888432    10-NOV-17              NO    /home/oracle/app/oradata/orcl/users01.dbf
+  15      Full 1888432    10-NOV-17              NO    /home/oracle/app/oradata/orcl/tbsp_1.dbf
+
+BS Key  Type LV Size       Device Type Elapsed Time Completion Time
+------- ---- -- ---------- ----------- ------------ ---------------
+3       Full    1.04M      DISK        00:00:01     10-NOV-17      
+        BP Key: 3   Status: AVAILABLE  Compressed: NO  Tag: TAG20171110T152023
+        Piece Name: /home/oracle/app/oracle/product/11.2.0/dbhome_1/dbs/04sj7n1n_1_1
+  List of Datafiles in backup set 3
+  File LV Type Ckp SCN    Ckp Time  Abs Fuz SCN Sparse Name
+  ---- -- ---- ---------- --------- ----------- ------ ----
+  7       Full 1888432    10-NOV-17              NO    /home/oracle/app/oradata/orcl/users01.dbf
+
+RMAN> 
 
