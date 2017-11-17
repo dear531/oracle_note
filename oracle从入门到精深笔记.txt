@@ -8592,4 +8592,59 @@ SQL> select * from t2;
            好
          5 临时
 
+++sql loader外部数据载入数据库：
+++用sqlplus创建数据表
+SQL> create table student
+  2  (stuno number(4),
+  3  stuname varchar2(20),
+  4  sex varchar2(4),
+  5  old number(4));
+
+Table created.
+
+++用sqldr进行载入：
+[oracle@localhost oracle]$ sqlldr system control=/mnt/hgfs/Data/gitstorage/oracle/student1.ctl log=stu.log
+Password:
+
+SQL*Loader: Release 12.2.0.1.0 - Production on Fri Nov 17 16:22:43 2017
+
+Copyright (c) 1982, 2017, Oracle and/or its affiliates.  All rights reserved.
+
+Path used:      Conventional
+Commit point reached - logical record count 3
+
+Table STUDENT:
+  2 Rows successfully loaded.
+
+Check the log file:
+  stu.log
+for more information about the load.
+[oracle@localhost oracle]$ sqlldr system control=/mnt/hgfs/Data/gitstorage/oracle/student2.ctl log=stu.log
+Password:
+
+SQL*Loader: Release 12.2.0.1.0 - Production on Fri Nov 17 16:22:49 2017
+
+Copyright (c) 1982, 2017, Oracle and/or its affiliates.  All rights reserved.
+
+Path used:      Conventional
+Commit point reached - logical record count 2
+
+Table STUDENT:
+  2 Rows successfully loaded.
+
+Check the log file:
+  stu.log
+for more information about the load.
+
+++查看数据表内容，已更新：
+SQL> select * from student;
+
+     STUNO STUNAME		SEX	    OLD
+---------- -------------------- ---- ----------
+      1003 jack                 男           23
+      1004 rose                 女           20
+      1001 东方                 男           30
+      1002 开心                 女           25
+
+SQL>  
 
