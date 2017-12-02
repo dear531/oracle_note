@@ -8648,3 +8648,47 @@ SQL> select * from student;
 
 SQL>  
 
+++从表格导入数据：
+SQL> r
+  1  create table persons
+  2  (code number(4),
+  3  name varchar2(20),
+  4  sex varchar2(4),
+  5  old number(4)
+  6* )
+
+Table created.
+
+++建立数据表如上。
+
+++准备好导入执行控制文件和csv格式数据表格persons.csv,persons.ctl并执行：
+[oracle@localhost oracle]$ sqlldr system control=/mnt/hgfs/data/gitstorage/oracle/persons.ctl
+Password:
+
+SQL*Loader: Release 12.2.0.1.0 - Production on Sat Dec 2 22:46:54 2017
+
+Copyright (c) 1982, 2017, Oracle and/or its affiliates.  All rights reserved.
+
+Path used:      Conventional
+Commit point reached - logical record count 4
+
+Table PERSONS:
+  4 Rows successfully loaded.
+
+Check the log file:
+  persons.log
+for more information about the load.
+
+++查看执行结果：
+
+SQL> select * from persons;
+
+      CODE NAME 		SEX	    OLD
+---------- -------------------- ---- ----------
+      1005 east                 女           26
+      1006 west                 男           25
+      1007 north                男           24
+      1008 south                女           23
+
+++效果还是很神奇的，没想到这么简单易用,以后用的多和用的复杂可继续深入研究。
+
