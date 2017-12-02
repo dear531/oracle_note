@@ -8661,6 +8661,15 @@ Table created.
 
 ++建立数据表如上。
 
+++操控文件内容：
+
+load data
+        infile '/mnt/hgfs/data/gitstorage/oracle/persons.csv'
+        append into table persons
+        fields terminated by ','
+        (code,name,sex,old)
+++从persons.csv文件导入数据，从括号中取得的字段，以","作为分割
+
 ++准备好导入执行控制文件和csv格式数据表格persons.csv,persons.ctl并执行：
 [oracle@localhost oracle]$ sqlldr system control=/mnt/hgfs/data/gitstorage/oracle/persons.ctl
 Password:
